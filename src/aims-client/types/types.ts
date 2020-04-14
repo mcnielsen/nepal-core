@@ -6,11 +6,6 @@ import {
     AlChangeStamp,
 } from '@al/client';
 
-/**
- * Reexport AIMS constructs that are defined in @al/session for convenience.
- */
-export { AlChangeStamp, AIMSAuthentication, AIMSUser, AIMSAccount, AIMSSessionDescriptor } from '@al/client';
-
 export interface AIMSAuthenticationTokenInfo extends AIMSAuthentication {
     entity_id?: string;
     entity_type?: string;
