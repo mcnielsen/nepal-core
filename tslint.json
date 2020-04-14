@@ -21,13 +21,14 @@
     "object-literal-shorthand": false,
     "array-bracket-spacing": false,
     "whitespace": false,
+    "prefer-array-literal" : [true, {"allow-type-parameters": true, "allow-size-argument": true}],
     "trailing-comma": [
       true, {
         "esSpecCompliant": true
       }
     ],
     "object-literal-key-quotes": false,
-    "member-ordering": [ true, { "order": "fields-first" } ],
+    "member-ordering": [ true, { "order": "fields-first" } ]
 
 
 

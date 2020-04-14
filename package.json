@@ -1,0 +1,67 @@
+{
+  "name": "nepal-core",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./dist/umd/index.js",
+  "module": "./dist/commonjs/index.js",
+  "types": "./dist/typings/index.d.ts",
+  "author": {
+    "name": "Alert Logic NPM Team",
+    "email": "npm@alertlogic.com"
+  },
+  "maintainer": {
+    "name": "Alert Logic NPM Team",
+    "email": "npm@alertlogic.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alertlogic/nepal-core"
+  },
+  "scripts": {
+    "test": "karma start",
+    "test-watch": "karma start --no-single-run --auto-watch",
+    "build-dev": "npm run clean &&  tsc && webpack --mode=development",
+    "build": "webpack",
+    "prebuild": "npm run clean && npm run lint && npm run test && tsc",
+    "lint": "tslint -p tsconfig.json",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build",
+    "interactive": "npm run build && node -i -e \"const AIMSClient = require('./dist/commonjs/index.js').AIMSClient;\"",
+    "compile-documentation": "api-extractor run && api-documenter markdown --input-folder 'temp' --output-folder 'docs'"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "auth0-js": "^9.12.2",
+    "axios": "^0.19.2",
+    "base64-js": "^1.3.0"
+  },
+  "devDependencies": {
+    "@types/auth0-js": "^9.12.4",
+    "@types/chai": "^4.2.4",
+    "@types/karma": "^5.0.0",
+    "@types/mocha": "^7.0.2",
+    "@types/qs": "^6.5.1",
+    "@types/sinon": "^9.0.0",
+    "chai": "^4.2.0",
+    "copy-webpack-plugin": "^5.0.5",
+    "karma": "^5.0.1",
+    "karma-chrome-launcher": "^3.1.0",
+    "karma-cli": "^2.0.0",
+    "karma-mocha": "^1.3.0",
+    "karma-typescript": "^5.0.2",
+    "mocha": "~7.0.1",
+    "peer-deps-externals-webpack-plugin": "^1.0.4",
+    "sinon": "^9.0.2",
+    "tslint": "^5.12.1",
+    "tslint-config-airbnb": "^5.11.1",
+    "typescript": "^3.6.4",
+    "webpack": "^4.41.2",
+    "webpack-bundle-analyzer": "^3.6.0",
+    "webpack-cli": "^3.2.1",
+    "webpack-node-externals": "^1.7.2",
+    "xhr-mock": "^2.4.1"
+  },
+  "files": [
+    "dist"
+  ]
+}
