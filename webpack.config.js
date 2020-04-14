@@ -1,8 +1,13 @@
 const path          = require('path');
 const nodeExternals = require('webpack-node-externals');
 
-module.exports = (env) => {
+module.exports = [
+    createConfig('umd'),
+    createConfig('commonjs'),
 
+]
+
+function createConfig(libraryTarget){
     return {
         mode     : 'production',
         devtool: 'source-map',
@@ -31,13 +36,12 @@ module.exports = (env) => {
         },
         externals: [nodeExternals()],
         output   : {
-            path         : path.resolve(__dirname, './dist/umd'),
+            path         : path.resolve(__dirname, './dist/'+libraryTarget),
             filename     : '[name].js',
             library      : '@al/core',
-            libraryTarget: 'umd', // supports commonjs, amd and web browsers
+            libraryTarget: libraryTarget, // supports commonjs, amd and web browsers
             globalObject : 'this',
         },
         plugins  : [],
     };
-
-};
+}
