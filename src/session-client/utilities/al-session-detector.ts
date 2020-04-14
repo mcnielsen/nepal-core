@@ -5,8 +5,11 @@
  *  @copyright Alert Logic, Inc 2019
  */
 
-import { AIMSClient, AIMSSessionDescriptor } from '@al/aims';
-import { AlDefaultClient } from '@al/client';
+import { AIMSClient } from '@al/aims';
+import {
+    AIMSSessionDescriptor,
+    AlDefaultClient,
+} from '@al/client';
 import { AlLocation, AlLocatorService, AlStopwatch } from '@al/common';
 import { WebAuth } from 'auth0-js';
 import { AlSession } from '../al-session';

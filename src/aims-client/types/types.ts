@@ -1,8 +1,6 @@
 import {
     AIMSAccount,
     AIMSAuthentication,
-    AIMSSessionDescriptor,
-    AIMSUser,
     AlChangeStamp,
 } from '@al/client';
 

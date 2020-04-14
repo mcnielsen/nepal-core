@@ -1,4 +1,4 @@
-import { AIMSSessionDescriptor } from '@al/aims';
+import { AIMSSessionDescriptor } from "@al/client";
 import {
     AlBehaviorPromise,
     AlLocation,
@@ -22,9 +22,6 @@ export class AlConduitClient
     protected static externalSessions: { [locationId:string]:{promise?:Promise<void>,resolver:any,resolved:boolean} } = {};
 
     protected static requestIndex = 0;
-
-    constructor() {
-    }
 
     public start( targetDocument:Document = document ) {
         if ( AlConduitClient.refCount < 1 ) {

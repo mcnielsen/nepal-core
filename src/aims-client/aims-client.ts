@@ -1,9 +1,25 @@
 /**
  * Module to deal with available AIMS Public API endpoints
  */
-import { AlLocatorService, AlLocation, AlResponseValidationError } from '@al/common';
-import { AlApiClient, AlDefaultClient,  AIMSSessionDescriptor } from '@al/client';
-import { AIMSAccount, AIMSUser, AIMSAuthenticationTokenInfo, AIMSRole, AIMSAccessKey, AIMSOrganization, AIMSTopology } from './types';
+import {
+    AIMSAccount,
+    AIMSSessionDescriptor,
+    AIMSUser,
+    AlApiClient,
+    AlDefaultClient,
+} from "@al/client";
+import {
+    AlLocation,
+    AlLocatorService,
+    AlResponseValidationError,
+} from '@al/common';
+import {
+    AIMSAccessKey,
+    AIMSAuthenticationTokenInfo,
+    AIMSOrganization,
+    AIMSRole,
+    AIMSTopology,
+} from './types';
 
 export class AIMSClientInstance {
 
