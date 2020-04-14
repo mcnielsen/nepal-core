@@ -1,10 +1,10 @@
 {
   "name": "nepal-core",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "",
-  "main": "./dist/umd/index.js",
-  "module": "./dist/commonjs/index.js",
-  "types": "./dist/typings/index.d.ts",
+  "main": "./dist/index.cjs.js",
+  "types": "./dist/index.d.ts",
+  "module": "./dist/index.esm.js",
   "author": {
     "name": "Alert Logic NPM Team",
     "email": "npm@alertlogic.com"
@@ -21,12 +21,12 @@
     "test": "karma start",
     "test-watch": "karma start --no-single-run --auto-watch",
     "build-dev": "npm run clean &&  tsc && webpack --mode=development",
-    "build": "webpack",
+    "build": "rollup -c rollup.config.ts",
     "prebuild": "npm run clean && npm run lint && npm run test",
     "lint": "tslint -p tsconfig.json",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run build",
-    "interactive": "npm run build && node -i -e \"const AIMSClient = require('./dist/commonjs/index.js').AIMSClient;\"",
+    "interactive": "npm run build && node -i -e \"const AIMSClient = require('./dist/index.cjs.js').AIMSClient;\"",
     "compile-documentation": "api-extractor run && api-documenter markdown --input-folder 'temp' --output-folder 'docs'"
   },
   "license": "MIT",
@@ -60,7 +60,10 @@
     "webpack-bundle-analyzer": "^3.6.0",
     "webpack-cli": "^3.2.1",
     "webpack-node-externals": "^1.7.2",
-    "xhr-mock": "^2.4.1"
+    "xhr-mock": "^2.4.1",
+    "rollup": "^2.6.1",
+    "rollup-plugin-terser": "^5.3.0",
+    "rollup-plugin-typescript2": "^0.27.0"
   },
   "files": [
     "dist"
