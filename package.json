@@ -1,5 +1,5 @@
 {
-  "name": "nepal-core",
+  "name": "@al/core",
   "version": "0.0.1",
   "description": "Nepal Core",
   "main": "./dist/index.cjs.js",
