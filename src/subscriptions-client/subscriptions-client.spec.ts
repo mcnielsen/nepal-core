@@ -1,4 +1,7 @@
-import { expect, assert } from 'chai';
+import {
+    assert,
+    expect,
+} from 'chai';
 import { describe } from 'mocha';
 import * as sinon from 'sinon';
 import { SubscriptionsClient } from "./subscriptions-client";

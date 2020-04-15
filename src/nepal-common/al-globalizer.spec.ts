@@ -1,7 +1,7 @@
 import { expect } from 'chai';
-import { describe, before } from 'mocha';
-import { AlGlobalizer } from './utility/al-globalizer';
+import { describe } from 'mocha';
 import * as sinon from 'sinon';
+import { AlGlobalizer } from './utility/al-globalizer';
 
 describe( `AlGlobalizer`, () => {
     describe( `.expose()`, () => {

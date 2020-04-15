@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { describe, before } from 'mocha';
+import { describe } from 'mocha';
 import { AlCabinet } from './utility';
 
 describe( 'AlCabinet', () => {

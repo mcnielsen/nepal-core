@@ -1,12 +1,10 @@
-import {
-    AlLocation,
-    AlLocatorService,
-} from '@al/common';
 import { expect } from 'chai';
 import { describe } from 'mocha';
 import xhrMock, { once } from 'xhr-mock';
 import {
     AlDefaultClient,
+    AlLocation,
+    AlLocatorService,
     APIRequestParams,
 } from '../index';
 

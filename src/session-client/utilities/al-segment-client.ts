@@ -1,11 +1,15 @@
-import { AlLocation, AlLocatorService, AlGlobalizer } from '@al/common';
-
 /**
  *  This is a simple prototype of the functionality on the segment analytics object
  *  that we actually use.
  *
  *  Based on the API defined here: https://segment.com/docs/sources/server/http/
  */
+import {
+    AlLocation,
+    AlLocatorService,
+} from "../../nepal-common/locator";
+import { AlGlobalizer } from "../../nepal-common/utility";
+
 export interface ISegmentAnalytics
 {
     track( eventName:string, properties:{[propName:string]:any}, options:{[optName:string]:any} ):void;

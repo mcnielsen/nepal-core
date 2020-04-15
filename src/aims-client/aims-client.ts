@@ -1,18 +1,19 @@
 /**
  * Module to deal with available AIMS Public API endpoints
  */
+
 import {
     AIMSAccount,
     AIMSSessionDescriptor,
     AIMSUser,
     AlApiClient,
     AlDefaultClient,
-} from "@al/client";
+} from "../api-client";
+import { AlResponseValidationError } from "../nepal-common/errors";
 import {
     AlLocation,
     AlLocatorService,
-    AlResponseValidationError,
-} from '@al/common';
+} from "../nepal-common/locator";
 import {
     AIMSAccessKey,
     AIMSAuthenticationTokenInfo,

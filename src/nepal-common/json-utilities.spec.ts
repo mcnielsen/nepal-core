@@ -1,7 +1,11 @@
 import { expect } from 'chai';
-import { describe, before } from 'mocha';
-import { getJsonPath, setJsonPath, deepMerge } from './utility/json-utilities';
+import { describe } from 'mocha';
 import * as sinon from 'sinon';
+import {
+    deepMerge,
+    getJsonPath,
+    setJsonPath,
+} from './utility/json-utilities';
 
 describe( `getJsonPath`, () => {
     it( `Should retrieve the expected data from deeply nested objects`, () => {

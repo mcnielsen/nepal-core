@@ -1,7 +1,6 @@
 import { expect } from 'chai';
 import { describe } from 'mocha';
 import { AlBehaviorPromise } from './promises';
-import * as sinon from 'sinon';
 
 describe( 'AlBehaviorPromise', () => {
 

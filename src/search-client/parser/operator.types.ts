@@ -10,7 +10,16 @@
  *  @copyright Alert Logic Inc, 2018
  */
 
-import { SQXParseError, SQXToken, SQXOperatorBase, SQXGroupBase, SQXScalarValue, SQXPropertyRef, SQXOperatorMetadata, SQXParseCursor } from './common.types';
+import {
+    SQXGroupBase,
+    SQXOperatorBase,
+    SQXOperatorMetadata,
+    SQXParseCursor,
+    SQXParseError,
+    SQXPropertyRef,
+    SQXScalarValue,
+    SQXToken,
+} from './common.types';
 
 export class SQXTokenCollection extends SQXGroupBase<SQXToken> {
     static opSpec:SQXOperatorMetadata = {

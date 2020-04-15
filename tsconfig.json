@@ -1,14 +1,6 @@
 {
   "compileOnSave"  : false,
   "compilerOptions": {
-    "paths"                           : {
-      "@al/client"       : ["src/api-client"],
-      "@al/aims"         : ["src/aims-client"],
-      "@al/common"       : ["src/nepal-common"],
-      "@al/search"       : ["src/search-client"],
-      "@al/session"      : ["src/session-client"],
-      "@al/subscriptions": ["src/subscriptions-client"]
-    },
     "allowSyntheticDefaultImports"    : true,
     "baseUrl"                         : "./",
     "declaration"                     : true,

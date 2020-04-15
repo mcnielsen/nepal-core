@@ -10,8 +10,21 @@
  *  @copyright Alert Logic Inc, 2018
  */
 
-import { SQXParseError, SQXToken, SQXOperatorBase, SQXOperatorMetadata, SQXScalarValue, SQXPropertyRef, SQXParseCursor, SQXSortField } from './common.types';
-import { SQXTokenCollection, SQXOperatorAnd, SQXOperatorOr } from './operator.types';
+import {
+    SQXOperatorBase,
+    SQXOperatorMetadata,
+    SQXParseCursor,
+    SQXParseError,
+    SQXPropertyRef,
+    SQXScalarValue,
+    SQXSortField,
+    SQXToken,
+} from './common.types';
+import {
+    SQXOperatorAnd,
+    SQXOperatorOr,
+    SQXTokenCollection,
+} from './operator.types';
 
 export class SQXClauseSelect extends SQXOperatorBase
 {

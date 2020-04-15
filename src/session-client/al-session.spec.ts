@@ -1,12 +1,24 @@
-import { AIMSClient } from '@al/aims';
-import { AIMSAccount, AlDefaultClient, AlClientBeforeRequestEvent } from '@al/client';
-import { AlCabinet } from '@al/common';
-import { AlEntitlementCollection, SubscriptionsClient } from '@al/subscriptions';
-import { assert, expect } from 'chai';
+import {
+    assert,
+    expect,
+} from 'chai';
 import { describe } from 'mocha';
 import * as sinon from 'sinon';
-import { AlSession, AlSessionInstance } from './index';
-import { exampleActing, exampleSession } from './mocks/session-data.mocks';
+import { AIMSClient } from "../aims-client";
+import { AlDefaultClient } from "../api-client";
+import { AlClientBeforeRequestEvent } from "../api-client/events";
+import { AIMSAccount } from "../api-client/types";
+import { AlCabinet } from "../nepal-common/utility";
+import { SubscriptionsClient } from "../subscriptions-client";
+import { AlEntitlementCollection } from "../subscriptions-client/types";
+import {
+    AlSession,
+    AlSessionInstance,
+} from './index';
+import {
+    exampleActing,
+    exampleSession,
+} from './mocks/session-data.mocks';
 
 describe('AlSession - AIMSAuthentication value persistance Test Suite:', () => {
   let sessionDescriptor;

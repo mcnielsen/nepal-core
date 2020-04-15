@@ -1,10 +1,9 @@
 import { expect } from 'chai';
-import { describe, before } from 'mocha';
+import { describe } from 'mocha';
 import * as sinon from 'sinon';
 import {
+    AlCardstackCharacteristics,
     AlCardstackView,
-    AlCardstackItem,
-    AlCardstackCharacteristics
 } from './cardstack';
 
 const dummyColors = [

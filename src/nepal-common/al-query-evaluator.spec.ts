@@ -1,7 +1,10 @@
 import { expect } from 'chai';
 import { describe } from 'mocha';
 import * as sinon from 'sinon';
-import { AlQuerySubject, AlQueryEvaluator } from './utility';
+import {
+    AlQueryEvaluator,
+    AlQuerySubject,
+} from './utility';
 
 class MockQueryable implements AlQuerySubject
 {

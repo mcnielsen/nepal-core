@@ -1,11 +1,12 @@
-import { AlDefaultClient } from '@al/client';
+import { expect } from 'chai';
+
+import { describe } from 'mocha';
+import * as sinon from 'sinon';
+import { AlDefaultClient } from "../api-client";
 import {
     AlLocation,
     AlLocatorService,
-} from '@al/common';
-import { expect } from 'chai';
-import { describe } from 'mocha';
-import * as sinon from 'sinon';
+} from "../nepal-common";
 import {
     AIMSClient,
     AIMSClientInstance,

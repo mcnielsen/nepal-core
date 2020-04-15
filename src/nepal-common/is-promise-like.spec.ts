@@ -1,7 +1,7 @@
 import { expect } from 'chai';
-import { describe, before } from 'mocha';
-import { isPromiseLike } from './utility/is-promise-like';
+import { describe } from 'mocha';
 import * as sinon from 'sinon';
+import { isPromiseLike } from './utility/is-promise-like';
 
 describe( `isPromiseLike`, () => {
     afterEach( () => {

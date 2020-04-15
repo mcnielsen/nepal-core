@@ -1,4 +1,7 @@
-import { AlLocationDescriptor, AlLocation } from './al-locator.types';
+import {
+    AlLocation,
+    AlLocationDescriptor,
+} from './al-locator.types';
 
 /**
  * @public

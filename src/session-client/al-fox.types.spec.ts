@@ -1,5 +1,8 @@
 import { expect } from 'chai';
-import { before, describe, it } from 'mocha';
+import {
+    describe,
+    it,
+} from 'mocha';
 import { AlFoxSnapshot } from './types/al-fox.types';
 
 /**

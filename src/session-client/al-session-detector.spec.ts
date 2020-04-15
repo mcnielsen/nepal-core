@@ -1,12 +1,16 @@
-import { AIMSClient } from '@al/aims';
-import { AlLocatorService } from "@al/common";
 import { WebAuth } from 'auth0-js';
 import { expect } from 'chai';
+
 import { describe } from 'mocha';
 import * as sinon from 'sinon';
 import { AlSession } from '.';
-import { AlConduitClient, AlSessionDetector } from './utilities';
+import { AIMSClient } from "../aims-client";
+import { AlLocatorService } from "../nepal-common/locator";
 import { exampleSession } from './mocks';
+import {
+    AlConduitClient,
+    AlSessionDetector,
+} from './utilities';
 
 describe('AlSessionDetector', () => {
     let conduit:AlConduitClient;

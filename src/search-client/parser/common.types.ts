@@ -8,7 +8,8 @@
  *  @copyright Alert Logic Inc, 2018
  */
 
-import { AlBaseError } from '@al/common';
+
+import { AlBaseError } from "../../nepal-common/errors";
 
 /**
  * This is a parser specific error.  Its constructor allows it to "attach" to a token where the error occurred, and to identify a specific point

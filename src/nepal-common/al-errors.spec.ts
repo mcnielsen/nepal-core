@@ -1,16 +1,16 @@
 import { expect } from 'chai';
-import { describe, before } from 'mocha';
+import { describe } from 'mocha';
+import * as sinon from 'sinon';
 import {
     AlAPIServerError,
+    AlBadGatewayError,
+    AlBadRequestError,
+    AlNotFoundError,
     AlResponseValidationError,
     AlUnauthenticatedRequestError,
     AlUnauthorizedRequestError,
     AlUnimplementedMethodError,
-    AlNotFoundError,
-    AlBadRequestError,
-    AlBadGatewayError
 } from './errors';
-import * as sinon from 'sinon';
 
 describe( `Errors`, () => {
     afterEach( () => {

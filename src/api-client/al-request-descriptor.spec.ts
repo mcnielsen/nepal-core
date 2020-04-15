@@ -1,8 +1,7 @@
-import { AlDefaultClient, AlRequestDescriptor } from './index';
 import { expect } from 'chai';
-import { describe, before } from 'mocha';
-import xhrMock, { once } from 'xhr-mock';
-import * as qs from 'qs';
+import { describe } from 'mocha';
+import xhrMock from 'xhr-mock';
+import { AlRequestDescriptor } from './index';
 
 beforeEach(() => xhrMock.setup());
 afterEach(() => xhrMock.teardown());

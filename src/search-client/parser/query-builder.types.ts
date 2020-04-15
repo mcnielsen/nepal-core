@@ -1,7 +1,18 @@
+import { SQXClauseWhere } from './clause.types';
+import {
+    SQXGroupBase,
+    SQXOperatorBase,
+    SQXPropertyRef,
+    SQXScalarValue,
+} from './common.types';
+import {
+    SQXComparatorEqual,
+    SQXComparatorIn,
+    SQXComparatorNotEqual,
+    SQXOperatorAnd,
+    SQXOperatorNegate,
+} from './operator.types';
 import { SQXSearchQuery } from './query.types';
-import { SQXParseError, SQXToken, SQXOperatorBase, SQXPropertyRef, SQXScalarValue, SQXGroupBase } from './common.types';
-import { SQX_ALL_OPERATORS, SQXOperatorAnd, SQXOperatorOr, SQXOperatorProjectAs, SQXComparatorEqual, SQXComparatorIn, SQXComparatorNotEqual, SQXOperatorNegate } from './operator.types';
-import { SQX_ALL_CLAUSES, SQXClauseWhere, SQXClauseSelect, SQXClauseOrderBy, SQXClauseGroupBy, SQXClauseGroupByPermuted, SQXClauseHaving, SQXClauseLimit, SQXClauseTimeRange } from './clause.types';
 
 export class SQXQueryBuilder
 {

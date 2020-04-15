@@ -1,6 +1,11 @@
 import { expect } from 'chai';
 import { describe } from 'mocha';
-import { AlLocation, AlLocationDescriptor, AlLocatorMatrix, AlLocationDictionary } from './locator';
+import {
+    AlLocation,
+    AlLocationDescriptor,
+    AlLocationDictionary,
+    AlLocatorMatrix,
+} from './locator';
 
 describe( 'AlLocatorMatrix', () => {
 

@@ -8,9 +8,30 @@
  *  @copyright Alert Logic Inc, 2018
  */
 
-import { SQXParseError, SQXToken, SQXOperatorBase, SQXPropertyRef, SQXScalarValue, SQXGroupBase } from './common.types';
-import { SQX_ALL_OPERATORS, SQXOperatorAnd, SQXOperatorOr, SQXOperatorProjectAs, SQXComparatorEqual, SQXComparatorIn } from './operator.types';
-import { SQX_ALL_CLAUSES, SQXClauseWhere, SQXClauseSelect, SQXClauseOrderBy, SQXClauseGroupBy, SQXClauseGroupByPermuted, SQXClauseHaving, SQXClauseLimit, SQXClauseTimeRange } from './clause.types';
+import {
+    SQXClauseGroupBy,
+    SQXClauseGroupByPermuted,
+    SQXClauseHaving,
+    SQXClauseLimit,
+    SQXClauseOrderBy,
+    SQXClauseSelect,
+    SQXClauseTimeRange,
+    SQXClauseWhere,
+} from './clause.types';
+import {
+    SQXGroupBase,
+    SQXOperatorBase,
+    SQXPropertyRef,
+    SQXScalarValue,
+    SQXToken,
+} from './common.types';
+import {
+    SQXComparatorEqual,
+    SQXComparatorIn,
+    SQXOperatorAnd,
+    SQXOperatorOr,
+    SQXOperatorProjectAs,
+} from './operator.types';
 import { SQXParser } from './parser.types';
 
 /**

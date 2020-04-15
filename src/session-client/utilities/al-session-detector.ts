@@ -5,13 +5,16 @@
  *  @copyright Alert Logic, Inc 2019
  */
 
-import { AIMSClient } from '@al/aims';
-import {
-    AIMSSessionDescriptor,
-    AlDefaultClient,
-} from '@al/client';
-import { AlLocation, AlLocatorService, AlStopwatch } from '@al/common';
 import { WebAuth } from 'auth0-js';
+import { AIMSClient } from "../../aims-client";
+import { AlDefaultClient } from "../../api-client";
+import { AIMSSessionDescriptor } from "../../api-client/types";
+import {
+    AlLocation,
+    AlLocatorService,
+} from "../../nepal-common/locator";
+import { AlStopwatch } from "../../nepal-common/utility";
+
 import { AlSession } from '../al-session';
 import { AlConduitClient } from './al-conduit-client';
 

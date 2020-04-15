@@ -1,6 +1,10 @@
 import { expect } from 'chai';
 import { describe } from 'mocha';
-import { AlTriggerStream, AlTriggeredEvent, AlTrigger } from '.';
+import {
+    AlTrigger,
+    AlTriggeredEvent,
+    AlTriggerStream,
+} from '.';
 
 @AlTrigger("EventType1")
 class EventType1 extends AlTriggeredEvent<boolean|string|number>

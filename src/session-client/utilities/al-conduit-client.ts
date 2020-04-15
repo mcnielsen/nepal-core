@@ -1,12 +1,17 @@
-import { AIMSSessionDescriptor } from "@al/client";
+import { AIMSSessionDescriptor } from "../../api-client/types";
 import {
-    AlBehaviorPromise,
     AlLocation,
     AlLocatorService,
+} from "../../nepal-common/locator";
+import { AlBehaviorPromise } from "../../nepal-common/promises";
+import {
     AlStopwatch,
     AlTriggerStream,
-} from '@al/common';
-import { AlDatacenterSessionEstablishedEvent, AlDatacenterSessionErrorEvent } from '../events';
+} from "../../nepal-common/utility";
+import {
+    AlDatacenterSessionErrorEvent,
+    AlDatacenterSessionEstablishedEvent,
+} from '../events';
 
 export class AlConduitClient
 {

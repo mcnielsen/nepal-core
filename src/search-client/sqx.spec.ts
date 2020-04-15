@@ -1,6 +1,15 @@
 import { expect } from 'chai';
-import { describe, before } from 'mocha';
-import { SQXSearchQuery, SQXQueryBuilder, SQXParser, SQXQueryState, SQXCursorDetails, SQXOperatorAnd, SQXOperatorBase, SQXOperatorNegate, SQXComparatorEqual } from './parser';
+import { describe } from 'mocha';
+import {
+    SQXComparatorEqual,
+    SQXCursorDetails,
+    SQXOperatorAnd,
+    SQXOperatorBase,
+    SQXOperatorNegate,
+    SQXParser,
+    SQXQueryBuilder,
+    SQXSearchQuery,
+} from './parser';
 
 describe('SQX Parser', () => {
     describe( 'query parsing', () => {

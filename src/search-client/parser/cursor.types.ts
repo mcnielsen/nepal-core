@@ -7,8 +7,20 @@
  *  @copyright Alert Logic Inc, 2018
  */
 
-import { SQXToken, SQXDelimiter, SQXOperatorBase, SQXScalarValue, SQXPropertyRef } from './common.types';
-import { SQXOperatorAnd, SQXOperatorOr, SQXOperatorNegate, SQXOperatorProjectAs, SQXTokenCollection, SQXComparatorIn, SQXComparatorBetween } from './operator.types';
+import {
+    SQXDelimiter,
+    SQXOperatorBase,
+    SQXPropertyRef,
+    SQXScalarValue,
+    SQXToken,
+} from './common.types';
+import {
+    SQXComparatorBetween,
+    SQXComparatorIn,
+    SQXOperatorNegate,
+    SQXOperatorProjectAs,
+    SQXTokenCollection,
+} from './operator.types';
 import { SQXParser } from './parser.types';
 
 /**

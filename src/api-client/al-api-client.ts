@@ -1,16 +1,6 @@
 /**
  * Module to deal with discovering available endpoints
  */
-import {
-    AlCabinet,
-    AlGlobalizer,
-    AlLocation,
-    AlLocationContext,
-    AlLocationDescriptor,
-    AlLocatorService,
-    AlStopwatch,
-    AlTriggerStream,
-} from '@al/common';
 import axios, {
     AxiosInstance,
     AxiosRequestConfig,
@@ -18,8 +8,20 @@ import axios, {
     Method,
 } from 'axios';
 import * as base64JS from 'base64-js';
+import {
+    AlLocation,
+    AlLocationContext,
+    AlLocationDescriptor,
+    AlLocatorService,
+} from "../nepal-common/locator";
+import {
+    AlCabinet,
+    AlGlobalizer,
+    AlStopwatch,
+    AlTriggerStream,
+} from "../nepal-common/utility";
 import { AlClientBeforeRequestEvent } from './events';
-import { AIMSSessionDescriptor } from './types/aims-stub.types';
+import { AIMSSessionDescriptor } from './types';
 import { AlRequestDescriptor } from './utility';
 
 export type AlEndpointsServiceCollection = {[serviceName:string]:string};

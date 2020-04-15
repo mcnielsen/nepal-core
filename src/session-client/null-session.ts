@@ -1,8 +1,9 @@
-import { AIMSSessionDescriptor } from '@al/client';
 
 /**
  * This session descriptor corresponds to an empty/unauthenticated session state.
  */
+
+import { AIMSSessionDescriptor } from "../api-client/types";
 
 /* tslint:disable:variable-name */
 export const AlNullSessionDescriptor: AIMSSessionDescriptor = {

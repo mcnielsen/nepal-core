@@ -1,9 +1,10 @@
+
+import { AlEndpointsServiceCollection } from "../../api-client";
 import {
     AIMSAccount,
     AIMSUser,
-    AlEndpointsServiceCollection,
-} from '@al/client';
-import { AlEntitlementRecord } from '@al/subscriptions';
+} from "../../api-client/types";
+import { AlEntitlementRecord } from "../../subscriptions-client/types";
 import { AlFeatureNode } from './al-fox.types';
 
 export interface AlConsolidatedAccountMetadata {

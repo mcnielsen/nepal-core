@@ -1,6 +1,12 @@
-import { AlTrigger, AlTriggeredEvent } from '@al/common';
-import { AIMSUser, AIMSAccount } from '@al/client';
-import { AlEntitlementCollection } from '@al/subscriptions';
+import {
+    AIMSAccount,
+    AIMSUser,
+} from "../../api-client/types";
+import {
+    AlTrigger,
+    AlTriggeredEvent,
+} from "../../nepal-common/utility";
+import { AlEntitlementCollection } from "../../subscriptions-client/types";
 import { AlFoxSnapshot } from '../types/al-fox.types';
 
 /**

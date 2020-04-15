@@ -8,9 +8,35 @@
  *  @copyright Alert Logic Inc, 2018
  */
 
-import { SQXBehaviorHooks, SQXExternalErrorDescriptor, SQXParseError, SQXToken, SQXDelimiter, SQXOperatorBase, SQXOperatorMetadata, SQXScalarValue, SQXParseCursor, SQXPropertyRef, SQXQueryState } from './common.types';
-import { SQXOperatorAnd, SQXOperatorOr, SQXTokenCollection, SQXComparatorIn, SQX_ALL_OPERATORS } from './operator.types';
-import { SQXClauseWhere, SQXClauseSelect, SQXClauseLimit, SQXClauseHaving, SQXClauseGroupBy, SQXClauseGroupByPermuted, SQXClauseOrderBy, SQX_ALL_CLAUSES } from './clause.types';
+import {
+    SQX_ALL_CLAUSES,
+    SQXClauseGroupBy,
+    SQXClauseGroupByPermuted,
+    SQXClauseHaving,
+    SQXClauseLimit,
+    SQXClauseOrderBy,
+    SQXClauseSelect,
+    SQXClauseWhere,
+} from './clause.types';
+import {
+    SQXBehaviorHooks,
+    SQXDelimiter,
+    SQXExternalErrorDescriptor,
+    SQXOperatorBase,
+    SQXOperatorMetadata,
+    SQXParseCursor,
+    SQXParseError,
+    SQXPropertyRef,
+    SQXQueryState,
+    SQXScalarValue,
+    SQXToken,
+} from './common.types';
+import {
+    SQX_ALL_OPERATORS,
+    SQXOperatorAnd,
+    SQXOperatorOr,
+    SQXTokenCollection,
+} from './operator.types';
 
 /**
  * This is the LtR, active pull equivalent of the normal parse cursor.  It removes the logic of "consuming" a particular

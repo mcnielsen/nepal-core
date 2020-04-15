@@ -1,7 +1,9 @@
 import { expect } from 'chai';
-import { describe, before } from 'mocha';
-import { SQXSearchQuery, AlConditionalSubject } from './parser';
-import * as sinon from 'sinon';
+import { describe } from 'mocha';
+import {
+    AlConditionalSubject,
+    SQXSearchQuery,
+} from './parser';
 
 
 function timestamp( defaultValue:number ):number {

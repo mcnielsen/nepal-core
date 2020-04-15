@@ -1,5 +1,9 @@
 import { AxiosRequestConfig } from 'axios';
-import { AlTrigger, AlTriggeredEvent } from '@al/common';
+import {
+    AlTrigger,
+    AlTriggeredEvent,
+} from "../../nepal-common/utility";
+
 
 @AlTrigger( 'AlClientBeforeRequest' )
 export class AlClientBeforeRequestEvent extends AlTriggeredEvent<void>

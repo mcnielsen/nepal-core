@@ -1,6 +1,6 @@
-import { AlEntitlementCollection } from '.';
-import { expect  } from 'chai';
+import { expect } from 'chai';
 import { describe } from 'mocha';
+import { AlEntitlementCollection } from '.';
 
 describe( 'AlEntitlementCollection', () => {
 

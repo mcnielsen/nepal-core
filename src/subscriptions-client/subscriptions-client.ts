@@ -1,5 +1,9 @@
-import { AlLocation } from '@al/common';
-import { AlDefaultClient, AlApiClient } from '@al/client';
+
+import {
+    AlApiClient,
+    AlDefaultClient,
+} from "../api-client";
+import { AlLocation } from "../nepal-common/locator";
 import { AlEntitlementCollection } from './types';
 
 export class AlSubscriptionsClient {

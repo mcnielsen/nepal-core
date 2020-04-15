@@ -1,11 +1,15 @@
-import { AlConduitClient } from './utilities';
-import { AlLocatorService, AlLocation, AlLocationContext } from '@al/common';
-import { AlDefaultClient } from '@al/client';
-import { AlStopwatch } from '@al/common';
-import { exampleSession } from './mocks/session-data.mocks';
 import { expect } from 'chai';
-import { describe, before } from 'mocha';
+
+import { describe } from 'mocha';
 import * as sinon from 'sinon';
+import {
+    AlLocation,
+    AlLocationContext,
+    AlLocatorService,
+} from "../nepal-common/locator";
+import { AlStopwatch } from "../nepal-common/utility";
+import { exampleSession } from './mocks/session-data.mocks';
+import { AlConduitClient } from './utilities';
 
 describe('AlConduitClient', () => {
 

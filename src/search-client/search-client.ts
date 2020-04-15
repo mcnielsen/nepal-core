@@ -1,7 +1,10 @@
 /**
  * A client for interacting with the Alert Logic Search Public API.
  */
-import { AlDefaultClient, APIRequestParams } from '@al/client';
+import {
+    AlDefaultClient,
+    APIRequestParams,
+} from "../api-client";
 
 export interface LogMessageSearchResult {
   fields: {

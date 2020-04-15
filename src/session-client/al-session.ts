@@ -8,27 +8,32 @@
  * @copyright 2019 Alert Logic, Inc.
  */
 
-import { AIMSClient } from '@al/aims';
+import { AIMSClient } from "../aims-client";
 import {
     AIMSAccount,
-    AIMSAuthentication,
     AIMSSessionDescriptor,
-    AIMSUser,
     AlApiClient,
     AlClientBeforeRequestEvent,
     AlDefaultClient,
-} from '@al/client';
+} from "../api-client";
 import {
-    AlBehaviorPromise,
-    AlCabinet,
-    AlGlobalizer,
+    AIMSAuthentication,
+    AIMSUser,
+} from "../api-client/types";
+import { AlResponseValidationError } from "../nepal-common/errors";
+import {
     AlInsightLocations,
     AlLocation,
     AlLocatorService,
-    AlResponseValidationError,
+} from "../nepal-common/locator";
+import { AlBehaviorPromise } from "../nepal-common/promises";
+import {
+    AlCabinet,
+    AlGlobalizer,
     AlTriggerStream,
-} from '@al/common';
-import { AlEntitlementCollection, SubscriptionsClient } from '@al/subscriptions';
+} from "../nepal-common/utility";
+import { SubscriptionsClient } from "../subscriptions-client";
+import { AlEntitlementCollection } from "../subscriptions-client/types";
 import {
     AlActingAccountChangedEvent,
     AlActingAccountResolvedEvent,
@@ -37,7 +42,10 @@ import {
     AlSessionStartedEvent,
 } from './events';
 import { AlNullSessionDescriptor } from './null-session';
-import { AlConsolidatedAccountMetadata, AlFoxSnapshot } from './types';
+import {
+    AlConsolidatedAccountMetadata,
+    AlFoxSnapshot,
+} from './types';
 
 export interface AlSessionOptions {
     /**
