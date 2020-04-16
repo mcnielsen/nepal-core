@@ -324,6 +324,7 @@ export class AlLocatorMatrix
                     result = hit.location;
                     const baseUrl = this.getBaseUrl( targetURI );
                     if ( baseUrl !== result.uri ) {
+                        console.log(`Notice: application '${hit.location.locTypeId}' instance '${baseUrl}' differs from default '${result.uri}'; updating lookup table.` );
                         result.originalUri = result.uri;
                         result.uri = baseUrl;
                     }
@@ -581,6 +582,10 @@ export class AlLocatorMatrix
      * I make no promises about the quality of this code when confronted with incorrect or incomplete inputs.
      */
     protected getBaseUrl( uri:string ):string {
+        const matches = /(^https?:\/\/[a-zA-Z0-9_\-\.:]+)(.*$)/.exec( uri );
+        if ( matches ) {
+            return matches[1];
+        }
         if ( uri.indexOf("#") !== -1 ) {
             uri = uri.substring( 0, uri.indexOf("#") );
         }

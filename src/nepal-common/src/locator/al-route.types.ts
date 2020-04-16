@@ -304,7 +304,7 @@ export class AlRoute {
             if ( this.host.routeParameters.anonymous === "true" && this.definition.isPublic !== null ) {
                 //  If the current user is anonymous/unauthenticated and this route isn't public (undefined or null), then set visible to false
                 //  Important note: `null` does not trigger this logic, and the top route of each menu always has this property set to `null`.
-                this.visible = !!this.definition.isPublic;
+                this.visible = this.definition.isPublic;
             } else if ( this.host.routeParameters.anonymous === "false" && this.definition.isPublic ) {
                 //  If the current user is authenticated and this route is public ONLY (boolean true), then this route should not be visible
                 this.visible = false;
@@ -417,7 +417,6 @@ export class AlRoute {
      * Evaluates the HREF for an route with action type 'link'
      */
     evaluateHref( action:AlRouteAction ):boolean {
-        console.log('evaluate href', action);
         if ( action.url ) {
             this.href = action.url;
             return true;
@@ -427,7 +426,6 @@ export class AlRoute {
             return false;
         }
         const node = AlLocatorService.getNode( action.location );
-        console.log(node);
         if ( ! node ) {
             console.warn(`Warning: cannot link to unknown location '${action.location}' in menu item '${this.caption}` );
             return false;
