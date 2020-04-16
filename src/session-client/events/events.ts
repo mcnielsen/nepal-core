@@ -1,7 +1,7 @@
 import {
     AIMSAccount,
     AIMSUser,
-} from "../../api-client/types";
+} from "../../api-client";
 import {
     AlTrigger,
     AlTriggeredEvent,

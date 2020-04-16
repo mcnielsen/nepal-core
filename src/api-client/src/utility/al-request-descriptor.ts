@@ -7,7 +7,7 @@
  */
 
 import { AxiosResponse } from 'axios';
-import { AlCabinet } from '@al/common';
+import { AlCabinet } from "../../../nepal-common";
 
 export type AlRequestTypeConverter<ResponseType> = { (rawData:any, response?:AxiosResponse):ResponseType };
 type RequestExecutor<ResponseType> = { (options:any):Promise<AxiosResponse<ResponseType>> };

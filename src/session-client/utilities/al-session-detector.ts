@@ -7,8 +7,10 @@
 
 import { WebAuth } from 'auth0-js';
 import { AIMSClient } from "../../aims-client";
-import { AlDefaultClient } from "../../api-client";
-import { AIMSSessionDescriptor } from "../../api-client/types";
+import {
+    AIMSSessionDescriptor,
+    AlDefaultClient,
+} from "../../api-client";
 import {
     AlLocation,
     AlLocatorService,

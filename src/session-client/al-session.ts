@@ -11,15 +11,13 @@
 import { AIMSClient } from "../aims-client";
 import {
     AIMSAccount,
+    AIMSAuthentication,
     AIMSSessionDescriptor,
+    AIMSUser,
     AlApiClient,
     AlClientBeforeRequestEvent,
     AlDefaultClient,
 } from "../api-client";
-import {
-    AIMSAuthentication,
-    AIMSUser,
-} from "../api-client/types";
 import { AlResponseValidationError } from "../nepal-common/errors";
 import {
     AlInsightLocations,

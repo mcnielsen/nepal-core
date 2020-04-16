@@ -1,10 +1,16 @@
-import { ALClient, APIRequestParams } from '../src/index';
-import { AlLocatorService, AlLocationContext, AlLocation, AlCabinet } from '@al/common';
 import { expect } from 'chai';
-import { describe, before } from 'mocha';
-import xhrMock, { once } from 'xhr-mock';
+import { describe } from 'mocha';
 import sinon from 'sinon';
-import { APIExecutionLogSummary } from '../src/al-api-client';
+import xhrMock, { once } from 'xhr-mock';
+import {
+    AlLocation,
+    AlLocatorService,
+} from "../../nepal-common/locator";
+import { AlCabinet } from "../../nepal-common/utility";
+import {
+    ALClient,
+    APIRequestParams,
+} from '../src/index';
 
 const defaultAuthResponse = {
   authentication: {

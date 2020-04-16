@@ -1,9 +1,8 @@
-
-import { AlEndpointsServiceCollection } from "../../api-client";
 import {
     AIMSAccount,
     AIMSUser,
-} from "../../api-client/types";
+    AlEndpointsServiceCollection,
+} from "../../api-client";
 import { AlEntitlementRecord } from "../../subscriptions-client/types";
 import { AlFeatureNode } from './al-fox.types';
 

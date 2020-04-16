@@ -2,7 +2,7 @@ import {
     AIMSAccount,
     AIMSAuthentication,
     AlChangeStamp,
-} from "../../api-client/types";
+} from "../../api-client";
 
 export interface AIMSAuthenticationTokenInfo extends AIMSAuthentication {
     entity_id?: string;

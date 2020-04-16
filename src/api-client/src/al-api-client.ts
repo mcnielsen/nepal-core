@@ -1,16 +1,28 @@
 /**
  * Module to deal with discovering available endpoints
  */
-import axios, { AxiosInstance, AxiosResponse, AxiosRequestConfig, AxiosError } from 'axios';
+import axios, {
+    AxiosInstance,
+    AxiosRequestConfig,
+    AxiosResponse,
+    Method,
+} from 'axios';
 import * as base64JS from 'base64-js';
-import { AIMSSessionDescriptor, AIMSAccount } from './types/aims-stub.types';
 import {
-    AlLocatorService, AlLocation, AlLocationDescriptor, AlLocationContext,
-    AlStopwatch, AlTriggerStream, AlCabinet, AlGlobalizer,
-    AlAPIServerError, AlResponseValidationError
-} from '@al/common';
-import { AlRequestDescriptor } from './utility';
+    AlLocation,
+    AlLocationContext,
+    AlLocationDescriptor,
+    AlLocatorService,
+} from "../../nepal-common/locator";
+import {
+    AlCabinet,
+    AlGlobalizer,
+    AlStopwatch,
+    AlTriggerStream,
+} from "../../nepal-common/utility";
 import { AlClientBeforeRequestEvent } from './events';
+import { AIMSSessionDescriptor } from './types/aims-stub.types';
+import { AlRequestDescriptor } from './utility';
 
 export type AlEndpointsServiceCollection = {[serviceName:string]:string};
 
@@ -71,7 +83,7 @@ export interface APIRequestParams extends AxiosRequestConfig {
  * Describes an execution request with all details or verbose an tracking purposes.
  */
 export interface APIExecutionLogItem {
-  method?: string;                 // Request Method.
+  method?: Method;                 // Request Method.
   url?: string;                    // Request URL.
   responseCode?: number;           // Response Code.
   responseContentLength?: number;  // Response content length.
@@ -272,7 +284,7 @@ export class AlApiClient
    * @param method The method of the request. [POST PUT DELETE GET]
    * @param normalizedParams The normalized APIRequestParams object.
    */
-  public async doRequest(method:string, normalizedParams:APIRequestParams):Promise<AxiosResponse> {
+  public async doRequest(method:Method, normalizedParams:APIRequestParams):Promise<AxiosResponse> {
     let response:AxiosResponse;
     let start:number = 0;
     let logItem:APIExecutionLogItem = {};
@@ -530,7 +542,7 @@ export class AlApiClient
       delete config.accept_header;
     }
     if (config.response_type) {
-      config.responseType = config.response_type;
+      config.responseType = config.response_type as any;
       delete config.response_type;
     }
     return config;
@@ -552,7 +564,7 @@ export class AlApiClient
         }
         requestList = requestList.filter( serviceName => ! existingEndpoints.hasOwnProperty( serviceName ) );
     }
-    const endpointsRequest = {
+    const endpointsRequest:APIRequestParams = {
       method: "POST",
       url: AlLocatorService.resolveURL( AlLocation.GlobalAPI, `/endpoints/v1/${accountId}/residency/default/endpoints` ),
       data: requestList
@@ -630,18 +642,18 @@ export class AlApiClient
                                                       statusText:string,
                                                       data:any,
                                                       headers:any = {} ):Promise<ResponseType> {
-    const actualResponse = await request;
-    const lastRequest = this.executionRequestLog.length > 0 ? this.executionRequestLog[this.executionRequestLog.length - 1] : { method: "GET", url: "/nothing" };
+      const actualResponse = await request;
+      const lastRequest:AxiosRequestConfig = this.executionRequestLog.length > 0 ? this.executionRequestLog[this.executionRequestLog.length - 1] : { method: "GET", url: "/nothing" };
 
-    const error:AxiosResponse = {
-      status,
-      statusText,
-      headers,
-      data,
-      config: lastRequest
-    };
+      const error: AxiosResponse = {
+          status,
+          statusText,
+          headers,
+          data,
+          config: lastRequest,
+      };
 
-    throw error;
+      throw error;
   }
 
 
@@ -899,7 +911,7 @@ export class AlApiClient
 
   private log( text:string, ...otherArgs:any[] ) {
       if ( this.verbose ) {
-          console.log.apply( console, arguments );
+          console.log.apply( console, (arguments as any) );
       }
   }
 }

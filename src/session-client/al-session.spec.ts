@@ -5,9 +5,11 @@ import {
 import { describe } from 'mocha';
 import * as sinon from 'sinon';
 import { AIMSClient } from "../aims-client";
-import { AlDefaultClient } from "../api-client";
-import { AlClientBeforeRequestEvent } from "../api-client/events";
-import { AIMSAccount } from "../api-client/types";
+import {
+    AIMSAccount,
+    AlClientBeforeRequestEvent,
+    AlDefaultClient,
+} from "../api-client";
 import { AlCabinet } from "../nepal-common/utility";
 import { SubscriptionsClient } from "../subscriptions-client";
 import { AlEntitlementCollection } from "../subscriptions-client/types";
