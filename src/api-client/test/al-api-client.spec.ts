@@ -5,8 +5,8 @@ import xhrMock, { once } from 'xhr-mock';
 import {
     AlLocation,
     AlLocatorService,
-} from "../../nepal-common/locator";
-import { AlCabinet } from "../../nepal-common/utility";
+} from "../../nepal-common/src/locator";
+import { AlCabinet } from "../../nepal-common/src/utility";
 import {
     ALClient,
     APIRequestParams,

@@ -10,7 +10,7 @@ import {
     AlUnauthenticatedRequestError,
     AlUnauthorizedRequestError,
     AlUnimplementedMethodError,
-} from './errors';
+} from '../src/errors';
 
 describe( `Errors`, () => {
     afterEach( () => {

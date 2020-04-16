@@ -18,18 +18,18 @@ import {
     AlClientBeforeRequestEvent,
     AlDefaultClient,
 } from "../api-client";
-import { AlResponseValidationError } from "../nepal-common/errors";
+import { AlResponseValidationError } from "../nepal-common/src/errors";
 import {
     AlInsightLocations,
     AlLocation,
     AlLocatorService,
-} from "../nepal-common/locator";
-import { AlBehaviorPromise } from "../nepal-common/promises";
+} from "../nepal-common/src/locator";
+import { AlBehaviorPromise } from "../nepal-common/src/promises";
 import {
     AlCabinet,
     AlGlobalizer,
     AlTriggerStream,
-} from "../nepal-common/utility";
+} from "../nepal-common/src/utility";
 import { SubscriptionsClient } from "../subscriptions-client";
 import { AlEntitlementCollection } from "../subscriptions-client/types";
 import {

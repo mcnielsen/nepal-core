@@ -4,7 +4,7 @@ import * as sinon from 'sinon';
 import {
     AlQueryEvaluator,
     AlQuerySubject,
-} from './utility';
+} from '../src/utility';
 
 class MockQueryable implements AlQuerySubject
 {

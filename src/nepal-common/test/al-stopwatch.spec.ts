@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { describe } from 'mocha';
 import * as sinon from 'sinon';
-import { AlStopwatch } from './utility';
+import { AlStopwatch } from '../src/utility';
 
 describe( 'AlStopwatch', () => {
 

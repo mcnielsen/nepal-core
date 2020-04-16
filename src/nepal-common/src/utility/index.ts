@@ -5,3 +5,4 @@ export * from "./al-stopwatch";
 export * from "./al-trigger.types";
 export * from "./is-promise-like";
 export * from "./json-utilities";
+export * from './al-merge-helper';

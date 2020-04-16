@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { describe } from 'mocha';
-import { AlCabinet } from './utility';
+import { AlCabinet } from '../src/utility';
 
 describe( 'AlCabinet', () => {
 

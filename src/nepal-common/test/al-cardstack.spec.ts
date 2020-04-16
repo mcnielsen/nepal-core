@@ -4,7 +4,7 @@ import * as sinon from 'sinon';
 import {
     AlCardstackCharacteristics,
     AlCardstackView,
-} from './cardstack';
+} from '../src/cardstack';
 
 const dummyColors = [
     {

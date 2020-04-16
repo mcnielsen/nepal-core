@@ -9,11 +9,11 @@ import {
     AlApiClient,
     AlDefaultClient,
 } from "../api-client";
-import { AlResponseValidationError } from "../nepal-common/errors";
+import { AlResponseValidationError } from "../nepal-common/src/errors";
 import {
     AlLocation,
     AlLocatorService,
-} from "../nepal-common/locator";
+} from "../nepal-common/src/locator";
 import {
     AIMSAccessKey,
     AIMSAuthenticationTokenInfo,

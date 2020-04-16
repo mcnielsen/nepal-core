@@ -5,7 +5,7 @@ import { describe } from 'mocha';
 import * as sinon from 'sinon';
 import { AlSession } from '.';
 import { AIMSClient } from "../aims-client";
-import { AlLocatorService } from "../nepal-common/locator";
+import { AlLocatorService } from "../nepal-common/src/locator";
 import { exampleSession } from './mocks';
 import {
     AlConduitClient,

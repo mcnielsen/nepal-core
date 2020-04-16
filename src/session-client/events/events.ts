@@ -5,7 +5,7 @@ import {
 import {
     AlTrigger,
     AlTriggeredEvent,
-} from "../../nepal-common/utility";
+} from "../../nepal-common/src/utility";
 import { AlEntitlementCollection } from "../../subscriptions-client/types";
 import { AlFoxSnapshot } from '../types/al-fox.types';
 

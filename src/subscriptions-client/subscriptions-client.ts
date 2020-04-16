@@ -2,7 +2,7 @@ import {
     AlApiClient,
     AlDefaultClient,
 } from "../api-client";
-import { AlLocation } from "../nepal-common/locator";
+import { AlLocation } from "../nepal-common/src/locator";
 import { AlEntitlementCollection } from './types';
 
 export class AlSubscriptionsClient {

@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { describe } from 'mocha';
-import { AlBehaviorPromise } from './promises';
+import { AlBehaviorPromise } from '../src/promises';
 
 describe( 'AlBehaviorPromise', () => {
 

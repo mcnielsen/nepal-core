@@ -5,7 +5,7 @@
  *     - xp (experiences), an object defining available and active experiences of that feature;
  *     - child feature nodes
  */
-import { getJsonPath } from "../../nepal-common/utility";
+import { getJsonPath } from "../../nepal-common/src/utility";
 
 export interface AlExperienceDescriptor {
     available:string[];

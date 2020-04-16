@@ -8,7 +8,7 @@ import {
     AlRouteCondition,
     AlRouteDefinition,
     AlRoutingHost,
-} from './locator';
+} from '../src/locator';
 
 export class MockRoutingHost implements AlRoutingHost {
     currentUrl = "https://console.overview.alertlogic.com/#/remediations-scan-status/2";
@@ -109,7 +109,6 @@ describe( 'AlRoute', () => {
         } );
         it("should create routes using static `link` method", () => {
             let route = AlRoute.link( routingHost, "cd17:overview", '/#/some/random/path' );
-            console.log(route);
             expect( route.caption ).to.be.a("string");
             expect( route.properties ).to.be.an("object");
             expect( route.children ).to.be.an("Array");

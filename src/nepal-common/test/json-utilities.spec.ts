@@ -5,7 +5,7 @@ import {
     deepMerge,
     getJsonPath,
     setJsonPath,
-} from './utility/json-utilities';
+} from '../src/utility/json-utilities';
 
 describe( `getJsonPath`, () => {
     it( `Should retrieve the expected data from deeply nested objects`, () => {

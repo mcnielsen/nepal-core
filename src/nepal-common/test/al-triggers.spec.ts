@@ -4,7 +4,7 @@ import {
     AlTrigger,
     AlTriggeredEvent,
     AlTriggerStream,
-} from '.';
+} from '../index';
 
 @AlTrigger("EventType1")
 class EventType1 extends AlTriggeredEvent<boolean|string|number>

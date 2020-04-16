@@ -2,12 +2,12 @@ import { AIMSSessionDescriptor } from "../../api-client";
 import {
     AlLocation,
     AlLocatorService,
-} from "../../nepal-common/locator";
-import { AlBehaviorPromise } from "../../nepal-common/promises";
+} from "../../nepal-common/src/locator";
+import { AlBehaviorPromise } from "../../nepal-common/src/promises";
 import {
     AlStopwatch,
     AlTriggerStream,
-} from "../../nepal-common/utility";
+} from "../../nepal-common/src/utility";
 import {
     AlDatacenterSessionErrorEvent,
     AlDatacenterSessionEstablishedEvent,

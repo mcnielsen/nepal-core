@@ -6,8 +6,8 @@ import {
     AlLocation,
     AlLocationContext,
     AlLocatorService,
-} from "../nepal-common/locator";
-import { AlStopwatch } from "../nepal-common/utility";
+} from "../nepal-common/src/locator";
+import { AlStopwatch } from "../nepal-common/src/utility";
 import { exampleSession } from './mocks/session-data.mocks';
 import { AlConduitClient } from './utilities';
 

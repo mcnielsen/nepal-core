@@ -10,7 +10,7 @@ import {
     AlClientBeforeRequestEvent,
     AlDefaultClient,
 } from "../api-client";
-import { AlCabinet } from "../nepal-common/utility";
+import { AlCabinet } from "../nepal-common/src/utility";
 import { SubscriptionsClient } from "../subscriptions-client";
 import { AlEntitlementCollection } from "../subscriptions-client/types";
 import {

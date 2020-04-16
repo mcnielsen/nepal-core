@@ -7,8 +7,8 @@
 import {
     AlLocation,
     AlLocatorService,
-} from "../../nepal-common/locator";
-import { AlGlobalizer } from "../../nepal-common/utility";
+} from "../../nepal-common/src/locator";
+import { AlGlobalizer } from "../../nepal-common/src/utility";
 
 export interface ISegmentAnalytics
 {

@@ -13,13 +13,13 @@ import {
     AlLocationContext,
     AlLocationDescriptor,
     AlLocatorService,
-} from "../../nepal-common/locator";
+} from "../../nepal-common/src/locator";
 import {
     AlCabinet,
     AlGlobalizer,
     AlStopwatch,
     AlTriggerStream,
-} from "../../nepal-common/utility";
+} from "../../nepal-common/src/utility";
 import { AlClientBeforeRequestEvent } from './events';
 import { AIMSSessionDescriptor } from './types/aims-stub.types';
 import { AlRequestDescriptor } from './utility';
