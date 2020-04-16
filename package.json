@@ -1,6 +1,6 @@
 {
   "name": "@al/core",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Nepal Core",
   "main": "./dist/index.cjs.js",
   "types": "./dist/index.d.ts",
@@ -56,6 +56,10 @@
     "karma-typescript": "^5.0.2",
     "mocha": "~7.0.1",
     "peer-deps-externals-webpack-plugin": "^1.0.4",
+    "rollup": "^2.6.1",
+    "rollup-plugin-copy": "^3.3.0",
+    "rollup-plugin-terser": "^5.3.0",
+    "rollup-plugin-typescript2": "^0.27.0",
     "sinon": "^9.0.2",
     "ts-loader": "^6.2.2",
     "tslint": "^5.12.1",
@@ -65,10 +69,7 @@
     "webpack-bundle-analyzer": "^3.6.0",
     "webpack-cli": "^3.2.1",
     "webpack-node-externals": "^1.7.2",
-    "xhr-mock": "^2.4.1",
-    "rollup": "^2.6.1",
-    "rollup-plugin-terser": "^5.3.0",
-    "rollup-plugin-typescript2": "^0.27.0"
+    "xhr-mock": "^2.4.1"
   },
   "files": [
     "dist"

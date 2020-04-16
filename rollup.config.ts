@@ -1,5 +1,6 @@
 import typescript from 'rollup-plugin-typescript2';
 import pkg from './package.json';
+import copy from 'rollup-plugin-copy'
 import {terser} from "rollup-plugin-terser";
 
 export default {
@@ -24,5 +25,10 @@ export default {
             typescript: require('typescript'),
         }),
         // terser() // minifies generated bundles
+        copy({
+            targets: [
+                { src: 'tslint.json', dest: 'dist/config' },
+            ]
+        })
     ]
 };
