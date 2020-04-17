@@ -22,7 +22,7 @@
     "sourceMap"                       : true,
     "strict"                          : true,
     "strictNullChecks"                : false,
-    "target"                          : "es5",
+    "target"                          : "ES2018",
     "typeRoots"                       : [
       "node_modules/@types"
     ],

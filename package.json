@@ -1,10 +1,11 @@
 {
   "name": "@al/core",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Nepal Core",
   "main": "./dist/index.cjs.js",
   "types": "./dist/index.d.ts",
-  "module": "./dist/index.esm.js",
+  "module": "./dist/index.esm5.js",
+  "es2015": "./dist/index.esm2015.js",
   "author": {
     "name": "Alert Logic NPM Team",
     "email": "npm@alertlogic.com"
