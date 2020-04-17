@@ -129,24 +129,25 @@ export class SQXSearchQuery
         item.name              =   rawData.hasOwnProperty("name") ? rawData["name"] : null;
 
         let parser             =   new SQXParser();
-        let parsed             =   parser.fromJson(rawData);
 
-        item.select            =   parsed.select || null;
-        item.where             =   parsed.where || null;
-        item.order_by          =   parsed.order_by || null;
-        item.group_by          =   parsed.group_by || null;
-        item.group_by_permuted =   parsed.group_by_permuted || null;
-        item.limit             =   parsed.limit || null;
-        item.having            =   parsed.having || null;
-        item.time_range        =   parsed.time_range || null;
-        if ( item.where === null ) {
-            if ( parsed.hasOwnProperty("and") && parsed.and instanceof SQXOperatorAnd ) {
-                item.where = new SQXClauseWhere();
-                item.where.condition = parsed.and;
-            } else if ( parsed.hasOwnProperty("or") && parsed.or instanceof SQXOperatorOr ) {
-                item.where = new SQXClauseWhere();
-                item.where.condition = parsed.or;
-            }
+        if ( 'where' in rawData || 'select' in rawData || 'group_by' in rawData || 'order_by' in rawData ) {
+            //  This is a complete query expression, including at least a WHERE clause and possibly other coordinating clauses
+            let parsed             =   parser.fromJson(rawData);
+
+            item.select            =   parsed.select || null;
+            item.where             =   parsed.where || null;
+            item.order_by          =   parsed.order_by || null;
+            item.group_by          =   parsed.group_by || null;
+            item.group_by_permuted =   parsed.group_by_permuted || null;
+            item.limit             =   parsed.limit || null;
+            item.having            =   parsed.having || null;
+            item.time_range        =   parsed.time_range || null;
+        } else if ( Object.keys( rawData ).length === 1 ) {
+            //  This is (presumably) a conditional only expression, which implies "WHERE" but just consists of operators
+            item.where = new SQXClauseWhere();
+            item.where.fromJson( rawData, ( op ) => parser.importElementFromJson( op ) );
+        } else {
+            console.warn("Warning: could not interpret raw data as query or filter construct; are you sure it's actually a query?" );
         }
 
         return item;
@@ -163,8 +164,13 @@ export class SQXSearchQuery
 
     /**
      * Exports an instance into native search format JSON.
+     *
+     * @param filterOnly If true, returns only the conditional expression (filters), without the WHERE clause.
      */
-    public toJson():any {
+    public toJson( filterOnly:boolean = false ):any {
+        if ( filterOnly ) {
+            return this.where && this.where.condition ? this.where.condition.toJson() : null;
+        }
         let raw = {};
         let properties = [ this.select, this.group_by, this.group_by_permuted, this.order_by, this.limit, this.having, this.where, this.time_range ]
                             .filter( el => el !== null )
@@ -182,7 +188,7 @@ export class SQXSearchQuery
     /**
      * Exports an instance into SQL-like syntax
      */
-    public toQueryString():string {
+    public toQueryString( filterOnly:boolean = false ):string {
         let clauses = [];
         if ( this.select ) {
             clauses.push( this.select.toQueryString() );
@@ -207,6 +213,13 @@ export class SQXSearchQuery
         }
 
         return clauses.join(" " );
+    }
+
+    /**
+     * Exports filter criteria in SQL-like syntax
+     */
+    public toConditionString():string {
+        return this.where && this.where.condition ? this.where.condition.toQueryString() : "";
     }
 
     /**

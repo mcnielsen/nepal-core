@@ -50,7 +50,7 @@ describe('SQX Parser', () => {
                 'ORDER BY fake:property DESC LIMIT 5000',
                 /*  Test value aliases/substitutions */
                 'SELECT * WHERE message_content IN ( "Windows/7/Sucks", "Liallo The Cat" )',
-                'WHERE NOT log:property = "Big Moustache" AND log:moustache = null'
+                'WHERE NOT log:property = "Big Moustache" AND log:moustache = null',
             ];
 
             for ( let i = 0; i < validQueries.length; i++ ) {
@@ -67,14 +67,48 @@ describe('SQX Parser', () => {
                 } catch ( e ) {
                     errorCount++;
                     console.warn("WARNING: query did not reconstite as expected" );
-                    console.log( "    - Input: [%s]", original );
-                    console.log( "    - Output: [%s]", reconstituted );
+                    console.log( `    - Input: ${original}` );
+                    console.log( `    - Output: ${reconstituted}` );
                 }
             }
 
             expect( errorCount ).to.equal( 0 );
 
         });
+
+        it("should interpret query fragments successfully", () => {
+            let errorCount = 0;
+            let fragmentQueries = [
+                "kevin = true",
+                '( kevin = true AND moustache = false ) OR clipper = 0',
+                '( anchovies = "definitely" AND kippers = "SMOKED" ) AND ( c < 0 OR b > 0 )'
+            ];
+
+            for ( let i = 0; i < fragmentQueries.length; i++ ) {
+                let original = fragmentQueries[i], reconstituted;
+                let json;
+                let queryString;
+                try {
+                    let query = SQXSearchQuery.fromConditionString( original );
+                    console.log( query );
+                    queryString = query.toConditionString();
+                    json = query.toJson( true );
+                    let reinterpreted = SQXSearchQuery.fromJson( json );
+                    reconstituted = reinterpreted.toConditionString();
+                    if ( original !== reconstituted ) {
+                        throw new Error("Original and reconstituted queries don't match!" );
+                    }
+                } catch ( e ) {
+                    errorCount++;
+                    console.warn("WARNING: query did not reconstite as expected" );
+                    console.log( `    - Input: ${original}` );
+                    console.log( `    - Intermediary`, JSON.stringify( json, null, 4 ) );
+                    console.log( `    - Output: ${reconstituted}` );
+                }
+            }
+
+            expect( errorCount ).to.equal( 0 );
+        } );
 
         it( "should identify errors in badly formed queries", () => {
             let errorCount = 0;
