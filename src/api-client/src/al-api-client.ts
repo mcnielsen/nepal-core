@@ -193,7 +193,6 @@ export class AlApiClient
     let normalized = await this.normalizeRequest( config );
     let queryParams = this.normalizeQueryParams( config.params );
     let fullUrl = `${normalized.url}${queryParams}`;
-    console.log(normalized.cacheKey);
 
 
     //  Check for data in cache
