@@ -4,7 +4,7 @@
 import {
     AlDefaultClient,
     APIRequestParams,
-} from "../api-client";
+} from "../client";
 
 export interface LogMessageSearchResult {
   fields: {

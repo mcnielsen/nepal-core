@@ -9,7 +9,7 @@
  */
 
 
-import { AlBaseError } from "../../nepal-common/src/errors";
+import { AlBaseError } from "../../common/errors";
 
 /**
  * This is a parser specific error.  Its constructor allows it to "attach" to a token where the error occurred, and to identify a specific point
