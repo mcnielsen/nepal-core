@@ -3,23 +3,23 @@
  */
 
 import {
-    AIMSAccount,
-    AIMSSessionDescriptor,
-    AIMSUser,
     AlApiClient,
     AlDefaultClient,
-} from "../api-client";
-import { AlResponseValidationError } from "../nepal-common/src/errors";
+} from "../client";
+import { AlResponseValidationError } from "../common/errors";
 import {
     AlLocation,
     AlLocatorService,
-} from "../nepal-common/src/locator";
+} from "../common/locator";
 import {
     AIMSAccessKey,
+    AIMSAccount,
     AIMSAuthenticationTokenInfo,
     AIMSOrganization,
     AIMSRole,
+    AIMSSessionDescriptor,
     AIMSTopology,
+    AIMSUser,
 } from './types';
 
 export class AIMSClientInstance {

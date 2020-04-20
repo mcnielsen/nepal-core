@@ -2,12 +2,16 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "target": "ES2016",
-    "module": "commonjs"
+    "module": "commonjs",
+    "paths": {
+        "@al/core": [ "./src" ]
+    }
   },
   "compileOnSave"  : false,
   "include"        : [
     "index.ts",
-    "./src/**/*.ts"
+    "./src/**/*.ts",
+    "./test/**/*.ts"
   ],
   "exclude"        : [
     "node_modules"

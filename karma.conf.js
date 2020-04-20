@@ -8,6 +8,7 @@ module.exports = function(config){
 
         files: [
             {pattern: "src/**/*.ts"},
+            {pattern: "test/**/*.ts"},
         ],
 
         preprocessors: {
