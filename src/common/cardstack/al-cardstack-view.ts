@@ -384,27 +384,23 @@ export abstract class AlCardstackView< EntityType=any,
      *  Method to determine visibility of an individual card item based on the current set of active filters.
      */
     protected evaluateCardVisibilityByFilter( card:AlCardstackItem<EntityType,PropertyType> ):boolean {
-        let filterProperties = Object.keys( this.activeFilters );
+        const filterProperties = Object.keys( this.activeFilters );
         if ( filterProperties.length === 0 ) {
             return true;
         }
-        return ! filterProperties.find( property => {
+        return ! filterProperties.some( property => {
             if ( ! card.properties.hasOwnProperty( property ) || typeof( ( card.properties as any)[property] ) === 'undefined' ) {
                 // visible = false;
                 return true; //  terminate iteration
             }
-            let cardPropValue = ( card.properties as any )[property];
-            let matched = Object.values( this.activeFilters[property] ).find( valDescriptor => {
+            const cardPropValue = ( card.properties as any )[property];
+            const matched = Object.values( this.activeFilters[property] ).find( valDescriptor => {
                 if (cardPropValue instanceof Array) {
                     return cardPropValue.includes(valDescriptor.value);
                 }
                 return valDescriptor.value === cardPropValue;
             } );
-            if ( ! matched ) {
-                // visible = false;
-                return true; //  terminate iteration
-            }
-            return false;
+            return !matched;
         } );
     }
 
@@ -449,33 +445,31 @@ export abstract class AlCardstackView< EntityType=any,
             if (!card.properties.hasOwnProperty(property) || !(card.properties as any)[property]) {
                 return false;
             }
-            const cardPropValue: unknown[]|unknown = (card.properties as any)[property];
-            if (Array.isArray(cardPropValue)) {
-                const matches = cardPropValue.some((value:unknown) => {
-                    if(typeof value !== 'string'){
-                        console.error('cardPropValue must be a string');
-                        return false;
-                    }
-                    if (search instanceof RegExp) {
-                        return search.test(value);
-                    }
-                    if (typeof search === "string") {
-                        return value.toLowerCase().includes(search.toLowerCase());
-                    }
-                    console.error("Search should be a string or regex.");
-                    return false;
-                });
-                if (matches) {
-                    return true;
-                }
-            } else if ( search instanceof RegExp && typeof cardPropValue === 'string' && search.test(cardPropValue)) {
-                return true;
-            } else if ( typeof search === "string" && (typeof cardPropValue === 'string' || Array.isArray(cardPropValue)) && cardPropValue.includes(search)) {
-                return true;
-            }else{
-                console.error('Unknown search type for ',cardPropValue);
+
+            let cardPropValue: unknown[] = (card.properties as any)[property];
+
+            if (!Array.isArray(cardPropValue)) {
+                // force everything to be an array, simplify the logic
+                cardPropValue = [cardPropValue];
             }
-            return false;
+
+            return cardPropValue.some((value: unknown) => {
+                if (typeof value !== 'string') {
+                    console.error('cardPropValue must be a string');
+                    return false;
+                }
+                if (search instanceof RegExp) {
+                    // regex can control its own case sensitivity
+                    return search.test(value);
+                }
+                if (typeof search === "string") {
+                    // everything is a string, toLowerCase for case insensitivity search, US116156
+                    return value.toLowerCase().includes(search.toLowerCase());
+                }
+                console.error("Search should be a string or regex:", search);
+                return false;
+            });
+
         });
     }
 
