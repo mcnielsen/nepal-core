@@ -133,8 +133,8 @@ export abstract class AlCardstackView< EntityType=any,
     public async continue() {
         this.loading = true;
         try {
-            let entities = [];
-            let cardsSection = [];
+            let entities :EntityType[] = [];
+            let cardsSection:AlCardstackItem<EntityType>[];
 
             if (this.localPagination) {
                 cardsSection = this.filteredCards.slice(this.cards.length,  this.cards.length + this.itemsPerPage);
@@ -369,16 +369,15 @@ export abstract class AlCardstackView< EntityType=any,
         id: string;
         caption: string;
     }[]{
-        let newData = entities.map( entity => {
-            let properties = this.deriveEntityProperties( entity );
+        return entities.map(entity => {
+            const properties = this.deriveEntityProperties(entity);
             return {
                 properties,
                 entity,
                 id: properties.id,
                 caption: properties.caption
             };
-        } );
-        return newData;
+        });
     }
 
     /**
@@ -450,14 +449,18 @@ export abstract class AlCardstackView< EntityType=any,
             if (!card.properties.hasOwnProperty(property) || !(card.properties as any)[property]) {
                 return false;
             }
-            const cardPropValue = (card.properties as any)[property];
+            const cardPropValue: unknown[]|unknown = (card.properties as any)[property];
             if (Array.isArray(cardPropValue)) {
-                const matches = cardPropValue.find((value) => {
+                const matches = cardPropValue.some((value:unknown) => {
+                    if(typeof value !== 'string'){
+                        console.error('cardPropValue must be a string');
+                        return false;
+                    }
                     if (search instanceof RegExp) {
                         return search.test(value);
                     }
                     if (typeof search === "string") {
-                        return value.includes(search);
+                        return value.toLowerCase().includes(search.toLowerCase());
                     }
                     console.error("Search should be a string or regex.");
                     return false;
@@ -465,10 +468,12 @@ export abstract class AlCardstackView< EntityType=any,
                 if (matches) {
                     return true;
                 }
-            } else if ( search instanceof RegExp && search.test(cardPropValue)) {
+            } else if ( search instanceof RegExp && typeof cardPropValue === 'string' && search.test(cardPropValue)) {
                 return true;
-            } else if ( typeof search === "string" && cardPropValue.includes(search)) {
+            } else if ( typeof search === "string" && (typeof cardPropValue === 'string' || Array.isArray(cardPropValue)) && cardPropValue.includes(search)) {
                 return true;
+            }else{
+                console.error('Unknown search type for ',cardPropValue);
             }
             return false;
         });
