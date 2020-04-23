@@ -37,6 +37,11 @@ module.exports = function(config){
                         "subdirectory": "report",
                     },
                     "text-summary": "",
+                    "json-summary": {
+                        "directory": "coverage",
+                        "subdirectory": "summary",
+                        "filename": "json-summary.json"
+                    }
                 },
         },
         singleRun: true,
