@@ -359,7 +359,7 @@ export abstract class AlCardstackView< EntityType=any,
         this.cards = this.cards.map( c => this.evaluateCardState( c ) );
         this.visibleCards = this.cards.reduce( ( count, card ) => count + ( card.visible ? 1 : 0 ), 0 );
 
-        if (this.localPagination) {
+        if (this.localPagination && this.checked && newData.length > 0) {
             this.markCardsAsCheck();
         }
     }
