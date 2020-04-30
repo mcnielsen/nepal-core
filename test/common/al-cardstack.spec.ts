@@ -90,13 +90,21 @@ const dummyCharacteristics:unknown = {
         "shape" : {
             property: "shape",
             caption: "Shape",
-            values: dummyShapes
+            autoIndex: true
         },
         "category": {
             property: "category",
             caption: "Category"
+        },
+        "remote_data_id": {
+            property: "remote_data_id",
+            caption: "Remote Data ID blah blah blah",
+            remote: true
         }
-    }
+    },
+
+    autoAggregate: true,
+    hideEmptyFilterValues: true
 };
 
 export class DummyModel
@@ -136,7 +144,7 @@ export class DummyCardstack extends AlCardstackView<DummyModel,DummyProperties>
         return list[Math.floor( Math.random() * list.length )];
     }
 
-    async fetchData( initial ) {
+    async fetchData( initial, remoteFilters ) {
         let results:DummyModel[] = [];
         for ( let i = 0; i < 20; i++ ) {
             this.count++;
@@ -154,6 +162,8 @@ export class DummyCardstack extends AlCardstackView<DummyModel,DummyProperties>
             model.unit_count = Math.floor( 1 + ( Math.random() * 9 ) );
             results.push( model );
         }
+        this.remainingPages = 2;
+        this.loadedPages++;
         return results;
     }
 
@@ -188,7 +198,25 @@ describe( 'AlCardstackView', () => {
             await stack.start();
 
             expect( stack.cards.length ).to.equal( 20 );
+            expect( stack.loadedPages ).to.equal( 1 );
 
+            await stack.continue();
+
+            expect( stack.cards.length ).to.equal( 40 );
+            expect( stack.loadedPages ).to.equal( 2 );
+
+        } );
+        it( 'should automatically populate values for properties with autoIndex enabled', async () => {
+            let stack = new DummyCardstack();
+            await stack.start();
+
+            let shapeProperty = stack.getProperty("shape");
+            expect( shapeProperty.values.length ).to.be.above( 0 );
+
+            for ( let i = 0; i < stack.cards.length; i++ ) {
+                let shapeValue = stack.cards[i].properties['shape'];
+                let found = shapeProperty.values.find( vDescr => vDescr.value === shapeValue );
+            }
         } );
     } );
 
@@ -210,15 +238,19 @@ describe( 'AlCardstackView', () => {
             expect( color.caption ).to.equal("Color");
             expect( color.values ).to.be.an( "array" );
 
+            let color2 = stack.getProperty( color );
+            expect( color ).to.equal( color2 );
+
             expect( () => {
                 let fictional = stack.getProperty( "doesnt_exist" );
             } ).to.throw();
         } );
 
-        it( '`getValue()` should retrieve normalized value descriptor', () => {
+        it( '`getValue()` should always retrieve a reference to the normalized value descriptor', () => {
             let color = stack.getProperty( "color" );
             let purple = stack.getValue( color, "purple" );
             let purple2 = stack.getValue( "color", "purple" );
+            let purple3 = stack.getValue( "color", purple );
             expect( purple ).to.equal( purple2 );
             expect( purple.property ).to.equal( color.property );
             expect( purple.value ).to.equal( "purple" );
@@ -296,6 +328,38 @@ describe( 'AlCardstackView', () => {
             let color = stack.getValue( "color", firstCard.properties.color );
             stack.applyFilterBy( color );
             stack.applyFiltersAndSearch();
+            stack.removeFilterBy( color );
+            for ( let i = 0; i < stack.cards.length; i++ ) {
+                let card = stack.cards[i];
+                expect( card.visible ).to.equal( true );
+            }
+        } );
+        it( 'should show/hide items based on a single property/multiple values.', () => {
+            for ( let i = 0; i < dummyColors.length; i++ ) {
+                stack.applyFilterBy( stack.getValue( "color", dummyColors[i].value ) );
+                expect( stack.activeFilters.length ).to.equal( 1 );
+            }
+            for ( let i = 0; i < stack.cards.length; i++ ) {
+                let card = stack.cards[i];
+                if ( typeof( card.properties.color ) === 'undefined' ) {
+                    expect( card.visible ).to.equal( false );
+                } else {
+                    expect( card.visible ).to.equal( true );
+                }
+            }
+            for ( let i = 0; i < dummyColors.length; i++ ) {
+                stack.removeFilterBy( stack.getValue( "color", dummyColors[i].value ) );
+            }
+            expect( stack.activeFilters.length ).to.equal( 0 );      //  active filters should be empied when all values are removed
+        } );
+        it( 'should show/hide items based on a custom filter', () => {
+            let firstCard = stack.cards[0];
+            let color = stack.getValue( "color", firstCard.properties.color );
+            stack.applyFilterBy( color, ( e, p, f ) => false );
+            for ( let i = 0; i < stack.cards.length; i++ ) {
+                let card = stack.cards[i];
+                expect( card.visible ).to.equal( false );
+            }
             stack.removeFilterBy( color );
             for ( let i = 0; i < stack.cards.length; i++ ) {
                 let card = stack.cards[i];

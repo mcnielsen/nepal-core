@@ -17,9 +17,6 @@ export interface AlRoutingHost
     /* Exposes the current URL of the application (required). */
     currentUrl:string;
 
-    /* @deprecated Exposes the effective navigation schema, if available (not required).  Don't use this! */
-    schema?:AlNavigationSchema;
-
     /* Routing parameters */
     routeParameters: {[parameter:string]:string};
     setRouteParameter( parameter:string, value:string ):void;
@@ -666,18 +663,4 @@ export class AlRoute {
         }
         return activationPath;
     }
-}
-
-/**
- * @public
- *
- * This is a top-level interface for the structure of a schema document, which is a set of compiled menus and behavioral rules.
- */
-export interface AlNavigationSchema
-{
-    name: string;
-    description: string;
-    menus: {[menuId:string]:AlRouteDefinition};
-    namedRoutes: {[routeName:string]:AlRouteDefinition};
-    conditions: {[conditionId:string]:AlRouteCondition};
 }
