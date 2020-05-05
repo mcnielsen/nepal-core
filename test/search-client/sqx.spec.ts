@@ -110,6 +110,37 @@ describe('SQX Parser', () => {
             expect( errorCount ).to.equal( 0 );
         } );
 
+        it("should collapse AND clauses with single operators in them", () => {
+            let json = {
+                  "where":{
+                     "and":[
+                        {
+                           "=":[
+                              {
+                                 "source": "a"
+                              },
+                              true
+                           ]
+                        }
+                     ]
+                  }
+               };
+            let query = SQXSearchQuery.fromJson( json );
+            let converted = query.toConditionString();
+            let expressedJson = query.toJson();
+            expect( converted ).to.equal( "a = true" );
+            expect( expressedJson ).to.eql( {
+                'where': {
+                   "=":[
+                      {
+                         "source": "a"
+                      },
+                      true
+                   ]
+                }
+            } );
+        } );
+
         it( "should identify errors in badly formed queries", () => {
             let errorCount = 0;
             let brokenQueries = [
