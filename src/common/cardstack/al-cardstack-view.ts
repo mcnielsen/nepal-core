@@ -532,7 +532,7 @@ export abstract class AlCardstackView< EntityType=any,
         card: AlCardstackItem<EntityType, PropertyType>,
         search: string | RegExp | null
     ): boolean {
-        if (search === null) {
+        if (search === null || search === '') {
             return true;
         }
 
