@@ -101,7 +101,7 @@ export abstract class AlCardstackView< EntityType=any,
             if ( this.characteristics.localPagination ) {
                 this.addNextSection( ingestedCards );
             } else {
-                if( this.sortingBy && this.sortOrder) {
+                if( this.sortingBy && this.sortOrder && !this.sortingBy.remote) {
                     this.applySortBy(this.sortingBy,  this.sortOrder );
                 }
                 this.applyFiltersAndSearch();
