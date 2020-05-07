@@ -371,6 +371,7 @@ export abstract class AlCardstackView< EntityType=any,
         } else {
             this.applyFiltersAndSearch();
         }
+        this.filtersChanged.again();
     }
 
     public markCardsAsCheck ():void {
@@ -596,7 +597,13 @@ export abstract class AlCardstackView< EntityType=any,
     }
 
     protected evaluateCardState( card:AlCardstackItem<EntityType,PropertyType> ) {
-        card.visible = this.evaluateCardVisibilityBySearch(card, this.textFilter) && this.evaluateCardVisibilityByFilter(card);
+        // card.visible = this.evaluateCardVisibilityBySearch(card, this.textFilter) && this.evaluateCardVisibilityByFilter(card);
+
+        if(this.characteristics.remoteSearch) { // if its remote search we dont need inline searching facility
+            card.visible = this.evaluateCardVisibilityByFilter(card);
+        } else {
+            card.visible = this.evaluateCardVisibilityBySearch(card, this.textFilter) && this.evaluateCardVisibilityByFilter(card);
+        }
         return card.visible;
     }
 
