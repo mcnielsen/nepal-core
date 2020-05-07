@@ -321,6 +321,8 @@ export abstract class AlCardstackView< EntityType=any,
         } else {
             this.applyFiltersAndSearch();
         }
+        this.filtersChanged.again();
+        return false;
     }
 
     /**
