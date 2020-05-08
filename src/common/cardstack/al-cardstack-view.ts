@@ -99,7 +99,8 @@ export abstract class AlCardstackView< EntityType=any,
             this.filteredCards = ingestedCards;
 
             if ( this.characteristics.localPagination ) {
-                this.addNextSection( ingestedCards );
+                let initialCards = this.filteredCards.slice(this.cards.length,  this.cards.length + this.itemsPerPage);
+                this.addNextSection( initialCards );
             } else {
                 if( this.sortingBy && this.sortOrder && !this.sortingBy.remote) {
                     this.applySortBy(this.sortingBy,  this.sortOrder );
