@@ -372,6 +372,21 @@ export class AIMSClientInstance {
   }
 
   /**
+   * Get assigned roles
+   * GET
+   * /aims/v1/:account_id/users/:user_id/roles
+   * "https://api.cloudinsight.alertlogic.com/aims/v1/12345678/users/715A4EC0-9833-4D6E-9C03-A537E3F98D23/roles"
+   */
+  async getAssignedRoles( accountId:string, userId:string ):Promise<AIMSRole[]> {
+    const roles = await this.client.get({
+      service_name: this.serviceName,
+      account_id: accountId,
+      path: `/users/${userId}/roles`
+    });
+    return roles.roles;
+  }
+
+  /**
    * List global roles, roles that are shared among all accounts.
    * GET
    * /aims/v1/roles
