@@ -20,6 +20,7 @@ import {
     AIMSSessionDescriptor,
     AIMSTopology,
     AIMSUser,
+    AIMSUserDetails,
 } from './types';
 
 export class AIMSClientInstance {
@@ -46,6 +47,22 @@ export class AIMSClientInstance {
       data: { name, email, mobile_phone: mobilePhone }
     });
     return user as AIMSUser;
+  }
+
+  /**
+   * Update user details
+   * POST
+   * /aims/v1/:account_id/users/:user_id
+   * -d '{"name": "Bob Odenkirk", "email": "bodenkirk@company.com", "mobile_phone": "123-555-0124"}' "https://api.product.dev.alertlogic.com/aims/v1/12345678/users/715A4EC0-9833-4D6E-9C03-A537E3F98D23"
+   */
+  async updateUserDetails(accountId: string, userId: string, data:AIMSUserDetails):Promise<AIMSUser> {
+    const userDetailsUpdate = await this.client.post({
+      service_name: this.serviceName,
+      account_id: accountId,
+      path: `/users/${userId}`,
+      data: data
+    });
+    return userDetailsUpdate;
   }
 
   /**
