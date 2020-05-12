@@ -145,14 +145,16 @@ export abstract class AlCardstackView< EntityType=any,
 
             if (this.characteristics.localPagination) {
                 cardsSection = this.filteredCards.slice(this.cards.length,  this.cards.length + this.itemsPerPage);
+                this.addNextSection(cardsSection);
                 this.loadedPages++;
                 this.remainingPages--;
             } else {
                 entities = await this.fetchData( false, this.getRemoteFilters() );
                 cardsSection = this.ingest( entities );
+                // if paging is remote and rest things are inline
+                this.rawCards = [...this.rawCards, ...cardsSection];
                 this.applyFiltersAndSearch();
             }
-            this.addNextSection(cardsSection);
 
             if ( this.characteristics && this.characteristics.greedyConsumer && this.remainingPages > 0 ) {
                 //  In greedy consumer mode, we essentially retrieve the entire dataset sequentially as part of the load cycle
@@ -482,6 +484,37 @@ export abstract class AlCardstackView< EntityType=any,
         let discoveredValues:boolean = false;
         let results:AlCardstackItem<EntityType>[] = entities.map(entity => {
             const properties = this.deriveEntityProperties(entity);
+            if (properties) {
+                let derivedProps = Object.keys(properties);
+                if (this.characteristics.sortableBy) {
+                    let filteredSortProps = this.characteristics.sortableBy.filter(sortProp => {
+                        return !derivedProps.includes(sortProp as string);
+                    });
+                    if (filteredSortProps.length) {
+                        console.warn('Sorting configuration missing for properties ', filteredSortProps, ' in deriveEntityProperties');
+                    }
+                }
+                if (this.characteristics.filterableBy) {
+                    let filteredProps = this.characteristics.filterableBy.filter(filterProp => {
+                        return !derivedProps.includes(filterProp as string);
+                    });
+                    if (filteredProps.length) {
+                        console.warn('Filter configuration missing for property ', filteredProps, ' in deriveEntityProperties');
+                    }
+                }
+                if (!this.characteristics.remoteSearch) {
+                    if (this.characteristics.searchableBy && this.characteristics.searchableBy.length) {
+                        let filteredSearchProps = this.characteristics.searchableBy.filter(search => {
+                            return !derivedProps.includes(search);
+                        });
+                        if (filteredSearchProps.length) {
+                            console.warn('Search configuration missing for property ', filteredSearchProps, ' in deriveEntityProperties');
+                        }
+                    } else {
+                        console.warn('Search configuration missing fileds on which search to be performed, please update searchableBy with fields again search to be performed.');
+                    }
+                }
+            }
             this.autoIndexProperties.forEach( index => {
                 if ( index.property in properties ) {
                     let literalValue:any = properties[index.property];
