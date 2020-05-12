@@ -187,7 +187,7 @@ export class AlApiClient
   /**
    * GET - Return Cache, or Call for updated data
    */
-  public async get(config: APIRequestParams) {
+  public async get<T = any>(config: APIRequestParams): Promise<T> {
     config.method = 'GET';
     let normalized = await this.normalizeRequest( config );
     let queryParams = this.normalizeQueryParams( config.params );
@@ -258,21 +258,21 @@ export class AlApiClient
    * @deprecated
    * Alias for GET utility method
    */
-  public async fetch(config: APIRequestParams) {
+  public async fetch<T = any>(config: APIRequestParams):Promise<T> {
     console.warn("Deprecation warning: do not use AlApiClient.fetch; use `get` instead." );
-    return this.get( config );
+    return this.get<T>( config );
   }
 
   /**
    * POST - clears cache and posts for new/merged data
    */
-  public async post(config: APIRequestParams) {
+  public async post<T = any>(config: APIRequestParams): Promise<T> {
     config.method = 'POST';
     const normalized = await this.normalizeRequest( config );
     if ( ! normalized.disableCache ) {
       this.deleteCachedValue( normalized.url );
     }
-    const response = await this.doRequest( config.method, normalized );
+    const response = await this.doRequest<T>( config.method, normalized );
     return response.data;
   }
 
@@ -282,7 +282,7 @@ export class AlApiClient
    * @param method The method of the request. [POST PUT DELETE GET]
    * @param normalizedParams The normalized APIRequestParams object.
    */
-  public async doRequest(method:Method, normalizedParams:APIRequestParams):Promise<AxiosResponse> {
+  public async doRequest<T = any>(method:Method, normalizedParams:APIRequestParams):Promise<AxiosResponse<T>> {
     let response:AxiosResponse;
     let start:number = 0;
     let logItem:APIExecutionLogItem = {};
@@ -296,7 +296,7 @@ export class AlApiClient
     this.flushCacheKeysFromConfig(normalizedParams);
 
     try {
-      response = await this.axiosRequest( normalizedParams );
+      response = await this.axiosRequest<T>( normalizedParams );
 
       if (this.collectRequestLog) {
         const completed = Date.now();
@@ -350,7 +350,7 @@ export class AlApiClient
   /**
    * Form data submission
    */
-  public async form(config: APIRequestParams) {
+  public async form<T = any>(config: APIRequestParams) :Promise<T>{
     config.method = 'POST';
     config.headers = {
         'Content-Type': 'multipart/form-data'
@@ -359,20 +359,20 @@ export class AlApiClient
     if ( ! normalized.disableCache ) {
       this.deleteCachedValue( normalized.url );
     }
-    const response = await this.doRequest( config.method, normalized );
+    const response = await this.doRequest<T>( config.method, normalized );
     return response.data;
   }
 
   /**
    * PUT - replaces data
    */
-  public async put(config: APIRequestParams) {
+  public async put<T = any>(config: APIRequestParams) :Promise<T>{
     config.method = 'PUT';
     const normalized = await this.normalizeRequest( config );
     if ( ! normalized.disableCache ) {
       this.deleteCachedValue( normalized.url );
     }
-    const response = await this.doRequest( config.method, normalized );
+    const response = await this.doRequest<T>( config.method, normalized );
     return response.data;
   }
 
@@ -380,24 +380,24 @@ export class AlApiClient
    * @deprecated
    * Alias for PUT utility method
    */
-  public async set( config:APIRequestParams ) {
+  public async set<T = any>( config:APIRequestParams ) :Promise<T>{
     console.warn("Deprecation warning: do not use AlApiClient.set; use `put` instead." );
-    return this.put( config );
+    return this.put<T>( config );
   }
 
   /**
    * Delete data
    */
-  public async delete(config: APIRequestParams) {
+  public async delete<T = any>(config: APIRequestParams) :Promise<T>{
     config.method = 'DELETE';
     const normalized = await this.normalizeRequest( config );
     this.deleteCachedValue( normalized.url );
-    const response = await this.doRequest( config.method, normalized );
+    const response = await this.doRequest<T>( config.method, normalized );
     return response.data;
   }
 
   public async executeRequest<ResponseType>( options:APIRequestParams ):Promise<AxiosResponse<ResponseType>> {
-    return this.axiosRequest( options );
+    return this.axiosRequest<ResponseType>( options );
   }
 
   /**
