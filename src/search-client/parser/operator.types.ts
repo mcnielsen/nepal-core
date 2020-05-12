@@ -81,7 +81,11 @@ export class SQXOperatorAnd extends SQXGroupBase<SQXOperatorBase>
     }
 
     public toJson(): any {
-        return {"and": this.items.map( condition => condition.toJson() ) };
+        if ( this.items.length === 1 ) {
+            return this.items[0].toJson();
+        } else {
+            return {"and": this.items.map( condition => condition.toJson() ) };
+        }
     }
 }
 

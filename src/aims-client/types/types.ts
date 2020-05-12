@@ -46,6 +46,17 @@ export interface AIMSAuthenticationTokenInfo extends AIMSAuthentication {
     roles?: AIMSRole[];
 }
 
+export interface AIMSUserDetails {
+    name?:string;
+    password?:string;
+    email?:string;
+    active?:boolean;
+    mobile_phone?:string;
+    phone?:string;
+    webhook_url?:string;
+    notifications_only?:boolean;
+}
+
 export interface AIMSRole {
     id: string;
     account_id: string;
