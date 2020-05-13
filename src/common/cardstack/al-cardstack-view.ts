@@ -83,8 +83,7 @@ export abstract class AlCardstackView< EntityType=any,
                 }
                 const characteristics = await this.generateCharacteristics();
                 this.normalizeCharacteristics( characteristics );
-                if (this.localPagination) {
-                    console.warn("WARNING: please do not use the localPagination property of AlCardstackView; it is deprecated.  Instead, use the localPagination property of the characteristics provided to the cardstack view." );
+                if (this.characteristics.localPagination) {
                     this.fillPropertiesReduceFilters();
                 }
             }
