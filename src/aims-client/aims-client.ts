@@ -376,6 +376,34 @@ export class AIMSClientInstance {
   }
 
   /**
+   * Grant a role
+   * PUT
+   * /aims/v1/:account_id/users/:user_id/roles/:role_id
+   * "https://api.product.dev.alertlogic.com/aims/v1/12345678/users/715A4EC0-9833-4D6E-9C03-A537E3F98D23/roles/2A33175D-86EF-44B5-AA39-C9549F6306DF"
+   */
+  async grantRole(accountId:string, userId:string, roleId:string) {
+    return this.client.put({
+      service_name: this.serviceName,
+      account_id: accountId,
+      path: `/users/${userId}/roles/${roleId}`
+    });
+  }
+
+  /**
+   * Revoke a role
+   * DELETE
+   * /aims/v1/:account_id/users/:user_id/roles/:role_id
+   * "https://api.product.dev.alertlogic.com/aims/v1/12345678/users/715A4EC0-9833-4D6E-9C03-A537E3F98D23/roles/2A33175D-86EF-44B5-AA39-C9549F6306DF"
+   */
+  async revokeRole(accountId:string, userId:string, roleId:string) {
+    return this.client.delete({
+      service_name: this.serviceName,
+      account_id: accountId,
+      path: `/users/${userId}/roles/${roleId}`
+    });
+  }
+
+  /**
    * Get global role, a role that is shared among accounts.
    * GET
    * /aims/v1/roles/:role_id
