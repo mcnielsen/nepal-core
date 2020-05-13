@@ -333,18 +333,16 @@ export abstract class AlCardstackView< EntityType=any,
     public removeFilterBy( vDescriptor:AlCardstackValueDescriptor ) {
         let existing = this.activeFilters.find( filter => filter.propField === vDescriptor.property );
         if ( ! existing ) {
-            console.log("Could not find existing filter" );
+            // could not find existing filter
             return;
         }
 
-        console.log("Removing activeFilter from ", vDescriptor );
         vDescriptor.activeFilter = false;
         const pDescriptor = this.getProperty( vDescriptor.property );
 
         existing.values = existing.values.filter( value => value !== vDescriptor );
         if ( existing.values.length === 0 ) {
             this.activeFilters = this.activeFilters.filter( filter => filter.property !== pDescriptor );
-            console.log("Removing activeFilter from property", pDescriptor );
             pDescriptor.activeFilter = false;
         } else {
             existing.rawValues = existing.values.map( vDescr => vDescr.value );
