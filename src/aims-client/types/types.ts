@@ -76,6 +76,7 @@ export interface AIMSAccessKey {
     user_id: string;
     account_id: string;
     label: string;
+    last_login?:number;
     created?: AlChangeStamp;
     modified?: AlChangeStamp;
     secret_key?: string;
