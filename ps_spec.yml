@@ -101,7 +101,7 @@ stages:
                  echo "PUBLISHING $PKGNAME $PKGVERSION"
                  npm run build
                 # git push origin $V_VERSION
-                 npm publish --access public
+                 npm publish --access public --tag experimental
                  
                  echo "Continuous Delivery release for ${PKGNAME}@${PKGVERSION}" > release_notes.txt
 
