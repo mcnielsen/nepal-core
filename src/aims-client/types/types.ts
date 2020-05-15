@@ -57,6 +57,24 @@ export interface AIMSUserDetails {
     notifications_only?:boolean;
 }
 
+export class AIMSEnrollURI
+{
+    type:string = 'totp';
+    issuer:string = "Alert Logic";
+    algorithm:string = "SHA1";
+    email:string;
+    secret:string;
+
+    constructor( email:string, secret:string ) {
+        this.email = email;
+        this.secret = secret;
+    }
+
+    public toString():string {
+        return `otpauth://${this.type}/Alert%20Logic:${this.email}?secret=${encodeURIComponent(this.secret)}&issuer=${encodeURIComponent(this.issuer)}&algorithm=${this.algorithm}`;
+    }
+}
+
 export interface AIMSRole {
     id: string;
     account_id: string;

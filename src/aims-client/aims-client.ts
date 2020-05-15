@@ -21,6 +21,7 @@ import {
     AIMSTopology,
     AIMSUser,
     AIMSUserDetails,
+    AIMSEnrollURI,
 } from './types';
 
 export class AIMSClientInstance {
@@ -543,6 +544,34 @@ export class AIMSClientInstance {
       data: { mfa_uri: uri, mfa_codes: codes }
     });
     return mfa;
+  }
+
+  /**
+   * Enroll an MFA device for a user (when no AIMS token available).
+   * POST
+   * /aims/v1/user/mfa/enroll
+   *  "https://api.cloudinsight.alertlogic.com/aims/v1/user/mfa/enroll" \
+   * -H "Content-Type: application/json" \
+   * -d @- << EOF
+   * {
+   *    "mfa_uri": "otpauth://totp/Alert%20Logic:admin@company.com?secret=GFZSA5CINFJSA4ZTNNZDG5BAKM2EMMZ7&issuer=Alert%20Logic&algorithm=SHA1"
+   *    "mfa_codes": ["123456", "456789"],
+   *    "password" : "password",
+   *    "email" : "user@email.com"
+   * }
+   * EOF
+   */
+  async enrollMFAWithoutAIMSToken(uri:AIMSEnrollURI, codes:string[], email:string, password:string ) {
+    return this.client.post({
+      service_name: this.serviceName,
+      path: '/user/mfa/enroll',
+      data: {
+        mfa_uri: uri.toString(),
+        email: email,
+        password: password,
+        mfa_codes: codes
+      }
+    });
   }
 
   /**
