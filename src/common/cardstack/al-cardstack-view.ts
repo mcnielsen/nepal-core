@@ -95,15 +95,17 @@ export abstract class AlCardstackView< EntityType=any,
 
             let ingestedCards = this.ingest( entities );
             this.rawCards = ingestedCards;
-            this.filteredCards = ingestedCards;
+
+            if( this.sortingBy && this.sortOrder && !this.sortingBy.remote) {
+                this.applySortBy(this.sortingBy,  this.sortOrder );
+            }
+
+            this.filteredCards = this.rawCards;
 
             if ( this.characteristics.localPagination ) {
                 let initialCards = this.filteredCards.slice(this.cards.length,  this.cards.length + this.itemsPerPage);
                 this.addNextSection( initialCards );
             } else {
-                if( this.sortingBy && this.sortOrder && !this.sortingBy.remote) {
-                    this.applySortBy(this.sortingBy,  this.sortOrder );
-                }
                 this.applyFiltersAndSearch();
             }
 
