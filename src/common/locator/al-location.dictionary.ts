@@ -227,7 +227,7 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
     },
     {
         locTypeId: AlLocation.HudUI,
-        uri: 'http://localhost:4202',
+        uri: 'http://localhost:4200',
         environment: 'development',
         keyword: 'localhost'
     },
@@ -276,7 +276,7 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
     },
     {
         locTypeId: AlLocation.IrisUI,
-        uri: 'http://localhost:4200',
+        uri: 'http://localhost:4202',
         environment: 'development',
         keyword: 'localhost'
     },
