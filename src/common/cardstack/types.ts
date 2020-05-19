@@ -30,10 +30,16 @@ export interface AlCardstackValueDescriptor
     valueKey:string;
 
     //  Should the filter be selected by default?
-    default?:boolean;           //  Should the filter be selected by default?
+    default?:boolean;
 
-    // If the value has an aggregate count
+    //  Indicates whether or not the value is currently being used as a filter.
+    activeFilter?:boolean;
+
+    //  Aggregate count (number of matching cards after *all* filters are applied).
     count?:number;
+
+    //  Pre-filter count (number of matching cards with this property/value, before any other filters are applied).
+    prefilterCount?:number;
 
     // Define the type of the descriptor
     type?:string;
@@ -48,25 +54,34 @@ export interface AlCardstackValueDescriptor
 export interface AlCardstackPropertyDescriptor
 {
     //  The service or namespace in which the field has meaning (e.g., "iris" or "herald")
-    domain:string;
+    domain?:string;
 
-    //  The service-friendly name of the attribute or field
+    //  The literal property of this value on the entity's DTO
     property:string;
 
     //  The user-friendly name (e.g., "Scheduled Report" or "Incident")
     caption:string;
 
     //  The user-friendly plural name
-    captionPlural:string;
+    captionPlural?:string;
 
     // The user-friendly description of the cardstack
     description?:string;
 
-    //  An array of possible values the property may have (value/caption pairs, plus some miscellaneous state properties)
+    //  An array of possible values the property may have (value/caption pairs, plus some miscellaneous state properties) if the property has discrete values.
     values: AlCardstackValueDescriptor[];
 
     //  Indicates whether or not multiple items from this property can be selected (applies to filterable properties only)
     multiSelect?:boolean;
+
+    //  Indicates whether the property's value list should be dynamically populated based on ingested data.
+    autoIndex?:boolean;
+
+    //  Indicates whether view filtration/sort for this property should be executed remotely.  If true, filtering or sorting by this property will automatically reset the view.
+    remote?:boolean;
+
+    //  Indicates whether or not the property is currently being filtered on.
+    activeFilter?:boolean;
 
     //  Arbitrary metadata, such as icon class or entitlement limitations
     metadata:{[property:string]:any};
@@ -98,16 +113,10 @@ export interface AlCardstackCharacteristics
      *  An empty array indicates that filtering is not supported for this cardstack, and the filter panel should not be shown.
      */
     filterableBy: (string|AlCardstackPropertyDescriptor)[];
+
     /**
-     * searchableBy is an array with the properties,
-     * take in account the property must by an string or an arrays with strings,
-     * NOTE: complex obj are not supported.
-     * eg properties: {
-     *   name:'Ana victoria',
-     *   favoriteColor:['red','blue'],
-     *   favoriteOther:[{ name:'belen', age:18}] //  not supported
-     * }
-     * eg searchableBy ['name','favoriteColor']
+     *  Identifiers which properties in the DTO text searches should be applied against.
+     *  NOTE: complex obj are not supported.  If 'remoteSearch' is true, these values will be ignored.
      */
     searchableBy?: string[];
 
@@ -134,6 +143,22 @@ export interface AlCardstackCharacteristics
      */
     filterValueLimit: number;
     filterValueIncrement: number;
+
+    /**
+     * If true, indicates that filter values with no matching results should be hidden from the filter list.
+     */
+    hideEmptyFilterValues:boolean;
+
+    /**
+     * If true, pagination will be executed locally
+     */
+    localPagination:boolean;
+
+    /**
+     * If true, search will be executed remotely (changes to search value will reload the view).  Otherwise, `searchableBy` will
+     * be used to determine which entity properties the textual filter should be applied against.
+     */
+    remoteSearch:boolean;
 }
 
 /**
@@ -215,3 +240,18 @@ export interface AlCardstackPage<EntityType=any>
     pages_remaining:number;
 }
 
+/**
+ *  This interfaces describes an active filter
+ */
+export interface AlCardstackActiveFilter<EntityType = any,PropertyType extends AlCardstackItemProperties=any>
+{
+    property:AlCardstackPropertyDescriptor;                 //  The property being filtered on
+    propField:string;                                       //  The DTO field the property's value can be found on
+    values:AlCardstackValueDescriptor[];                    //  The values being filtered for (descriptors)
+    rawValues:any[];                                        //  The values being filtered for (raw values)
+
+    /**
+     *  The default callback will return true ("match") if any of the values in the filter match a given entity's value for that field, but it can be overridden to provide custom logic.
+     */
+    callback:{(entity:EntityType,properties:PropertyType,filter:AlCardstackActiveFilter<EntityType,PropertyType>):boolean};
+}
