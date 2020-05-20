@@ -343,7 +343,7 @@ export class AlSessionDetector
       return Promise.race( [ AlStopwatch.promise( timeout ),
                              new Promise<string>( ( resolve, reject ) => {
                                authenticator.checkSession( config, ( error, authResult ) => {
-                                   if ( error || ! authResult.accessToken ) {
+                                   if ( error || ! authResult || ! authResult.accessToken ) {
                                        reject("auth0's checkSession method failed with an error" );
                                    }
                                    resolve( authResult.accessToken );
