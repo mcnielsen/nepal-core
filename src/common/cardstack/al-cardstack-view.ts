@@ -176,7 +176,7 @@ export abstract class AlCardstackView< EntityType=any,
     public resetPagination(total:number){
         if(this.itemsPerPage) {
             this.loadedPages = 0;
-            this.remainingPages = total / this.itemsPerPage;
+            this.remainingPages = Math.floor(total / this.itemsPerPage);
         }
     }
 
