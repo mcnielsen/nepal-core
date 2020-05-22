@@ -883,7 +883,7 @@ export class SQXComparatorCIDRMatch extends SQXOperatorBase
 
     public fromParser( cursor:SQXParseCursor, tokenIndex:number ) {
         if ( tokenIndex < 1 || tokenIndex + 1 >= cursor.tokens.length ) {
-            throw new SQXParseError( "CIDR match operator must be used in the form `property` CIDR `value`", cursor.expression, cursor.token() );
+            throw new SQXParseError( "CIDR_MATCH operator must be used in the form `property` CIDR_MATCH `value`", cursor.expression, cursor.token() );
         }
 
         this.property = SQXPropertyRef.fromToken( cursor.token( tokenIndex - 1 ) );
@@ -895,7 +895,7 @@ export class SQXComparatorCIDRMatch extends SQXOperatorBase
     }
 
     public toQueryString():string {
-        return `${this.property.toQueryString()} CIDR ${this.value.toQueryString()}`;
+        return `${this.property.toQueryString()} CIDR_MATCH ${this.value.toQueryString()}`;
     }
 
     public toJson():any {
