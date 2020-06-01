@@ -537,11 +537,14 @@ export class AIMSClientInstance {
    * }
    * EOF
    */
-  async enrollMFA(uri: string, codes) {
+  async enrollMFA( uri: string, sessionToken:string, codes:string[] ) {
     const mfa = await this.client.post({
       service_name: this.serviceName,
       path: '/user/mfa/enroll',
-      data: { mfa_uri: uri, mfa_codes: codes }
+      data: { mfa_uri: uri, mfa_codes: codes },
+      headers: {
+          'X-AIMS-Session-Token': sessionToken
+      }
     });
     return mfa;
   }

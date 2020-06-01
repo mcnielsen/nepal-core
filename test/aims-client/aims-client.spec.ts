@@ -306,7 +306,7 @@ describe('AIMS Client Test Suite:', () => {
     it('should call post() on the AlDefaultClient instance to the mfa endpoint with the supplied uri and codes', async() => {
       const uri = 'otpauth://totp/Alert%20Logic:admin@company.com?secret=GFZSA5CINFJSA4ZTNNZDG5BAKM2EMMZ7&issuer=Alert%20Logic&algorithm=SHA1';
       const codes = ['123456', '456789'];
-      await AIMSClient.enrollMFA(uri, codes);
+      await AIMSClient.enrollMFA(uri, "Some Token", codes);
       expect(stub.callCount).to.equal(1);
       const payload = stub.args[0][0];
       expect( payload.method ).to.equal( "POST" );
