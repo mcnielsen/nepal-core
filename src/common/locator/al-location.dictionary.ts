@@ -433,6 +433,24 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
           clientID: '8eMblSx2Ead6nT7SeXffXbHT1I4JyAI4'
         },
         environment: 'development'
+    },
+
+    /**
+     * Analytic Engine Configuration
+     */
+    {
+        locTypeId: AlLocation.AETunerAPI,
+        uri: 'https://aetuner.mdr.global.alertlogic.com',
+        aspect: 'api',
+        environment: 'production|beta-nav-prod|production-staging',
+        keyword: 'aetuner'
+    },
+    {
+        locTypeId: AlLocation.AETunerAPI,
+        uri: 'https://aetuner.mdr.product.dev.alertlogic.com',
+        aspect: 'api',
+        environment: 'development|integration',
+        keyword: 'aetuner'
     }
 ];
 
