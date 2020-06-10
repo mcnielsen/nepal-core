@@ -299,27 +299,9 @@ export abstract class AlCardstackView< EntityType=any,
      */
     public applyFilterBy( vDescriptor:AlCardstackValueDescriptor,
                           callback?:{(entity:EntityType,properties:PropertyType,filter:AlCardstackActiveFilter<EntityType,PropertyType>):boolean} ) {
+
+        this.updateActiveFilters(vDescriptor, callback);
         const pDescriptor = this.getProperty( vDescriptor.property );
-        const existing = this.activeFilters.find( filter => filter.property === pDescriptor );
-        if ( existing ) {
-            if ( existing.values.includes( vDescriptor ) ) {
-                return;     //  no change
-            }
-            existing.values.push( vDescriptor );
-            existing.rawValues = existing.values.map( vDescr => vDescr.value );
-        } else {
-            this.activeFilters.push( {
-                property: pDescriptor,
-                propField: pDescriptor.property,
-                values: [ vDescriptor ],
-                rawValues: [ vDescriptor.value ],
-                callback: callback || this.defaultFilterCb
-            } );
-        }
-
-        pDescriptor.activeFilter = true;
-        vDescriptor.activeFilter = true;
-
         if ( pDescriptor.remote ) {
             this.start();       //  restart view
         } else {
@@ -327,6 +309,16 @@ export abstract class AlCardstackView< EntityType=any,
         }
         this.filtersChanged.again();
         return false;
+    }
+    /**
+     *  Applies multiple filter to the current view, optionally specifying a custom filter callback.
+     */
+    public applyMultipleFilterBy( vDescriptors:AlCardstackValueDescriptor[],
+        callback?:{(entity:EntityType,properties:PropertyType,filter:AlCardstackActiveFilter<EntityType,PropertyType>):boolean} ) {
+
+            vDescriptors.forEach(vDescriptor => {
+                this.updateActiveFilters(vDescriptor, callback);
+            });
     }
 
     /**
@@ -708,6 +700,30 @@ export abstract class AlCardstackView< EntityType=any,
 
     protected getRemoteFilters():AlCardstackActiveFilter<EntityType,PropertyType>[] {
         return this.activeFilters.filter( filter => filter.property.remote );
+    }
+
+    protected updateActiveFilters(vDescriptor:AlCardstackValueDescriptor,
+                                  callback?:{(entity:EntityType,properties:PropertyType,filter:AlCardstackActiveFilter<EntityType,PropertyType>):boolean}) {
+        const pDescriptor = this.getProperty( vDescriptor.property );
+        const existing = this.activeFilters.find( filter => filter.property === pDescriptor );
+        if ( existing ) {
+            if ( existing.values.includes( vDescriptor ) ) {
+                return;     //  no change
+            }
+            existing.values.push( vDescriptor );
+            existing.rawValues = existing.values.map( vDescr => vDescr.value );
+        } else {
+            this.activeFilters.push( {
+                property: pDescriptor,
+                propField: pDescriptor.property,
+                values: [ vDescriptor ],
+                rawValues: [ vDescriptor.value ],
+                callback: callback || this.defaultFilterCb
+            } );
+        }
+
+        pDescriptor.activeFilter = true;
+        vDescriptor.activeFilter = true;
     }
 
 
