@@ -1,5 +1,25 @@
 /**
- * Module to deal with discovering available endpoints
+ *  Alert Logic axios extension - an API Client with automatic service discovery, local caching, and retry functionality baked in.
+ *
+ *  An instance of the client can be constructed manually, but in general you should just use the global instance `AlDefaultClient`.
+ *
+ *  Most use cases can be handled by using one of the client's convenience methods, which includes support for local caching and retries:
+ *
+ *  `.rawGet<Type>( config )` - executes a GET request and resolves with the full response descriptor from axios
+ *  `.get<Type>( config )` - executes a GET request and resolves with the response payload from axios, as Type.
+ *  `.rawPost<Type>( config )` - executes a POST request and resolves with the full response descriptor from axios
+ *  `.post<Type>( config )` - executes a POST request and resolves with the response payload from axios, as Type.
+ *  `.rawPut<Type>( config )` - executes a PUT request and resolves with the full response descriptor from axios
+ *  `.put<Type>( config )` - executes a PUT request and resolves with the response payload from axios, as Type.
+ *  `.rawDelete<Type>( config )` - executes a DELETE request and resolves with the full response descriptor from axios
+ *  `.delete<Type>( config )` - executes a DELETE request and resolves with the response payload from axios, as Type.
+ *
+ *  Alternatively, a request can be normalized and dispatched without caching or retry logic using this method:
+ *
+ *  ```
+ *  let normalizedRequest = AlDefaultClient.normalizeRequest( config );
+ *  let response = await AlDefaultClient.doRequest<Type>( method, normalizedRequest );
+ *  ```
  */
 import axios, {
     AxiosInstance,
@@ -43,6 +63,7 @@ export interface APIRequestParams extends AxiosRequestConfig {
   context_account_id?:string;       //  If provided, uses the given account's endpoints/residency to determine service URLs _without_ adding the account ID to the request path.
   path?: string;                    //  What is the path of the specific command within the resolved service that we are trying to interact with?
   noEndpointsResolution?:boolean;   //  If set and truthy, endpoints resolution will *not* be used before the request is issued.
+  rawResponse?:boolean;             //  If set and truthy, the entire response object (not just its data payload) will be emitted as the result of a successful request.
 
   /**
    * Should data fetched from this endpoint be cached?  0 ignores caching, non-zero values are treated as milliseconds to persist retrieved data in local memory.
@@ -187,12 +208,11 @@ export class AlApiClient
   /**
    * GET - Return Cache, or Call for updated data
    */
-  public async get<T = any>(config: APIRequestParams): Promise<T> {
+  public async rawGet<T = any>(config: APIRequestParams): Promise<AxiosResponse<T>> {
     config.method = 'GET';
     let normalized = await this.normalizeRequest( config );
     let queryParams = this.normalizeQueryParams( config.params );
     let fullUrl = `${normalized.url}${queryParams}`;
-
 
     //  Check for data in cache
     let cacheTTL = 0;
@@ -206,14 +226,20 @@ export class AlApiClient
       let cachedValue = this.getCachedValue( fullUrl );
       if ( cachedValue ) {
         this.log(`APIClient::XHR GET ${fullUrl} (from cache)` );
-        return cachedValue;
+        return {
+          data: cachedValue,
+          status: 200,
+          statusText: "OK",
+          headers: {},
+          config: normalized
+        };
       }
     }
     //  Check for existing in-flight requests for this resource
     if ( this.transientReadCache.hasOwnProperty( cacheKey ) ) {
       this.log(`APIClient::XHR GET Re-using inflight retrieval [${fullUrl}]` );
       const result = await this.transientReadCache[cacheKey];
-      return result.data;
+      return result;
     }
 
     let start = Date.now();
@@ -245,13 +271,18 @@ export class AlApiClient
         }
       }
 
-      return response.data;
+      return response;
     } catch( e ) {
       this.log(`APIClient::XHR GET [${fullUrl}] (FAILED, ${e["message"]})` );
       throw e;
     } finally {
       delete this.transientReadCache[cacheKey];
     }
+  }
+
+  public async get<T = any>(config: APIRequestParams): Promise<T> {
+    let response = await this.rawGet<T>( config );
+    return response.data;
   }
 
   /**
@@ -266,14 +297,87 @@ export class AlApiClient
   /**
    * POST - clears cache and posts for new/merged data
    */
-  public async post<T = any>(config: APIRequestParams): Promise<T> {
+  public async rawPost<T = any>(config: APIRequestParams): Promise<AxiosResponse<T>> {
     config.method = 'POST';
     const normalized = await this.normalizeRequest( config );
     if ( ! normalized.disableCache ) {
       this.deleteCachedValue( normalized.url );
     }
     const response = await this.doRequest<T>( config.method, normalized );
+    return response;
+  }
+
+  public async post<T = any>(config:APIRequestParams): Promise<T> {
+    let response = await this.rawPost<T>( config );
     return response.data;
+  }
+
+  /**
+   * Form data submission
+   */
+  public async rawForm<T = any>(config: APIRequestParams) :Promise<AxiosResponse<T>>{
+    config.method = 'POST';
+    config.headers = {
+        'Content-Type': 'multipart/form-data'
+    };
+    const normalized = await this.normalizeRequest( config );
+    if ( ! normalized.disableCache ) {
+      this.deleteCachedValue( normalized.url );
+    }
+    const response = await this.doRequest<T>( config.method, normalized );
+    return response;
+  }
+
+  public async form<T = any>(config:APIRequestParams): Promise<T> {
+    let response = await this.rawForm<T>( config );
+    return response.data;
+  }
+
+  /**
+   * PUT - replaces data
+   */
+  public async rawPut<T = any>(config: APIRequestParams) :Promise<AxiosResponse<T>>{
+    config.method = 'PUT';
+    const normalized = await this.normalizeRequest( config );
+    if ( ! normalized.disableCache ) {
+      this.deleteCachedValue( normalized.url );
+    }
+    const response = await this.doRequest<T>( config.method, normalized );
+    return response;
+  }
+
+  public async put<T = any>(config:APIRequestParams): Promise<T> {
+    let response = await this.rawPut<T>(config);
+    return response.data;
+  }
+
+  /**
+   * @deprecated
+   * Alias for PUT utility method
+   */
+  public async set<T = any>( config:APIRequestParams ) :Promise<T>{
+    console.warn("Deprecation warning: do not use AlApiClient.set; use `put` instead." );
+    return this.put<T>( config );
+  }
+
+  /**
+   * Delete data
+   */
+  public async rawDelete<T = any>(config: APIRequestParams) :Promise<AxiosResponse<T>>{
+    config.method = 'DELETE';
+    const normalized = await this.normalizeRequest( config );
+    this.deleteCachedValue( normalized.url );
+    const response = await this.doRequest<T>( config.method, normalized );
+    return response;
+  }
+
+  public async delete<T = any>(config: APIRequestParams ): Promise<T> {
+    let response = await this.rawDelete<T>( config );
+    return response.data;
+  }
+
+  public async executeRequest<ResponseType>( options:APIRequestParams ):Promise<AxiosResponse<ResponseType>> {
+    return this.axiosRequest<ResponseType>( options );
   }
 
   /**
@@ -345,59 +449,6 @@ export class AlApiClient
     }
 
     return summary;
-  }
-
-  /**
-   * Form data submission
-   */
-  public async form<T = any>(config: APIRequestParams) :Promise<T>{
-    config.method = 'POST';
-    config.headers = {
-        'Content-Type': 'multipart/form-data'
-    };
-    const normalized = await this.normalizeRequest( config );
-    if ( ! normalized.disableCache ) {
-      this.deleteCachedValue( normalized.url );
-    }
-    const response = await this.doRequest<T>( config.method, normalized );
-    return response.data;
-  }
-
-  /**
-   * PUT - replaces data
-   */
-  public async put<T = any>(config: APIRequestParams) :Promise<T>{
-    config.method = 'PUT';
-    const normalized = await this.normalizeRequest( config );
-    if ( ! normalized.disableCache ) {
-      this.deleteCachedValue( normalized.url );
-    }
-    const response = await this.doRequest<T>( config.method, normalized );
-    return response.data;
-  }
-
-  /**
-   * @deprecated
-   * Alias for PUT utility method
-   */
-  public async set<T = any>( config:APIRequestParams ) :Promise<T>{
-    console.warn("Deprecation warning: do not use AlApiClient.set; use `put` instead." );
-    return this.put<T>( config );
-  }
-
-  /**
-   * Delete data
-   */
-  public async delete<T = any>(config: APIRequestParams) :Promise<T>{
-    config.method = 'DELETE';
-    const normalized = await this.normalizeRequest( config );
-    this.deleteCachedValue( normalized.url );
-    const response = await this.doRequest<T>( config.method, normalized );
-    return response.data;
-  }
-
-  public async executeRequest<ResponseType>( options:APIRequestParams ):Promise<AxiosResponse<ResponseType>> {
-    return this.axiosRequest<ResponseType>( options );
   }
 
   /**
