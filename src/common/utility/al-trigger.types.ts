@@ -20,7 +20,7 @@ export function AlTrigger( eventTypeName:string ) {
  *
  * Represents a typed event.
  */
-export class AlTriggeredEvent<ResponseType>
+export class AlTriggeredEvent<ResponseType=any>
 {
     public eventTypeName:string;
     public responses:ResponseType[] = [];
@@ -76,35 +76,35 @@ export class AlTriggeredEvent<ResponseType>
  *
  * Callback type for triggered events.
  */
-export declare type AlTriggeredEventCallback<ResponseType> = {(event:AlTriggeredEvent<ResponseType>):void|boolean};
+export declare type AlTriggeredEventCallback<EventType> = {(event:EventType):void|boolean};
 
 /**
  * @public
  *
  * Represents a subscription to a stream of triggered events.
  */
-export class AlTriggerSubscription<ResponseType>
+export class AlTriggerSubscription<EventType>
 {
     protected active = true;
-    protected filterCb:AlTriggeredEventCallback<ResponseType>|null = null;
+    protected filterCb:AlTriggeredEventCallback<EventType>|null = null;
 
     constructor( public stream:AlTriggerStream,
                  public eventType:string,
                  public listenerId:string,
-                 public triggerCallback?:AlTriggeredEventCallback<ResponseType> ) {
+                 public triggerCallback?:AlTriggeredEventCallback<EventType> ) {
     }
 
-    then( cb:AlTriggeredEventCallback<any> ):AlTriggerSubscription<ResponseType> {
+    then( cb:AlTriggeredEventCallback<any> ):AlTriggerSubscription<EventType> {
         this.triggerCallback = cb;
         return this;
     }
 
-    filter( cb:AlTriggeredEventCallback<any> ):AlTriggerSubscription<ResponseType> {
+    filter( cb:AlTriggeredEventCallback<any> ):AlTriggerSubscription<EventType> {
         this.filterCb = cb;
         return this;
     }
 
-    trigger( event:AlTriggeredEvent<ResponseType> ) {
+    trigger( event:EventType ) {
         if ( this.active && this.triggerCallback ) {
             if ( this.filterCb === null || this.filterCb( event ) ) {
                 this.triggerCallback( event );
@@ -149,11 +149,11 @@ export class AlTriggerStream
         return this.items[eventTypeName];
     }
 
-    public attach<ResponseType>( eventType:string|Function, callback:AlTriggeredEventCallback<ResponseType>, subscriptionGroup?:AlSubscriptionGroup ):AlTriggerSubscription<ResponseType> {
+    public attach<EventType extends AlTriggeredEvent>( eventType:string|Function, callback:AlTriggeredEventCallback<EventType>, subscriptionGroup?:AlSubscriptionGroup ):AlTriggerSubscription<EventType> {
         const eventTypeName = typeof( eventType ) === 'string' ? eventType : eventType.prototype.eventTypeName;
         const listenerId:string = `sub_${++this.subscriptionCount}`;
         const bucket = this.getBucket( eventTypeName );
-        const subscription = new AlTriggerSubscription( this, eventTypeName, listenerId, callback );
+        const subscription = new AlTriggerSubscription<EventType>( this, eventTypeName, listenerId, callback );
         bucket[listenerId] = subscription;
         if ( subscriptionGroup ) {
             subscriptionGroup.manage( subscription );
@@ -172,7 +172,7 @@ export class AlTriggerStream
         child.tap();
     }
 
-    public trigger<ResponseType>( event:AlTriggeredEvent<ResponseType> ):AlTriggeredEvent<ResponseType> {
+    public trigger<EventType extends AlTriggeredEvent>( event:EventType ):EventType {
         let eventType = event.getEventType();
         if ( ! this.flowing ) {
             this.captured.push( event );

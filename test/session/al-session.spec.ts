@@ -312,7 +312,7 @@ describe('AlSession', () => {
       expect( session.isActive() ).to.equal( true );
 
       //    Secondary test: make sure the AlClientBeforeRequest hook works
-      let event = new AlClientBeforeRequestEvent( { url: 'https://api.cloudinsight.alertlogic.com', headers: {} } );
+      let event = new AlClientBeforeRequestEvent( { service_stack: 'insight:api', url: 'https://api.cloudinsight.alertlogic.com', headers: {} } );
       session.notifyStream.trigger( event );
       expect( event.request.headers.hasOwnProperty( 'X-AIMS-Auth-Token' ) ).to.equal( true );
       expect( event.request.headers['X-AIMS-Auth-Token'] ).to.equal( exampleSession.authentication.token );

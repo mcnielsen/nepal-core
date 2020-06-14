@@ -2,7 +2,7 @@
  * A client for interacting with the Alert Logic Search Public API.
  */
 import {
-    ALClient,
+    AlDefaultClient,
     APIRequestParams,
 } from "../client";
 
@@ -148,7 +148,7 @@ class AlSearchClientV2 {
         if (additionalParams) {
             submitRequestArgs.params = additionalParams;
         }
-        const results = await ALClient.post(submitRequestArgs);
+        const results = await AlDefaultClient.post(submitRequestArgs);
 
         return results as AlSearchSubmitV2;
     }
@@ -166,7 +166,7 @@ class AlSearchClientV2 {
         if (additionalParams) {
             fetchRequestArgs.params = additionalParams;
         }
-        const results = await ALClient.get(fetchRequestArgs);
+        const results = await AlDefaultClient.get(fetchRequestArgs);
 
         return results as AlSearchGetV2;
     }
@@ -181,7 +181,7 @@ class AlSearchClientV2 {
      * @return Observable<SearchStatusV2>
      */
     async status(accountId: string, uuid: string): Promise<AlSearchStatusV2> {
-        const status = await ALClient.get({
+        const status = await AlDefaultClient.get({
             service_name: this.serviceName,
             version: 2,
             account_id: accountId,
@@ -195,7 +195,7 @@ class AlSearchClientV2 {
      *  Delete a currently executing search operation in the backend
      */
     async delete(accountId: string, uuid: string): Promise<any> {
-        const response = await ALClient.delete({
+        const response = await AlDefaultClient.delete({
             service_name: this.serviceName,
             version: 2,
             account_id: accountId,
@@ -208,7 +208,7 @@ class AlSearchClientV2 {
      *  Get expert mode search grammar
      */
     async getGrammar(): Promise<AlSearchSQLGrammar> {
-        const grammar = await ALClient.get({
+        const grammar = await AlDefaultClient.get({
             service_name: this.serviceName,
             version: 2,
             path: `/grammar`,
