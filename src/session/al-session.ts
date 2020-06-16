@@ -99,7 +99,10 @@ export class AlSessionInstance
       this.notifyStream.siphon( this.client.events );
       this.notifyStream.attach( AlClientBeforeRequestEvent, ( event:AlClientBeforeRequestEvent ) => {
           if ( this.sessionIsActive ) {
-              if ( event.request.service_stack === AlLocation.InsightAPI || event.request.service_stack === AlLocation.GlobalAPI ) {
+              if ( event.request.service_stack === AlLocation.InsightAPI
+                || event.request.service_stack === AlLocation.GlobalAPI
+                || event.request.service_stack === AlLocation.IntegrationsAPI
+                 ) {
                   event.request.headers = event.request.headers || {};
                   event.request.headers['X-AIMS-Auth-Token'] = this.getToken();
               }

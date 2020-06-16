@@ -458,19 +458,15 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
      */
     {
         locTypeId: AlLocation.IntegrationsAPI,
-        productType: 'insight',
         aspect: 'api',
         uri: 'https://integrations.mdr.global.alertlogic.com',
-        environment: 'production|production-staging',
-        residency: 'US'
+        environment: 'production|production-staging'
     },
     {
         locTypeId: AlLocation.IntegrationsAPI,
-        productType: 'insight',
         aspect: 'api',
         uri: 'https://integrations.mdr.product.dev.alertlogic.com',
-        environment: 'integration|development',
-        residency: 'US'
+        environment: 'integration|development'
     },
 ];
 
