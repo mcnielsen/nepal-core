@@ -2,7 +2,7 @@
  * A client for interacting with the Alert Logic Search Stylist API.
  */
 import {
-    ALClient,
+    AlDefaultClient,
     APIRequestParams,
 } from "../client";
 
@@ -36,9 +36,9 @@ class AlSearchStylist {
             fetchRequestArgs.headers.Accept = 'text/csv';
             fetchRequestArgs.responseType = 'blob';
 
-            return ALClient.get(fetchRequestArgs);
+            return AlDefaultClient.get(fetchRequestArgs);
         }
-        return ALClient.get<AlSearchGetV2>(fetchRequestArgs);
+        return AlDefaultClient.get<AlSearchGetV2>(fetchRequestArgs);
     }
 }
 
