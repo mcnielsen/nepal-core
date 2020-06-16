@@ -41,6 +41,7 @@ export class AlLocation
     public static EndpointsAPI      = "endpoints:api";
     public static GestaltAPI        = "gestalt:api";
     public static AETunerAPI        = "aetuner:api";
+    public static IntegrationsAPI   = "integrations:api";
 
     /**
      * Modern UI Nodes
