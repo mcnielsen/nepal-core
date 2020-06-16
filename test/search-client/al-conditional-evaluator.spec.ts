@@ -127,7 +127,7 @@ describe( 'conditional evaluation', () => {
         let durationPerThousand = ( stop - start ) / subjects.length;
 
         console.log(`Average conditional evaluations: ${durationPerThousand} ms/k` );
-        expect( durationPerThousand ).to.be.below( 20 );
+        expect( durationPerThousand ).to.be.below( 40 );
     } );
 
     it( 'should calculate contains_any and contains_all against arrays and objects as expected', () => {
