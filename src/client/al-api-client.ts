@@ -539,7 +539,8 @@ export class AlApiClient
     const endpointsRequest:APIRequestParams = {
       method: "POST",
       url: AlLocatorService.resolveURL( AlLocation.GlobalAPI, `/endpoints/v1/${accountId}/residency/default/endpoints` ),
-      data: requestList
+      data: requestList,
+      aimsAuthHeader: true
     };
     return this.axiosRequest( endpointsRequest )
               .then( response => {

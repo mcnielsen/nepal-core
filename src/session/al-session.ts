@@ -94,20 +94,22 @@ export class AlSessionInstance
         useConsolidatedResolver: false
     };
 
+    /**
+     * List of base locations ("service_stack") that should automatically have X-AIMS-Auth-Token headers added.
+     */
+    protected authenticatedStacks = [
+      AlLocation.InsightAPI,
+      AlLocation.GlobalAPI,
+      AlLocation.IntegrationsAPI,
+      AlLocation.GestaltAPI,
+      AlLocation.EndpointsAPI
+    ];
+
+
     constructor( client:AlApiClient = null ) {
       this.client = client || AlDefaultClient;
       this.notifyStream.siphon( this.client.events );
-      this.notifyStream.attach( AlClientBeforeRequestEvent, ( event:AlClientBeforeRequestEvent ) => {
-          if ( this.sessionIsActive ) {
-              if ( event.request.service_stack === AlLocation.InsightAPI
-                || event.request.service_stack === AlLocation.GlobalAPI
-                || event.request.service_stack === AlLocation.IntegrationsAPI
-                 ) {
-                  event.request.headers = event.request.headers || {};
-                  event.request.headers['X-AIMS-Auth-Token'] = this.getToken();
-              }
-          }
-      } );
+      this.notifyStream.attach( AlClientBeforeRequestEvent, this.onBeforeRequest );
       /**
        * Attempt to recreate a persisted session.  Note that the timeout below (really just an execution deferral, given the 0ms) prevents any
        * API requests from being fired before whatever application has imported us has had a chance to bootstrap.
@@ -602,6 +604,18 @@ export class AlSessionInstance
     /**
      * Private Internal/Utility Methods
      */
+
+    protected onBeforeRequest = ( event:AlClientBeforeRequestEvent ) => {
+      /*  tslint:disable:no-boolean-literal-compare */
+      if ( this.sessionIsActive ) {
+        if ( event.request.aimsAuthHeader === true
+                ||
+             ( this.authenticatedStacks.includes( event.request.service_stack ) && event.request.aimsAuthHeader !== false ) ) {
+          event.request.headers = event.request.headers || {};
+          event.request.headers['X-AIMS-Auth-Token'] = this.getToken();
+        }
+      }
+    }
 
     /**
      * Get the current timestamp (seconds since the epoch)

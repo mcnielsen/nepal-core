@@ -43,6 +43,7 @@ export interface APIRequestParams extends AxiosRequestConfig {
     context_account_id?:string;       //  If provided, uses the given account's endpoints/residency to determine service URLs _without_ adding the account ID to the request path.
     path?: string;                    //  What is the path of the specific command within the resolved service that we are trying to interact with?
     noEndpointsResolution?:boolean;   //  If set and truthy, endpoints resolution will *not* be used before the request is issued.
+    aimsAuthHeader?:boolean;          //  If `true` AND the user is authenticated, forces the addition of the X-AIMS-Auth-Token header; if `false`, suppresses the header when it would ordinarily be added.
     rawResponse?:boolean;             //  If set and truthy, the entire response object (not just its data payload) will be emitted as the result of a successful request.
 
     /**
