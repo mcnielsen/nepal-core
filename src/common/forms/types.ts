@@ -14,4 +14,5 @@ export interface AlDynamicFormControlElement {
     validationPattern?: string;
     optional?: boolean;
     options?: AlDynamicFormControlElementOptions[];
+    editorOptions?: any;
 }
