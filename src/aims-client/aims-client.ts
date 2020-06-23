@@ -114,6 +114,14 @@ export class AIMSClientInstance {
     return userDetails as AIMSUser;
   }
 
+  async getUserDetailsByUserId(userId: string) {
+    const userDetails = await this.client.get({
+      service_name: this.serviceName,
+      path: `/user/${userId}`
+    });
+    return userDetails as AIMSUser;
+  }
+
   /**
    * Get user permissions
    * GET
