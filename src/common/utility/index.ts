@@ -6,3 +6,4 @@ export * from "./al-trigger.types";
 export * from "./is-promise-like";
 export * from "./json-utilities";
 export * from './al-merge-helper';
+export * from './timezone-utilities';
