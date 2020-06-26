@@ -46,6 +46,7 @@ export class AlEntitlementCollection
         "detect",
         "endpoints_enabled",
         "exposures_enabled",
+        "fim",
         "herald_v2",
         "legacy:azure_enabled",
         "legacy:cnc_host_reverse_lookup",
