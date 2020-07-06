@@ -487,7 +487,8 @@ export abstract class AlCardstackView< EntityType=any,
                 }
                 if (this.characteristics.filterableBy) {
                     let filteredProps = this.characteristics.filterableBy.filter(filterProp => {
-                        return !derivedProps.includes(filterProp as string);
+                        const isRemoteFilter = this.getProperty(filterProp).remote;
+                        return (!isRemoteFilter && !derivedProps.includes(filterProp as string));
                     });
                     if (filteredProps.length) {
                         console.warn('Filter configuration missing for property ', filteredProps, ' in deriveEntityProperties');
