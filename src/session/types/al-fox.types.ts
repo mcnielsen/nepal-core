@@ -111,7 +111,10 @@ export class AlFoxSnapshot {
     /**
      *  Retrieves a reference to the root feature node.
      */
-    public getRoot():AlFeatureNode {
+    public getRoot( simplify:boolean = true ):AlFeatureNode {
+        if ( simplify ) {
+            return this.simplify( this.root );
+        }
         return this.root;
     }
 
@@ -134,5 +137,43 @@ export class AlFoxSnapshot {
      */
     public getFeatureOptions( featurePath:string|string[] ):AlOptionsDescriptor {
         return this.getFeature( featurePath ).options;
+    }
+
+    public merge( snapshot:AlFoxSnapshot ) {
+        this.innerMerge( snapshot.getRoot( false ), this.root );
+    }
+
+    protected simplify( node:AlFeatureNode ) {
+        return node;
+    }
+
+    protected innerMerge( node:AlFeatureNode, target?:AlFeatureNode ) {
+        target = target || this.root;
+        Object.entries( node ).forEach( ( [ k, v ] ) => {
+            if ( k === 'xp' && v ) {
+                let xp = v as AlExperienceDescriptor;
+                if ( xp.available ) {
+                    xp.available.forEach( x => {
+                        if ( ! target.xp.available.includes( x ) ) {
+                            target.xp.available.push( x );
+                        }
+                    } );
+                }
+                if ( xp.active && target.xp.available.includes( xp.active ) ) {
+                    target.xp.active = xp.active;
+                }
+                if ( xp.prompt && target.xp.available.includes( xp.prompt ) ) {
+                    target.xp.prompt = xp.prompt;
+                }
+            } else if ( k === 'options' ) {
+                Object.assign( target.options, v );
+            } else {
+                if ( target.hasOwnProperty( k ) ) {
+                    this.innerMerge( v as AlFeatureNode, target[k] as AlFeatureNode );
+                } else {
+                    target[k] = v as AlFeatureNode;
+                }
+            }
+        } );
     }
 }

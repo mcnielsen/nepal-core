@@ -541,6 +541,8 @@ describe('AlSession', () => {
         session.getEffectiveEntitlements().then( actingEntitlements => {
           expect( actingEntitlements ).to.equal( entitlements );
           done();
+        }, error => {
+            done( error );
         } );
         session.setAuthentication( exampleSession );
       } );

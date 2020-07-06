@@ -57,6 +57,11 @@ export interface AlSessionOptions {
      * If account metadata is resolved, should the client use the consolidated/gestalt resolver endpoint?  Defaults to `false`.
      */
     useConsolidatedResolver?:boolean;
+
+    /**
+     * Should FOX (features, options, and experiences) profile be retrieved as part of account metadata?  Defaults to `false`.
+     */
+    useFox?:boolean;
 }
 
 /**
@@ -584,6 +589,23 @@ export class AlSessionInstance
     }
 
     /**
+     * Convenience method to retrieve the working FOX profile (if useFox is enabled; otherwise, this will be an empty feature tree)
+     */
+    public async getFoxProfile():Promise<AlFoxSnapshot> {
+        return this.resolutionGuard.then( () => this.resolvedAccount.fox );
+    }
+
+    /**
+     * Convenience method to retrieve the working FOX profile syncronously, or null if there is no session.
+     */
+    public getFoxProfileSync():AlFoxSnapshot|null {
+        if ( ! this.sessionIsActive || ! this.resolvedAccount ) {
+            return null;
+        }
+        return this.resolvedAccount.fox;
+    }
+
+    /**
      * Allows an external mechanism to indicate that it is detecting a session.
      */
     public startDetection() {
@@ -634,6 +656,7 @@ export class AlSessionInstance
       const resolved:AlActingAccountResolvedEvent = new AlActingAccountResolvedEvent( account, null, null, null );
       let dataSources:Promise<any>[] = [
           AIMSClient.getAccountDetails( account.id ),
+          this.getFoxSnapshot( account.id, AlSession.getUserId() ),
           SubscriptionsClient.getEntitlements( this.getPrimaryAccountId() ) ];
 
       if ( account.id !== this.getPrimaryAccountId() ) {
@@ -643,10 +666,11 @@ export class AlSessionInstance
       return Promise.all( dataSources )
               .then(  dataObjects => {
                         const account:AIMSAccount                           =   dataObjects[0];
-                        const primaryEntitlements:AlEntitlementCollection   =   dataObjects[1];
+                        const fox:AlFoxSnapshot                             =   dataObjects[1];
+                        const primaryEntitlements:AlEntitlementCollection   =   dataObjects[2];
                         let actingEntitlements:AlEntitlementCollection;
-                        if ( dataObjects.length > 2 ) {
-                          actingEntitlements                                =   dataObjects[2];
+                        if ( dataObjects.length > 3 ) {
+                          actingEntitlements                                =   dataObjects[3];
                         } else {
                           actingEntitlements                                =   primaryEntitlements;
                         }
@@ -677,8 +701,10 @@ export class AlSessionInstance
         retry_interval: 1000
       };
       try {
-        let metadata = await AlDefaultClient.get( request ) as AlConsolidatedAccountMetadata;
-        let fox = new AlFoxSnapshot( metadata.foxData );
+        let [ metadata, fox ] = await Promise.all( [
+          AlDefaultClient.get( request ),
+          this.getFoxSnapshot( account.id, AlSession.getUserId() )
+        ] );
         this.resolvedAccount = new AlActingAccountResolvedEvent(
             metadata.actingAccount,
             AlEntitlementCollection.import(metadata.effectiveEntitlements),
@@ -691,6 +717,22 @@ export class AlSessionInstance
       } catch( e ) {
         console.warn("Failed to retrieve consolidated account metadata: falling back to default resolution method.", e );
         return this.resolveActingAccount( account );
+      }
+    }
+
+    protected async getFoxSnapshot( accountId:string, userId:string ):Promise<AlFoxSnapshot> {
+      if ( !this.options.useFox ) { return new AlFoxSnapshot(); }
+      try {
+        let rawData = await AlDefaultClient.get( {
+          service_stack: AlLocation.GestaltAPI,
+          service_name: "fox",
+          account_id: accountId,
+          version: 1,
+          path: `/user/${userId}`
+        } );
+        return new AlFoxSnapshot( rawData );
+      } catch( e ) {
+        return new AlFoxSnapshot();
       }
     }
 
