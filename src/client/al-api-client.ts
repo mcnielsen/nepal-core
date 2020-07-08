@@ -75,7 +75,7 @@ export class AlApiClient
   private lastError:{ status:number, statusText:string, url:string, data:string, headers:{[header:string]:any} } = null;
 
   /* Default request parameters */
-  private globalServiceParams: APIRequestParams = Object.assign( {}, AlApiClient.defaultServiceParams );
+  private globalServiceParams: APIRequestParams;
 
   /* Dictionary of in-flight GET requests */
   private transientReadCache:{[resourceKey:string]:Promise<any>} = {};
@@ -83,7 +83,12 @@ export class AlApiClient
   /* Internal execution log */
   private executionRequestLog:APIExecutionLogItem[] = [];
 
-  constructor() {}
+  constructor() {
+      // temp to debug ie11
+      console.log('setting globalServiceParams before:', this.globalServiceParams, AlApiClient.defaultServiceParams);
+      this.globalServiceParams = Object.assign( {}, AlApiClient.defaultServiceParams );
+      console.log('set globalServiceParams after:', this.globalServiceParams);
+  }
 
   /**
    * Resets internal state back to its factory defaults.
@@ -651,7 +656,11 @@ export class AlApiClient
         fullPath += `/${params.version}`;
       } else if ( typeof( params.version ) === 'number' && params.version > 0 ) {
         fullPath += `/v${params.version.toString()}`;
+      } else {
+          console.log('calculateRequestURL version exists but did not match', params);
       }
+    } else {
+        console.log('calculateRequestURL no version in params', params);
     }
     if (params.account_id && params.account_id !== '0') {
       fullPath += `/${params.account_id}`;
