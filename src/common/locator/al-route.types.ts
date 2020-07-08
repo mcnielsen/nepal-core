@@ -281,7 +281,6 @@ export class AlRoute {
      * @returns Returns true if the route (or one of its children) is activated, false otherwise.
      */
     refresh( resolve:boolean = false ):boolean|undefined {
-
         if ( this.locked ) {
             //  If this menu item has been locked, then we won't reevaluate its URL, its visibility, or its activated status.
             //  This lets outside software take "manual" control of the state of a given menu.
@@ -291,14 +290,14 @@ export class AlRoute {
         /* Evaluate visibility */
         this.visible = true;        //  true until proven otherwise
         if ( this.parent ) {
-            if ( typeof( this.definition.isPublic ) === "undefined" && this.parent ) {
+            if ( typeof( this.definition.isPublic ) !== "boolean" && this.parent ) {
                 //  Selectively inherit parent's publicity specificer (null|true|false|undefined)
                 this.definition.isPublic = this.parent.definition.isPublic;
             }
         }
 
-        if ( this.host.routeParameters.hasOwnProperty("anonymous") ) {
-            if ( this.host.routeParameters.anonymous === "true" && this.definition.isPublic !== null ) {
+        if ( "anonymous" in this.host.routeParameters ) {
+            if ( this.host.routeParameters.anonymous === "true" && typeof( this.definition.isPublic ) === 'boolean' ) {
                 //  If the current user is anonymous/unauthenticated and this route isn't public (undefined or null), then set visible to false
                 //  Important note: `null` does not trigger this logic, and the top route of each menu always has this property set to `null`.
                 this.visible = this.definition.isPublic;
@@ -307,10 +306,12 @@ export class AlRoute {
                 this.visible = false;
             }
         }
-        if ( typeof( this.definition.options ) !== 'undefined' ) {
-            this.visible = this.visible && this.evaluateRouteOptions();
-        } else {
-            this.visible = this.visible && ( this.definition.hasOwnProperty( 'visible' ) ? this.evaluateCondition( this.definition.visible || false ) : true );
+        if ( this.visible ) {
+            if ( typeof( this.definition.options ) !== 'undefined' ) {
+                this.visible = this.visible && this.evaluateRouteOptions();
+            } else {
+                this.visible = this.visible && ( this.definition.hasOwnProperty( 'visible' ) ? this.evaluateCondition( this.definition.visible || false ) : true );
+            }
         }
 
         /* Evaluate children recursively, and deduce activation state from them. */
