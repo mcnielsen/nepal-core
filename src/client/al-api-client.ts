@@ -501,10 +501,13 @@ export class AlApiClient
   }
 
   public async normalizeRequest(config: APIRequestParams):Promise<APIRequestParams> {
+    console.log('normalizeRequest', config);
     if ( ! config.url ) {
       if ( config.hasOwnProperty("service_name" ) || config.hasOwnProperty("service_stack") ) {
         // If we are using endpoints resolution to determine our calculated URL, merge globalServiceParams into our configuration
+        console.log('normalizeRequest before object.assign', config, 'globalServiceParams:', this.globalServiceParams);
         config = Object.assign( {}, this.globalServiceParams, config );       //  clever
+        console.log('normalizeRequest after object.assign', config, 'globalServiceParams:', this.globalServiceParams);
         config.url = await this.calculateRequestURL( config );
       } else {
         console.warn("Warning: not assign URL to request!", config );
