@@ -9,6 +9,7 @@ import { SubscriptionsClient } from "@al/core";
 const serviceName = 'subscriptions';
 const accountId = '12345';
 const queryParams = { foo: 'bar' };
+const serviceVersion = "v1";
 
 afterEach(() => {
   sinon.restore();
@@ -73,6 +74,7 @@ describe('Subscriptions Client Test Suite:', () => {
       expect(stub.callCount).to.equal(1);
       const payload = {
         service_name: serviceName,
+        version: serviceVersion,
         account_id: accountId,
         path: '/subscription/aws',
         data: subscription,
@@ -102,6 +104,7 @@ describe('Subscriptions Client Test Suite:', () => {
       expect(stub.callCount).to.equal(1);
       const payload = {
         service_name: serviceName,
+        version: serviceVersion,
         account_id: accountId,
         path: '/subscription',
         data: subscriptionData,
@@ -122,6 +125,7 @@ describe('Subscriptions Client Test Suite:', () => {
       expect(stub.callCount).to.equal(1);
       const payload = {
         service_name: serviceName,
+        version: serviceVersion,
         account_id: accountId,
         path: '/subscription/sync/standard',
       };
@@ -142,6 +146,7 @@ describe('Subscriptions Client Test Suite:', () => {
       expect(stub.callCount).to.equal(1);
       const payload = {
         service_name: serviceName,
+        version: serviceVersion,
         account_id: accountId,
         path: `/subscription/${subscriptionId}`,
       };
@@ -161,6 +166,7 @@ describe('Subscriptions Client Test Suite:', () => {
       expect(stub.callCount).to.equal(1);
       const payload = {
         service_name: serviceName,
+        version: serviceVersion,
         account_id: accountId,
         path: '/subscriptions',
       };
@@ -184,6 +190,7 @@ describe('Subscriptions Client Test Suite:', () => {
       expect(stub.callCount).to.equal(1);
       const payload = {
         service_name: serviceName,
+        version: serviceVersion,
         account_id: accountId,
         path: '/subscription/aws',
         data: subscription,

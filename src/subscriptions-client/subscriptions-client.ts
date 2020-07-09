@@ -9,6 +9,7 @@ export class AlSubscriptionsClient {
 
   private alClient;
   private internalUser:boolean = false;
+  private serviceVersion:string = "v1";
 
   constructor( client:AlApiClient = null ) {
       this.alClient = client || AlDefaultClient;
@@ -34,6 +35,7 @@ export class AlSubscriptionsClient {
     const entitlements = await this.alClient.get({
       service_stack: AlLocation.GlobalAPI,
       service_name: 'subscriptions',
+      version: this.serviceVersion,
       account_id: accountId,
       path: '/entitlements',
       params: queryParams,
@@ -56,6 +58,7 @@ export class AlSubscriptionsClient {
     const accounts = await this.alClient.get({
       service_stack: AlLocation.GlobalAPI,
       service_name: 'subscriptions',
+      version: this.serviceVersion,
       account_id: accountId,
       path: `/entitlements/${productFamily}`
     });
@@ -74,6 +77,7 @@ export class AlSubscriptionsClient {
   async createAWSSubscription(accountId, subscription) {
     const added = await this.alClient.post({
       service_name: 'subscriptions',
+      version: this.serviceVersion,
       account_id: accountId,
       path: '/subscription/aws',
       data: subscription,
@@ -104,6 +108,7 @@ export class AlSubscriptionsClient {
     };
     const added = await this.alClient.post({
       service_name: 'subscriptions',
+      version: this.serviceVersion,
       account_id: accountId,
       path: '/subscription',
       data: subscription,
@@ -120,6 +125,7 @@ export class AlSubscriptionsClient {
   async createStandardSubscription(accountId) {
     const added = await this.alClient.post({
       service_name: 'subscriptions',
+      version: this.serviceVersion,
       account_id: accountId,
       path: '/subscription/sync/standard',
     });
@@ -135,6 +141,7 @@ export class AlSubscriptionsClient {
   async getSubscription(accountId, subscriptionId) {
     const subscription = await this.alClient.get({
       service_name: 'subscriptions',
+      version: this.serviceVersion,
       account_id: accountId,
       path: `/subscription/${subscriptionId}`,
     });
@@ -150,6 +157,7 @@ export class AlSubscriptionsClient {
   async getSubscriptions(accountId) {
     const subscriptions = await this.alClient.get({
       service_name: 'subscriptions',
+      version: this.serviceVersion,
       account_id: accountId,
       path: '/subscriptions',
     });
@@ -167,6 +175,7 @@ export class AlSubscriptionsClient {
   async updateAWSSubscription(accountId, subscription) {
     const updated = await this.alClient.put({
       service_name: 'subscriptions',
+      version: this.serviceVersion,
       account_id: accountId,
       path: '/subscription/aws',
       data: subscription,

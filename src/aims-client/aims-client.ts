@@ -28,6 +28,7 @@ export class AIMSClientInstance {
 
   private client:AlApiClient;
   private serviceName = 'aims';
+  private serviceVersion:string = "v1";
 
   constructor( client:AlApiClient = null ) {
     this.client = client || AlDefaultClient;
@@ -43,6 +44,7 @@ export class AIMSClientInstance {
   async createUser(accountId: string, name: string, email: string, mobilePhone: string) {
     const user = await this.client.post({
       service_name: this.serviceName,
+      version: this.serviceVersion,
       account_id: accountId,
       path: '/users',
       data: { name, email, mobile_phone: mobilePhone }
@@ -60,6 +62,7 @@ export class AIMSClientInstance {
   async createUserWithDetails(accountId: string, userDetails:AIMSUserDetails) {
     return this.client.post<AIMSUser>({
       service_name: this.serviceName,
+      version: this.serviceVersion,
       account_id: accountId,
       path: '/users',
       data: userDetails
@@ -75,6 +78,7 @@ export class AIMSClientInstance {
   async updateUserDetails(accountId: string, userId: string, data:AIMSUserDetails):Promise<AIMSUser> {
     const userDetailsUpdate = await this.client.post({
       service_name: this.serviceName,
+      version: this.serviceVersion,
       account_id: accountId,
       path: `/users/${userId}`,
       data: data
@@ -91,6 +95,7 @@ export class AIMSClientInstance {
   async deleteUser(accountId: string, userId: string) {
     const userDelete = await this.client.delete({
       service_name: this.serviceName,
+      version: this.serviceVersion,
       account_id: accountId,
       path: `/users/${userId}`,
     });
@@ -106,6 +111,7 @@ export class AIMSClientInstance {
   async getUserDetailsById(accountId: string, userId: string) {
     const userDetails = await this.client.get({
       service_name: this.serviceName,
+      version: this.serviceVersion,
       account_id: accountId,
       path: `/users/${userId}`,
       retry_count: 5,
@@ -117,6 +123,7 @@ export class AIMSClientInstance {
   async getUserDetailsByUserId(userId: string) {
     const userDetails = await this.client.get({
       service_name: this.serviceName,
+      version: this.serviceVersion,
       path: `/user/${userId}`
     });
     return userDetails as AIMSUser;
@@ -131,6 +138,7 @@ export class AIMSClientInstance {
   async getUserPermissions(accountId: string, userId: string) {
     const userPermissions = await this.client.get({
       service_name: this.serviceName,
+      version: this.serviceVersion,
       account_id: accountId,
       path: `/users/${userId}/permissions`,
       ttl: 2 * 60 * 1000
@@ -147,6 +155,7 @@ export class AIMSClientInstance {
   async getAccountDetails(accountId: string) {
     const accountDetails = await this.client.get({
       service_name: this.serviceName,
+      version: this.serviceVersion,
       account_id: accountId,
       path: '/account',
       retry_count: 5,
@@ -188,6 +197,7 @@ export class AIMSClientInstance {
   async getAccountIdsByRelationship(accountId: string, relationship: string, queryParams?):Promise<string[]> {
     const accountIds = await this.client.get({
       service_name: this.serviceName,
+      version: this.serviceVersion,
       account_id: accountId,
       path: `/account_ids/${relationship}`,
       params: queryParams,
@@ -208,6 +218,7 @@ export class AIMSClientInstance {
   async getAccountsByRelationship(accountId: string, relationship: string, queryParams?):Promise<AIMSAccount[]> {
     const managedAccounts = await this.client.get({
       service_name: this.serviceName,
+      version: this.serviceVersion,
       account_id: accountId,
       path: `/accounts/${relationship}`,
       params: queryParams,
@@ -250,6 +261,7 @@ export class AIMSClientInstance {
   async requireMFA(accountId: string, mfaRequired: boolean):Promise<AIMSAccount> {
     const account = await this.client.post({
       service_name: this.serviceName,
+      version: this.serviceVersion,
       account_id: accountId,
       path: '/account',
       data: { mfa_required: mfaRequired }
@@ -283,6 +295,7 @@ export class AIMSClientInstance {
   async changePassword(email: string, password: string, newPassword: string) {
     const changePass = await this.client.post({
       service_name: this.serviceName,
+      version: this.serviceVersion,
       path: '/change_password',
       data: { email, current_password: password, new_password: newPassword }
     });
@@ -301,6 +314,7 @@ export class AIMSClientInstance {
   async tokenInfo() {
     const tokenData = await this.client.get({
       service_name: this.serviceName,
+      version: this.serviceVersion,
       path: '/token_info',
     });
     return tokenData as AIMSAuthenticationTokenInfo;
@@ -332,6 +346,7 @@ export class AIMSClientInstance {
   async initiateReset(email: string, returnTo: string) {
     const reset = await this.client.post({
       service_name: this.serviceName,
+      version: this.serviceVersion,
       path: '/reset_password',
       data: { email, return_to: returnTo },
     });
@@ -347,6 +362,7 @@ export class AIMSClientInstance {
   async resetWithToken(token: string, password: string) {
     const reset = await this.client.put({
       service_name: this.serviceName,
+      version: this.serviceVersion,
       path: `/reset_password/${token}`,
       data: { password },
     });
@@ -362,6 +378,7 @@ export class AIMSClientInstance {
   async createRole(accountId: string, name: string, permissions) {
     const createRole = await this.client.post({
       service_name: this.serviceName,
+      version: this.serviceVersion,
       account_id: accountId,
       path: '/roles',
       data: { name, permissions }
@@ -378,6 +395,7 @@ export class AIMSClientInstance {
   async deleteRole(accountId: string, roleId: string) {
     const roleDelete = await this.client.delete({
       service_name: this.serviceName,
+      version: this.serviceVersion,
       account_id: accountId,
       path: `/roles/${roleId}`
     });
@@ -393,6 +411,7 @@ export class AIMSClientInstance {
   async grantRole(accountId:string, userId:string, roleId:string) {
     return this.client.put({
       service_name: this.serviceName,
+      version: this.serviceVersion,
       account_id: accountId,
       path: `/users/${userId}/roles/${roleId}`
     });
@@ -407,6 +426,7 @@ export class AIMSClientInstance {
   async revokeRole(accountId:string, userId:string, roleId:string) {
     return this.client.delete({
       service_name: this.serviceName,
+      version: this.serviceVersion,
       account_id: accountId,
       path: `/users/${userId}/roles/${roleId}`
     });
@@ -421,6 +441,7 @@ export class AIMSClientInstance {
   async getGlobalRole(roleId: string) {
     const role = await this.client.get({
       service_name: this.serviceName,
+      version: this.serviceVersion,
       path: `/roles/${roleId}`
     });
     return role as AIMSRole;
@@ -435,6 +456,7 @@ export class AIMSClientInstance {
   async getAccountRole(accountId: string, roleId: string) {
     const role = await this.client.get({
       service_name: this.serviceName,
+      version: this.serviceVersion,
       account_id: accountId,
       path: `/roles/${roleId}`
     });
@@ -450,6 +472,7 @@ export class AIMSClientInstance {
   async getAssignedRoles( accountId:string, userId:string ):Promise<AIMSRole[]> {
     const roles = await this.client.get({
       service_name: this.serviceName,
+      version: this.serviceVersion,
       account_id: accountId,
       path: `/users/${userId}/roles`
     });
@@ -465,6 +488,7 @@ export class AIMSClientInstance {
   async getGlobalRoles():Promise<AIMSRole[]> {
     const roles = await this.client.get({
       service_name: this.serviceName,
+      version: this.serviceVersion,
       path: '/roles'
     });
     return roles.roles;
@@ -479,6 +503,7 @@ export class AIMSClientInstance {
   async getAccountRoles(accountId: string):Promise<AIMSRole[]> {
     const roles = await this.client.get({
       service_name: this.serviceName,
+      version: this.serviceVersion,
       account_id: accountId,
       path: '/roles'
     });
@@ -494,6 +519,7 @@ export class AIMSClientInstance {
   async updateRole(accountId: string, name: string, permissions) {
     const roleUpdate = await this.client.post({
       service_name: this.serviceName,
+      version: this.serviceVersion,
       account_id: accountId,
       path: '/roles',
       data: { name, permissions }
@@ -509,6 +535,7 @@ export class AIMSClientInstance {
   async updateRoleName(accountId: string, name: string) {
     const updateRole = await this.client.post({
       service_name: this.serviceName,
+      version: this.serviceVersion,
       account_id: accountId,
       path: '/roles',
       data: { name }
@@ -524,6 +551,7 @@ export class AIMSClientInstance {
   async updateRolePermissions(accountId: string, permissions) {
     const updateRole = await this.client.post({
       service_name: this.serviceName,
+      version: this.serviceVersion,
       account_id: accountId,
       path: '/roles',
       data: { permissions }
@@ -548,6 +576,7 @@ export class AIMSClientInstance {
   async enrollMFA( uri: string, sessionToken:string, codes:string[] ) {
     const mfa = await this.client.post({
       service_name: this.serviceName,
+      version: this.serviceVersion,
       path: '/user/mfa/enroll',
       data: { mfa_uri: uri, mfa_codes: codes },
       headers: {
@@ -575,6 +604,7 @@ export class AIMSClientInstance {
   async enrollMFAWithoutAIMSToken(uri:AIMSEnrollURI, codes:string[], email:string, password:string ) {
     return this.client.post({
       service_name: this.serviceName,
+      version: this.serviceVersion,
       path: '/user/mfa/enroll',
       data: {
         mfa_uri: uri.toString(),
@@ -594,6 +624,7 @@ export class AIMSClientInstance {
   async deleteMFA(email: string) {
     const mfa = await this.client.delete({
       service_name: this.serviceName,
+      version: this.serviceVersion,
       path: `/user/mfa/${email}`,
     });
     return mfa;
@@ -602,6 +633,7 @@ export class AIMSClientInstance {
   async getUserDetails(accountId: string, userId: string, queryParams?: {include_role_ids?: boolean, include_user_credential?: boolean}) {
     const user = await this.client.get({
       service_name: this.serviceName,
+      version: this.serviceVersion,
       account_id: accountId,
       path: `/users/${userId}`,
       params: queryParams,
@@ -619,6 +651,7 @@ export class AIMSClientInstance {
                   queryParams?: {include_role_ids?: boolean, include_user_credential?: boolean} ):Promise<AIMSUser[]> {
     const users = await this.client.get({
       service_name: this.serviceName,
+      version: this.serviceVersion,
       account_id: accountId,
       path: '/users',
       params: queryParams,
@@ -636,6 +669,7 @@ export class AIMSClientInstance {
   async createAccessKey(accountId: string, userId: string, label: string) {
     const key = await this.client.post({
       service_name: this.serviceName,
+      version: this.serviceVersion,
       account_id: accountId,
       path: `/users/${userId}/access_keys`,
       data: { label }
@@ -653,6 +687,7 @@ export class AIMSClientInstance {
   async updateAccessKey(accessKeyId: string, label: string) {
     const key = await this.client.post({
       service_name: this.serviceName,
+      version: this.serviceVersion,
       path: `/access_keys/${accessKeyId}`,
       data: { label }
     });
@@ -668,6 +703,7 @@ export class AIMSClientInstance {
   async getAccessKey(accessKeyId: string) {
     const key = await this.client.get({
       service_name: this.serviceName,
+      version: this.serviceVersion,
       path: `/access_keys/${accessKeyId}`
     });
     return key as AIMSAccessKey;
@@ -682,6 +718,7 @@ export class AIMSClientInstance {
   async getAccessKeys(accountId: string, userId: string, ttl: number = 60000) {
     const keys = await this.client.get({
       service_name: this.serviceName,
+      version: this.serviceVersion,
       account_id: accountId,
       ttl: ttl,
       path: `/users/${userId}/access_keys?out=full`
@@ -698,6 +735,7 @@ export class AIMSClientInstance {
   async deleteAccessKey(accountId: string, userId: string, accessKeyId: string) {
     const keyDelete = await this.client.delete({
       service_name: this.serviceName,
+      version: this.serviceVersion,
       account_id: accountId,
       path: `/users/${userId}/access_keys/${accessKeyId}`
     });
@@ -748,6 +786,7 @@ export class AIMSClientInstance {
   async getAccountRelationshipTopology(accountId: string, relationship: 'managed' | 'managing', queryParams?): Promise<AIMSTopology> {
     const response = await this.client.get({
       service_name: this.serviceName,
+      version: this.serviceVersion,
       account_id: accountId,
       path: `/accounts/${relationship}/topology`,
       params: queryParams
