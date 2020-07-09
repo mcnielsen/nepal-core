@@ -502,13 +502,11 @@ export class AlApiClient
   }
 
   public async normalizeRequest(config: APIRequestParams):Promise<APIRequestParams> {
-    console.log('normalizeRequest', config);
     if ( ! config.url ) {
       if ( config.hasOwnProperty("service_name" ) || config.hasOwnProperty("service_stack") ) {
         // If we are using endpoints resolution to determine our calculated URL, merge globalServiceParams into our configuration
-        console.log('normalizeRequest before object.assign', config, 'globalServiceParams:', this.globalServiceParams);
-        config = Object.assign( {}, this.globalServiceParams, config );       //  clever
-        console.log('normalizeRequest after object.assign', config, 'globalServiceParams:', this.globalServiceParams);
+        let configGlobal = Object.assign( {}, this.globalServiceParams  );       //  clever
+        config = Object.assign( configGlobal, config  );
         config.url = await this.calculateRequestURL( config );
       } else {
         console.warn("Warning: not assign URL to request!", config );
@@ -526,7 +524,6 @@ export class AlApiClient
       config.responseType = config.response_type as any;
       delete config.response_type;
     }
-    console.log('normalizeRequest end', config);
     return config;
   }
 
@@ -641,7 +638,6 @@ export class AlApiClient
 
 
   protected async calculateRequestURL( params: APIRequestParams ):Promise<string> {
-    console.log('calculateRequestURL', params);
     let fullPath:string = null;
     if ( params.service_name && params.service_stack === AlLocation.InsightAPI && ! params.noEndpointsResolution ) {
       // Utilize the endpoints service to determine which location to use for this service/account pair
