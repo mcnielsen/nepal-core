@@ -127,21 +127,4 @@ describe( `deepMerge`, () => {
             }
         } );
     } );
-
-    it( `Should emit warning when setting/merging objects to scalars.`, () => {
-        let stub = sinon.stub( console, "warn" ).returns(null);
-        let object1 = {
-            thing: true
-        };
-        setJsonPath( object1, "thing.color", "red" );
-        deepMerge( object1, {
-            thing: {
-                color: {
-                    rgb: "#FF00FF"
-                }
-            }
-        } );
-        expect( stub.callCount ).to.equal( 2 );
-        stub.restore();
-    } );
 } );

@@ -39,6 +39,7 @@ import {
     AlGlobalizer,
     AlStopwatch,
     AlTriggerStream,
+    deepMerge
 } from "../common/utility";
 import {
     APIExecutionLogItem,
@@ -85,9 +86,7 @@ export class AlApiClient
 
   constructor() {
       // temp to debug ie11
-      console.log('setting globalServiceParams before:', this.globalServiceParams, AlApiClient.defaultServiceParams);
-      this.globalServiceParams = Object.assign( {}, AlApiClient.defaultServiceParams );
-      console.log('set globalServiceParams after:', this.globalServiceParams);
+      this.globalServiceParams = deepMerge( {}, AlApiClient.defaultServiceParams );
   }
 
   /**
@@ -98,7 +97,7 @@ export class AlApiClient
     this.instance = null;
     this.executionRequestLog = [];
     this.storage.destroy();
-    this.globalServiceParams = Object.assign( {}, AlApiClient.defaultServiceParams );
+    this.globalServiceParams = deepMerge( {}, AlApiClient.defaultServiceParams );
     return this;
   }
 
@@ -137,7 +136,7 @@ export class AlApiClient
    * Most notably, setting `noEndpointsResolution` to true will suppress endpoints resolution for all requests, and cause default endpoint values to be used.
    */
   public setGlobalParameters( parameters:APIRequestParams ):AlApiClient {
-    this.globalServiceParams = Object.assign( this.globalServiceParams, parameters );
+    this.globalServiceParams = deepMerge( this.globalServiceParams, parameters );
     return this;
   }
 
@@ -180,7 +179,6 @@ export class AlApiClient
 
     let start = Date.now();
     try {
-      console.log('raw get', normalized);
       const request = this.axiosRequest( normalized );
       this.transientReadCache[cacheKey] = request;       //  store request instance to consolidate multiple requests for a single resource
       const response = await request;
@@ -505,8 +503,7 @@ export class AlApiClient
     if ( ! config.url ) {
       if ( config.hasOwnProperty("service_name" ) || config.hasOwnProperty("service_stack") ) {
         // If we are using endpoints resolution to determine our calculated URL, merge globalServiceParams into our configuration
-        let configGlobal = Object.assign( {}, this.globalServiceParams  );       //  clever
-        config = Object.assign( configGlobal, config  );
+        config = deepMerge( {}, this.globalServiceParams, config );
         config.url = await this.calculateRequestURL( config );
       } else {
         console.warn("Warning: not assign URL to request!", config );
@@ -552,7 +549,7 @@ export class AlApiClient
     return this.axiosRequest( endpointsRequest )
               .then( response => {
                   existingEndpoints = this.getCachedValue<AlEndpointsServiceCollection>( cacheKey );        //    retrieve cache again, in case it has been modified by others
-                  let translated:AlEndpointsServiceCollection = Object.assign( {}, existingEndpoints );
+                  let translated:AlEndpointsServiceCollection = deepMerge( {}, existingEndpoints );
                   Object.entries( response.data as AlEndpointsServiceCollection ).forEach( ( [ serviceName, endpointHost ] ) => {
                     translated[serviceName] = ( endpointHost as string ).startsWith( "http") ? endpointHost : `https://${endpointHost}`;        // ensure that all domains are prefixed with protocol
                   } );
@@ -561,7 +558,7 @@ export class AlApiClient
               }, error => {
                 console.warn(`Could not retrieve data for endpoints for [${requestList.join(",")}]; using defaults for environment '${AlLocatorService.getCurrentEnvironment()}'; disabling caching` );
                 existingEndpoints = this.getCachedValue<AlEndpointsServiceCollection>( cacheKey );
-                let serviceLocations:AlEndpointsServiceCollection = Object.assign( {}, existingEndpoints );
+                let serviceLocations:AlEndpointsServiceCollection = deepMerge( {}, existingEndpoints );
                 requestList.forEach( serviceId => { serviceLocations[serviceId] = AlLocatorService.resolveURL( AlLocation.InsightAPI ); } );
                 return Promise.resolve( serviceLocations );
               } );
@@ -579,7 +576,7 @@ export class AlApiClient
   }
 
   public mergeCacheData( cachedData:any ) {
-    this.storage.data = Object.assign( this.storage.data, cachedData );
+    this.storage.data = deepMerge( this.storage.data, cachedData );
     this.storage.synchronize();
   }
 
@@ -658,11 +655,7 @@ export class AlApiClient
         fullPath += `/${params.version}`;
       } else if ( typeof( params.version ) === 'number' && params.version > 0 ) {
         fullPath += `/v${params.version.toString()}`;
-      } else {
-          console.log('calculateRequestURL version exists but did not match', params);
       }
-    } else {
-        console.log('calculateRequestURL no version in params', params);
     }
     if (params.account_id && params.account_id !== '0') {
       fullPath += `/${params.account_id}`;
@@ -670,7 +663,6 @@ export class AlApiClient
     if (params.hasOwnProperty('path') && params.path.length > 0 ) {
       fullPath += ( params.path[0] === '/' ? '' : '/' )  + params.path;
     }
-    console.log('calculateRequestURL fullPath', fullPath);
     return fullPath;
   }
 

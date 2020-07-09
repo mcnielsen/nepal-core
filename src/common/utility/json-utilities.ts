@@ -49,20 +49,23 @@ export function setJsonPath<Type=any>( target:any, path:string|string[], value:T
 
 export function deepMerge( target:any, ...imports:any[] ):any {
     let smoosher = ( target:any, source:any ) => {
-        Object.entries( source ).forEach( ( [ key, value ] ) => {
-            if ( typeof( value ) === 'object' && value !== null ) {
-                if ( target.hasOwnProperty( key ) && ( typeof( target[key] ) !== 'object' || target[key] === null ) ) {
-                    console.warn(`Property collision: deep merge to non-object property '${key}' will overwrite previous value.` );
-                    target[key] = {};
+        if ( source && typeof( source ) === 'object' ) {
+            Object.entries( source ).forEach( ( [ key, value ] ) => {
+                if ( typeof( value ) === 'object' && value !== null ) {
+                    if ( Array.isArray( value ) ) {
+                        target[key] = value;
+                    } else if ( target.hasOwnProperty( key ) && ( typeof( target[key] ) !== 'object' || target[key] === null ) ) {
+                        target[key] = {};
+                    }
+                    if ( ! target.hasOwnProperty( key ) ) {
+                        target[key] = {};
+                    }
+                    smoosher( target[key], value );
+                } else {
+                    target[key] = value;
                 }
-                if ( ! target.hasOwnProperty( key ) ) {
-                    target[key] = {};
-                }
-                smoosher( target[key], value );
-            } else {
-                target[key] = value;
-            }
-        } );
+            } );
+        }
     };
     imports.forEach( importObject => smoosher( target, importObject ) );
     return target;

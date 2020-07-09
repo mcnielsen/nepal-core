@@ -31,6 +31,7 @@ import {
     AlCabinet,
     AlGlobalizer,
     AlTriggerStream,
+    deepMerge
 } from "../common/utility";
 import { SubscriptionsClient } from "../subscriptions-client";
 import { AlEntitlementCollection } from "../subscriptions-client/types";
@@ -166,7 +167,7 @@ export class AlSessionInstance
     }
 
     public setOptions( options:AlSessionOptions ) {
-      this.options = Object.assign( this.options, options );
+      this.options = deepMerge( this.options, options );
     }
 
     public async authenticate( username:string, passphrase:string, options:{actingAccount?:string|AIMSAccount,locationId?:string} = {} ):Promise<boolean> {
@@ -225,8 +226,8 @@ export class AlSessionInstance
       }
 
       // Now that the content of the authentication session descriptor has been validated, let's make it effective
-      Object.assign( this.sessionData.authentication.user, proposal.authentication.user );
-      Object.assign( this.sessionData.authentication.account, proposal.authentication.account );
+      deepMerge( this.sessionData.authentication.user, proposal.authentication.user );
+      deepMerge( this.sessionData.authentication.account, proposal.authentication.account );
       this.sessionData.authentication.token = proposal.authentication.token;
       this.sessionData.authentication.token_expiration = proposal.authentication.token_expiration;
       if ( options.locationId ) {
