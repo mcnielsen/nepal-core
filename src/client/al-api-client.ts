@@ -676,7 +676,7 @@ export class AlApiClient
    *    b) the initial call is guaranteed to included the service a request is being formed for
    *    c) only one outstanding call to the endpoints service will be issued, per account, at a given time
    */
-  protected async prepare( requestParams:APIRequestParams ):Promise<AlEndpointsServiceCollection> {
+  protected prepare( requestParams:APIRequestParams ):Promise<AlEndpointsServiceCollection> {
     const environment = AlLocatorService.getCurrentEnvironment();
     const accountId = requestParams.context_account_id || requestParams.account_id || this.defaultAccountId || "0";
     if ( ! this.endpointResolution.hasOwnProperty( environment ) ) {
@@ -691,15 +691,16 @@ export class AlApiClient
       this.endpointResolution[environment][accountId] = this.getServiceEndpoints( accountId, serviceList );
       console.log("prepare part 1 after:", this.endpointResolution[environment][accountId]);
     }
-    let collection = await this.endpointResolution[environment][accountId];
-    if ( collection.hasOwnProperty( requestParams.service_name ) ) {
-      return collection;
-    }
-    this.deleteCachedValue( `/endpoints/${environment}/${accountId}` );
-    console.log("prepare part 2 before:");
-    this.endpointResolution[environment][accountId] = this.getServiceEndpoints( accountId, Object.keys( collection ).concat( requestParams.service_name ) );
-    console.log("prepare part 2 after : ",this.endpointResolution[environment][accountId]);
-    return this.endpointResolution[environment][accountId];
+    return this.endpointResolution[environment][accountId].then( collection => {
+        if ( collection.hasOwnProperty( requestParams.service_name ) ) {
+          return collection;
+        }
+        this.deleteCachedValue( `/endpoints/${environment}/${accountId}` );
+        console.log("prepare part 2 before:");
+        this.endpointResolution[environment][accountId] = this.getServiceEndpoints( accountId, Object.keys( collection ).concat( requestParams.service_name ) );
+        console.log("prepare part 2 after : ",this.endpointResolution[environment][accountId]);
+        return this.endpointResolution[environment][accountId];
+    } );
   }
 
   /**

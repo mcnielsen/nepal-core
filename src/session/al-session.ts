@@ -152,6 +152,11 @@ export class AlSessionInstance
                             error => {
                                 console.warn("Failed to set the acting account", error );
                             } );
+          },
+          expireIn: ( offset:number ) => {
+              let expirationTTL = Math.floor( Date.now() / 1000 ) + offset;
+              this.setTokenInfo( this.getToken(), expirationTTL );
+              console.log("Updated AIMS Token to expire in %s seconds from now", offset );
           }
       } );
     }
