@@ -96,6 +96,7 @@ export interface AlSearchResultsQueryParamsV2 {
     limit?: number;
     offset?: number;
     starting_token?: string;
+    utc_offset?: string;
 }
 
 export interface AlSearchStatusV2 {
