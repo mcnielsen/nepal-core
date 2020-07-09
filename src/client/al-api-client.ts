@@ -180,6 +180,7 @@ export class AlApiClient
 
     let start = Date.now();
     try {
+      console.log('raw get', normalized);
       const request = this.axiosRequest( normalized );
       this.transientReadCache[cacheKey] = request;       //  store request instance to consolidate multiple requests for a single resource
       const response = await request;
@@ -525,6 +526,7 @@ export class AlApiClient
       config.responseType = config.response_type as any;
       delete config.response_type;
     }
+    console.log('normalizeRequest end', config);
     return config;
   }
 
@@ -639,6 +641,7 @@ export class AlApiClient
 
 
   protected async calculateRequestURL( params: APIRequestParams ):Promise<string> {
+    console.log('calculateRequestURL', params);
     let fullPath:string = null;
     if ( params.service_name && params.service_stack === AlLocation.InsightAPI && ! params.noEndpointsResolution ) {
       // Utilize the endpoints service to determine which location to use for this service/account pair
@@ -671,6 +674,7 @@ export class AlApiClient
     if (params.hasOwnProperty('path') && params.path.length > 0 ) {
       fullPath += ( params.path[0] === '/' ? '' : '/' )  + params.path;
     }
+    console.log('calculateRequestURL fullPath', fullPath);
     return fullPath;
   }
 
