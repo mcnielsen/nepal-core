@@ -41,6 +41,8 @@ export interface AlLogMessageFieldsV2 {
 }
 
 export interface AlSearchGetV2 {
+    search_uuid: string;
+    data_type: string;
     search_status: string;
     status_details: string;
     details: AlSearchDetailsV2;
@@ -48,6 +50,8 @@ export interface AlSearchGetV2 {
     remaining?: number;
     results?: AlSearchGetResultsV2;
     next_token?: string;
+    offset: number;
+    total_found: number;
 }
 
 export interface AlSearchDetailsV2 {
