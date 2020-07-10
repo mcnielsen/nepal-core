@@ -535,7 +535,6 @@ export class AlApiClient
     }
     let existingEndpoints = this.getCachedValue<AlEndpointsServiceCollection>( cacheKey );
     if ( existingEndpoints ) {
-        console.log("getServiceEndpoints we found some in cache");
         if ( ! requestList.find( serviceName => ! existingEndpoints.hasOwnProperty( serviceName ) ) ) {
             return existingEndpoints;   //  we already have all of the requested service in cache!  Yay!
         }
@@ -550,13 +549,11 @@ export class AlApiClient
     return this.axiosRequest( endpointsRequest )
               .then( response => {
                   existingEndpoints = this.getCachedValue<AlEndpointsServiceCollection>( cacheKey );        //    retrieve cache again, in case it has been modified by others
-                  console.log("getServiceEndpoints axiosRequest", existingEndpoints);
                   let translated:AlEndpointsServiceCollection = deepMerge( {}, existingEndpoints );
                   Object.entries( response.data as AlEndpointsServiceCollection ).forEach( ( [ serviceName, endpointHost ] ) => {
                     translated[serviceName] = ( endpointHost as string ).startsWith( "http") ? endpointHost : `https://${endpointHost}`;        // ensure that all domains are prefixed with protocol
                   } );
                   this.setCachedValue( cacheKey, translated, 15 * 60 * 1000 );
-                  console.log("getServiceEndpoints translated", translated);
                   return translated;
               }, error => {
                 console.warn(`Could not retrieve data for endpoints for [${requestList.join(",")}]; using defaults for environment '${AlLocatorService.getCurrentEnvironment()}'; disabling caching` );
@@ -639,9 +636,11 @@ export class AlApiClient
 
   protected async calculateRequestURL( params: APIRequestParams ):Promise<string> {
     let fullPath:string = null;
+    console.log("calculateRequestURL", params);
     if ( params.service_name && params.service_stack === AlLocation.InsightAPI && ! params.noEndpointsResolution ) {
       // Utilize the endpoints service to determine which location to use for this service/account pair
       const serviceCollection = await this.prepare( params );
+      console.log("calculateRequestURL serviceCollection:", serviceCollection);
       if ( serviceCollection.hasOwnProperty( params.service_name ) ) {
         fullPath = serviceCollection[params.service_name];
       }
@@ -687,18 +686,14 @@ export class AlApiClient
       if ( ! serviceList.includes( requestParams.service_name ) ) {
         serviceList.push( requestParams.service_name );
       }
-      console.log("prepare part 1 before:", environment, accountId);
       this.endpointResolution[environment][accountId] = this.getServiceEndpoints( accountId, serviceList );
-      console.log("prepare part 1 after:", this.endpointResolution[environment][accountId]);
     }
     return this.endpointResolution[environment][accountId].then( collection => {
         if ( collection.hasOwnProperty( requestParams.service_name ) ) {
           return collection;
         }
         this.deleteCachedValue( `/endpoints/${environment}/${accountId}` );
-        console.log("prepare part 2 before:");
         this.endpointResolution[environment][accountId] = this.getServiceEndpoints( accountId, Object.keys( collection ).concat( requestParams.service_name ) );
-        console.log("prepare part 2 after : ",this.endpointResolution[environment][accountId]);
         return this.endpointResolution[environment][accountId];
     } );
   }
