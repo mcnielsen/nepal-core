@@ -636,11 +636,9 @@ export class AlApiClient
 
   protected async calculateRequestURL( params: APIRequestParams ):Promise<string> {
     let fullPath:string = null;
-    console.log("calculateRequestURL", params);
     if ( params.service_name && params.service_stack === AlLocation.InsightAPI && ! params.noEndpointsResolution ) {
       // Utilize the endpoints service to determine which location to use for this service/account pair
       const serviceCollection = await this.prepare( params );
-      console.log("calculateRequestURL serviceCollection:", serviceCollection);
       if ( serviceCollection.hasOwnProperty( params.service_name ) ) {
         fullPath = serviceCollection[params.service_name];
       }
