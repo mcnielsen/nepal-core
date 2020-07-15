@@ -18,7 +18,9 @@ class AlSearchStylist {
      *  search_stylist will request results from EM search service by calling Search Results
      *  endpoint for the same account_id/uuid with the same query string params (offset/limit/etc) as passed to this endpoint.
      */
-    searchStylist(accountId: string, uuid: string, type: 'json'|'csv' = 'json', additionalParams?: AlSearchResultsQueryParamsV2): Promise<AlSearchGetV2|any> {
+    searchStylist(accountId: string, uuid: string, type: 'json'|'csv' = 'json', additionalParams?: AlSearchResultsQueryParamsV2, exportData?: boolean): Promise<AlSearchGetV2|any> {
+        // Let's set the general fetch request arguments
+        // that will be used in all the fetching types
         const fetchRequestArgs: APIRequestParams = {
             service_name: this.serviceName,
             account_id: accountId,
@@ -35,6 +37,10 @@ class AlSearchStylist {
             }
             fetchRequestArgs.headers.Accept = 'text/csv';
             fetchRequestArgs.responseType = 'blob';
+
+            if (exportData) {
+                fetchRequestArgs.path = `/searches/${uuid}/export/${type}`;
+            }
 
             return AlDefaultClient.get(fetchRequestArgs);
         }

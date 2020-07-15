@@ -99,7 +99,8 @@ export interface AlSearchResultRecordIdV2 {
 export interface AlSearchResultsQueryParamsV2 {
     limit?: number;
     offset?: number;
-    starting_token?: string;
+    details?: boolean;
+    next_token?: string;
     utc_offset?: string;
 }
 
