@@ -376,7 +376,8 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
         locTypeId: AlLocation.GoogleTagManager,
         uri: 'https://www.googletagmanager.com/gtag/js',
         data: {
-            analyticsKey: 'UA-17359898-12'
+            analyticsKey: 'UA-17359898-12',
+            containerId: ''
         },
         environment: 'production|production-staging'
     },
@@ -384,7 +385,8 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
         locTypeId: AlLocation.GoogleTagManager,
         uri: 'https://www.googletagmanager.com/gtag/js',
         data: {
-            analyticsKey: 'UA-17359898-11'
+            analyticsKey: 'UA-17359898-11',
+            containerId: 'GTM-KJZM6BQ'
         },
         environment: 'integration'
     },
@@ -392,7 +394,8 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
         locTypeId: AlLocation.GoogleTagManager,
         uri: 'https://www.googletagmanager.com/gtag/js',
         data: {
-            analyticsKey: ''
+            analyticsKey: '',
+            containerId: ''
         },
         environment: 'development'
     },
