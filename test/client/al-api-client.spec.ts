@@ -51,19 +51,43 @@ const defaultAuthResponse = {
 
 beforeEach(() => {
     xhrMock.setup();
-    AlLocatorService.setContext( { environment: "integration" } );      //  for unit tests, assume integration environment
+    AlLocatorService.setContext( { environment: "integration", insightLocationId: "insight-us-virginia" } );      //  for unit tests, assume integration environment
     ALClient['endpointResolution']["integration"] = {};
     ALClient['endpointResolution']["integration"]["0"] = Promise.resolve( {
-      "cargo": "https://api.global-integration.product.dev.alertlogic.com",
-      "kevin": "https://kevin.product.dev.alertlogic.com",
-      'search': "https://api.global-fake-integration.product.dev.alertlogic.com",
-      "aims": "https://api.global-integration.product.dev.alertlogic.com"
-    } );
+        "cargo": {
+            "US": {
+                "insight-us-virginia": "https://api.global-integration.product.dev.alertlogic.com"
+            }
+        },
+        "kevin": {
+            "US": {
+                "insight-us-virginia": "https://kevin.product.dev.alertlogic.com"
+            }
+        },
+        "search": {
+          "US": {
+            "insight-us-virginia": "https://api.global-fake-integration.product.dev.alertlogic.com"
+          }
+        },
+        "aims": {
+          "global": {
+            "insight-global": "https://api.global-integration.product.dev.alertlogic.com"
+        }
+      }
+    });
     ALClient['endpointResolution']["integration"]["2"] = ALClient['endpointResolution']["integration"][0];
     ALClient['endpointResolution']["integration"]["3"] = Promise.resolve( {
-      "cargo": "https://api.global-integration.product.dev.alertlogic.com",
-      "kevin": "https://kevin.product.dev.alertlogic.co.uk"
-    } );
+      "cargo": {
+        "US": {
+            "insight-us-virginia": "https://api.global-integration.product.dev.alertlogic.com"
+        }
+      },
+      "kevin": {
+          "US": {
+            "insight-us-virginia": "https://kevin.product.dev.alertlogic.co.uk"
+            }
+        }
+    });
     ALClient['endpointResolution']["integration"]["67108880"] = ALClient['endpointResolution']["integration"][0];
 } );
 afterEach(() => {
@@ -121,7 +145,7 @@ describe('when calculating request URLs', () => {
   });
   describe("and an exception is thrown from the `endpoints` service", () => {
     it("should fall back to default values", async () => {
-      xhrMock.post( 'https://api.global-integration.product.dev.alertlogic.com/endpoints/v1/10101010/residency/default/endpoints', once({
+      xhrMock.post( 'https://api.global-integration.product.dev.alertlogic.com/endpoints/v1/10101010/endpoints', once({
         status: 500,
         body: 'Internal Error Or Something'
       }) );
