@@ -536,7 +536,6 @@ export class AlApiClient
   public async getServiceEndpoints( accountId:string, requestList?:string[] ):Promise<AlEndpointsServiceCollection> {
     const environment = AlLocatorService.getCurrentEnvironment();
     const context = AlLocatorService.getContext();
-    console.log(context.residency);
     const cacheKey = `/endpoints/${environment}/${accountId}`;
 
     if ( ! requestList ) {
@@ -560,8 +559,8 @@ export class AlApiClient
                   existingEndpoints = this.getCachedValue<AlEndpointsServiceCollection>( cacheKey );        //    retrieve cache again, in case it has been modified by others
                   let translated:AlEndpointsServiceCollection = deepMerge( {}, existingEndpoints );
                   Object.entries( response.data as AlEndpointsServiceCollection ).forEach( ( [ serviceName, residencyLocations ] ) => {
-                      Object.entries(residencyLocations).forEach(([residencyName, endpointHost]) => {
-                          Object.entries(endpointHost).forEach(([endpointHostId, endpointHost]) => {
+                      Object.entries(residencyLocations).forEach(([residencyName, residencyHost]) => {
+                          Object.entries(residencyHost).forEach(([endpointHostId, endpointHost]) => {
                               translated[serviceName] = {
                                 [residencyName]: {
                                     [endpointHostId]: (endpointHost as string).startsWith("http") ? endpointHost : `https://${endpointHost}` // ensure that all domains are prefixed with protocol
