@@ -456,6 +456,7 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
         keyword: 'aetuner'
     },
 
+    // TODO: delete Integrations when connectors be stable
     /**
      * Integrations  API locations
      */
@@ -471,5 +472,6 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
         uri: 'https://integrations.mdr.product.dev.alertlogic.com',
         environment: 'integration|development'
     },
+
 ];
 

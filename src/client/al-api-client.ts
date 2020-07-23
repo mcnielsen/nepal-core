@@ -56,7 +56,7 @@ export class AlApiClient
   /**
    * The following list of services are the ones whose endpoints will be resolved by default.  Added globally/commonly used services here for optimized API performance.
    */
-  protected static defaultServiceList = [ "aims", "subscriptions", "search", "sources", "assets_query", "assets_write", "dashboards", "iris", "suggestions", "cargo" ];
+  protected static defaultServiceList = [ "aims", "subscriptions", "search", "sources", "assets_query", "assets_write", "dashboards", "iris", "suggestions", "cargo", "connectors"];
   protected static defaultServiceParams = {
     service_stack:      AlLocation.InsightAPI,  //  May also be AlLocation.GlobalAPI, AlLocation.EndpointsAPI, or ALLocation.LegacyUI
     residency:          'default',              //  "us" or "emea" or "default"
