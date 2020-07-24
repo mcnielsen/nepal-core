@@ -172,7 +172,6 @@ export class AlApiClient
     }
     //  Check for existing in-flight requests for this resource
     if ( this.transientReadCache.hasOwnProperty( cacheKey ) ) {
-      this.log(`APIClient::XHR GET Re-using inflight retrieval [${fullUrl}]` );
       const result = await this.transientReadCache[cacheKey];
       return result;
     }
@@ -501,12 +500,12 @@ export class AlApiClient
 
   public async normalizeRequest(config: APIRequestParams):Promise<APIRequestParams> {
     if ( ! config.url ) {
-      if ( config.hasOwnProperty("service_name" ) || config.hasOwnProperty("service_stack") ) {
+      if ( 'target_endpoint' in config || 'service_name' in config || 'service_stack' in config ) {
         // If we are using endpoints resolution to determine our calculated URL, merge globalServiceParams into our configuration
         config = deepMerge( {}, this.globalServiceParams, config );
         config.url = await this.calculateRequestURL( config );
       } else {
-        console.warn("Warning: not assign URL to request!", config );
+        console.warn("Warning: malform request descriptor lacks a URL or properties to generate one", config );
       }
     }
     if (config.accept_header) {
@@ -636,11 +635,13 @@ export class AlApiClient
 
   protected async calculateRequestURL( params: APIRequestParams ):Promise<string> {
     let fullPath:string = null;
-    if ( params.service_name && params.service_stack === AlLocation.InsightAPI && ! params.noEndpointsResolution ) {
+    if ( ! params.noEndpointsResolution
+           && ( params.target_endpoint || ( params.service_name && params.service_stack === AlLocation.InsightAPI ) ) ) {
       // Utilize the endpoints service to determine which location to use for this service/account pair
+      const serviceEndpointId = params.target_endpoint || params.service_name;
       const serviceCollection = await this.prepare( params );
-      if ( serviceCollection.hasOwnProperty( params.service_name ) ) {
-        fullPath = serviceCollection[params.service_name];
+      if ( serviceEndpointId in serviceCollection ) {
+        fullPath = serviceCollection[serviceEndpointId];
       }
     }
     if ( ! fullPath ) {
@@ -679,19 +680,20 @@ export class AlApiClient
     if ( ! this.endpointResolution.hasOwnProperty( environment ) ) {
       this.endpointResolution[environment] = {};
     }
+    const serviceEndpointId = requestParams.target_endpoint || requestParams.service_name;
     if ( ! this.endpointResolution[environment].hasOwnProperty( accountId ) ) {
       let serviceList = AlApiClient.defaultServiceList;
-      if ( ! serviceList.includes( requestParams.service_name ) ) {
-        serviceList.push( requestParams.service_name );
+      if ( ! serviceList.includes( serviceEndpointId ) ) {
+        serviceList.push( serviceEndpointId );
       }
       this.endpointResolution[environment][accountId] = this.getServiceEndpoints( accountId, serviceList );
     }
     return this.endpointResolution[environment][accountId].then( collection => {
-        if ( collection.hasOwnProperty( requestParams.service_name ) ) {
+        if ( serviceEndpointId in collection ) {
           return collection;
         }
         this.deleteCachedValue( `/endpoints/${environment}/${accountId}` );
-        this.endpointResolution[environment][accountId] = this.getServiceEndpoints( accountId, Object.keys( collection ).concat( requestParams.service_name ) );
+        this.endpointResolution[environment][accountId] = this.getServiceEndpoints( accountId, Object.keys( collection ).concat( serviceEndpointId ) );
         return this.endpointResolution[environment][accountId];
     } );
   }

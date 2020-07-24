@@ -90,7 +90,6 @@ describe('SQX Parser', () => {
                 let queryString;
                 try {
                     let query = SQXSearchQuery.fromConditionString( original );
-                    console.log( query );
                     queryString = query.toConditionString();
                     json = query.toJson( true );
                     let reinterpreted = SQXSearchQuery.fromJson( json );

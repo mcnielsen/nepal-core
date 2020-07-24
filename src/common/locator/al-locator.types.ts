@@ -326,7 +326,6 @@ export class AlLocatorMatrix
                     result = hit.location;
                     const baseUrl = this.getBaseUrl( targetURI );
                     if ( baseUrl !== result.uri ) {
-                        console.log(`Notice: application '${hit.location.locTypeId}' instance '${baseUrl}' differs from default '${result.uri}'; updating lookup table.` );
                         result.originalUri = result.uri;
                         result.uri = baseUrl;
                     }
@@ -624,7 +623,6 @@ export class AlLocatorMatrix
             if ( selected === null ) {
                 selected = insightLocation.alternatives[0];
             }
-            console.log(`Notice: treating insight location '%s' as '%s'`, this.context.insightLocationId, selected );       //  logging because this has historically been a point of great confusion
             this.context.insightLocationId = selected;
         }
         if ( insightLocation.residency && this.context.residency !== insightLocation.residency ) {

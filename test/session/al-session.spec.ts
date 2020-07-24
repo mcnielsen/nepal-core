@@ -483,7 +483,6 @@ describe('AlSession', () => {
             session.endDetection();
             let resolved = false;
             session.ready().then( () => {
-              console.log("Got session ready!" );
               resolved = true;
             }, ( error ) => {
               expect( true ).to.equal( false );

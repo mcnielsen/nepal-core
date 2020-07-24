@@ -113,10 +113,16 @@ describe('when calculating request URLs', () => {
       //  expect the endpoints response for the context_account_id to be used instead of the dominant account_id's
       expect( endpointURL ).to.equal( `https://kevin.product.dev.alertlogic.co.uk/kevin/v1/67108880/some/endpoint` );
 
+      endpointURL = await ALClient['calculateRequestURL']( { service_name: 'cargo', target_endpoint: 'kevin', path: '/some/endpoint' } );
+      //  expect target endpoint ID to be honored
+      expect( endpointURL ).to.equal( `https://kevin.product.dev.alertlogic.com/cargo/some/endpoint` );
+
       ALClient.defaultAccountId = "67108880";
       endpointURL = await ALClient['calculateRequestURL']( { service_name: 'kevin', version: 16, path: 'some/arbitrary/endpoint', service_stack: AlLocation.InsightAPI } );
       expect( endpointURL ).to.equal( `https://kevin.product.dev.alertlogic.com/kevin/v16/some/arbitrary/endpoint` );
       ALClient.defaultAccountId = null;
+
+
     });
   });
   describe("and an exception is thrown from the `endpoints` service", () => {
@@ -443,7 +449,6 @@ describe('when flushCacheKeys is present',() => {
 
 describe('when collectRequestLog is set to true',() => {
     beforeEach(() => {
-      ALClient.verbose = true;
       ALClient.collectRequestLog = true;
     });
     afterEach(()=>{
