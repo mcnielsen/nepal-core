@@ -15,4 +15,5 @@ export interface AlDynamicFormControlElement {
     optional?: boolean;
     options?: AlDynamicFormControlElementOptions[];
     editorOptions?: any;
+    placeholder?: string;
 }
