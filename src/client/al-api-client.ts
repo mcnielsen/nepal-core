@@ -711,7 +711,7 @@ export class AlApiClient
     };
 
     this.instance = axios.create({
-      timeout: 60000,
+      timeout: 0,
       withCredentials: true,
       headers: headers,
       paramsSerializer: params => this.normalizeQueryParams(params).replace('?','')
