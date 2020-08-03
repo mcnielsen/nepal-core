@@ -71,6 +71,36 @@ afterEach(() => {
   ALClient.reset();
 });
 
+describe('merge function', () => {
+    it('should merge objects reliably', () => {
+        let source1 = {
+            a: true,
+            b: 3,
+            c: "kevin"
+        };
+        let source2 = {
+            a: false,
+            b: 4,
+            c: "kermit"
+        };
+        let source3 = {
+            b: -1,
+            c: "miss piggy"
+        };
+
+        let target = ALClient['merge']( {}, source1 );
+        expect( target ).to.deep.equal( source1 );
+
+        target = ALClient['merge']( {}, source1, source2 );
+        expect( target ).to.deep.equal( source2 );
+
+        target = ALClient['merge']( {}, source1, source3, source2 );
+        expect( target.a ).to.equal( false );
+        expect( target.b ).to.equal( 4 );
+        expect( target.c ).to.equal( "kermit" );
+    } );
+} );
+
 describe('when calculating request URLs', () => {
   describe('with no params supplied', () => {
     it('should throw an error', async () => {
