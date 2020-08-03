@@ -449,6 +449,7 @@ export class AlApiClient
       service_stack: AlLocation.GlobalAPI,
       service_name: 'aims',
       path: 'authenticate',
+      version: 'v1',
       headers: {
         Authorization: `Basic ${this.base64Encode(`${user}:${pass}`)}`
       },
@@ -473,6 +474,7 @@ export class AlApiClient
       service_stack: AlLocation.GlobalAPI,
       service_name: 'aims',
       path: 'authenticate',
+      version: 'v1',
       headers: {
         'X-AIMS-Session-Token': token
       },
