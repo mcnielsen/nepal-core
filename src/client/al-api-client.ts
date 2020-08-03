@@ -86,7 +86,7 @@ export class AlApiClient
 
   constructor() {
       // temp to debug ie11
-      this.globalServiceParams = deepMerge( {}, AlApiClient.defaultServiceParams );
+      this.globalServiceParams = this.merge( {}, AlApiClient.defaultServiceParams );
   }
 
   /**
@@ -97,7 +97,7 @@ export class AlApiClient
     this.instance = null;
     this.executionRequestLog = [];
     this.storage.destroy();
-    this.globalServiceParams = deepMerge( {}, AlApiClient.defaultServiceParams );
+    this.globalServiceParams = this.merge( {}, AlApiClient.defaultServiceParams );
     return this;
   }
 
@@ -136,7 +136,7 @@ export class AlApiClient
    * Most notably, setting `noEndpointsResolution` to true will suppress endpoints resolution for all requests, and cause default endpoint values to be used.
    */
   public setGlobalParameters( parameters:APIRequestParams ):AlApiClient {
-    this.globalServiceParams = deepMerge( this.globalServiceParams, parameters );
+    this.globalServiceParams = this.merge( this.globalServiceParams, parameters );
     return this;
   }
 
@@ -502,7 +502,7 @@ export class AlApiClient
     if ( ! config.url ) {
       if ( 'target_endpoint' in config || 'service_name' in config || 'service_stack' in config ) {
         // If we are using endpoints resolution to determine our calculated URL, merge globalServiceParams into our configuration
-        config = deepMerge( {}, this.globalServiceParams, config );
+        config = this.merge( {}, this.globalServiceParams, config );
         config.url = await this.calculateRequestURL( config );
       } else {
         console.warn("Warning: malform request descriptor lacks a URL or properties to generate one", config );
@@ -897,6 +897,22 @@ export class AlApiClient
       if ( this.verbose ) {
           console.log.apply( console, (arguments as any) );
       }
+  }
+
+  /**
+   * Performs a shallow merge from any number of source objects to a single target object, and returns that target object.
+   * Essentially a cheap-and-easy replacement for Object.assign.
+   */
+  private merge( target:any, ...sources:any[] ):any {
+    sources.forEach( source => {
+      if ( typeof( source ) !== 'object' || source === null ) {
+        return;
+      }
+      Object.entries( source ).forEach( ( [ key, value ] ) => {
+        target[key] = value;
+      } );
+    } );
+    return target;
   }
 }
 
