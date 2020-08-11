@@ -80,6 +80,7 @@ export class AlEntitlementCollection
         "log_review",
         "managed_waf",
         "new_log_search",
+        "new_integrations",
         "phoenix_migrated",
         "respond",
         "response",
