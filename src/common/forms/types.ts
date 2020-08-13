@@ -17,5 +17,5 @@ export interface AlDynamicFormControlElement {
     editorOptions?: any;
     placeholder?: string;
     aboveDescription?: string;
-    bellowDescription?: string;
+    belowDescription?: string;
 }
