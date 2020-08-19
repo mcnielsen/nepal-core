@@ -19,4 +19,6 @@ export interface AlDynamicFormControlElement {
     placeholder?: string;
     aboveDescription?: string;
     belowDescription?: string;
+    patternError?: string;
+    requiredError?: string;
 }
