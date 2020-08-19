@@ -102,6 +102,12 @@ export interface AlSearchResultsQueryParamsV2 {
     details?: boolean;
     next_token?: string;
     utc_offset?: string;
+    from_epochtime?: AlFromEpochTime;
+}
+
+export interface AlFromEpochTime {
+    utc_offset?: string;
+    date_format?: string;
 }
 
 export interface AlSearchStatusV2 {
