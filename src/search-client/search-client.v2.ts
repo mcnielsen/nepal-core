@@ -155,7 +155,7 @@ class AlSearchClientV2 {
             account_id: accountId,
             path: `/searches`,
             data: searchQuery,
-            headers: {'Content-Type': 'text/plain'}
+            headers: {'Content-Type': 'text/plain', 'x-invoked-by': 'ui'}
         };
         if (additionalParams) {
             submitRequestArgs.params = additionalParams;
