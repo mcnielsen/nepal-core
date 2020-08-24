@@ -11,6 +11,7 @@ export interface AlDynamicFormControlElement {
     label: string;
     secret?: string;
     description?: string;
+    descriptionOnUpdate?: string;
     defaultValue?: string | string[] | boolean;
     validationPattern?: string;
     optional?: boolean;
