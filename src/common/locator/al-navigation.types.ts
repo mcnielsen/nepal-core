@@ -23,10 +23,11 @@ export interface AlNavigationSchema
 
 export interface AlExperienceToggle
 {
-    after?:string|number;
-    before?:string|number;
-    accounts?:string[];
-    environments?:string[];
+    after?:string|number;           //  If provided, the timestamp or iso8601 datetime string after which the experience flag should be enabled
+    before?:string|number;          //  If provided, the timestamp or iso8601 datetime string before which the experience flag should be enabled
+    accounts?:string[];             //  If provided, an array of *acting accounts* for which the experience flag should be enabled
+    primaryAccounts?:string[];      //  If provided, an array of *primary accounts* for which the experience flag should be enabled
+    environments?:string[];         //  If provided, an array of environments in which the experience flag should be enabled
 }
 
 /**
