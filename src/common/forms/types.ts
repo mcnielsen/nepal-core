@@ -8,7 +8,7 @@ export interface AlDynamicFormControlElement {
     updateNotAllowed?: boolean;
     type: string;
     property: string;
-    label: string;
+    label?: string;
     secret?: string;
     description?: string;
     descriptionOnUpdate?: string;
