@@ -543,6 +543,9 @@ export abstract class AlCardstackView< EntityType=any,
      * This is the default filter evaluator.
      */
     protected defaultFilterCb( entity:EntityType, properties:PropertyType, filter:AlCardstackActiveFilter<EntityType,PropertyType>, data?:any ) {
+        if(filter.property.remote) {
+            return true; // Filtering will have been performed by server, no further action required here
+        }
         let value = filter.property.property in properties ? properties[filter.property.property] : null;
         return filter.values.find( vDescr => vDescr.value === value ) ? true : false;
     }
