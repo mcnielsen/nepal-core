@@ -85,6 +85,9 @@ export interface AlCardstackPropertyDescriptor
 
     //  Arbitrary metadata, such as icon class or entitlement limitations
     metadata:{[property:string]:any};
+
+    // An optional sort position to be applied when converting this property to a filter in the consuming cardstack component
+    sortPositionIndex?: number;
 }
 
 /**
