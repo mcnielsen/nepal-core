@@ -29,7 +29,6 @@ export abstract class AlCardstackView< EntityType=any,
     // pagination values
     public loadedPages:number                                                   =   0;          //  Number of pages currently retrieved
     public remainingPages:number                                                =   1;          //  Number of pages of data remaining (or 1, if unknown); 0 when load is complete/EOS
-    public localPagination: boolean                                             =   false;      //  If we are going to use local pagination the remainingPages and loadedPages are going to be reseted in every filter or search
     public rawCards:AlCardstackItem<EntityType>[]                               =   [];         //  All cards loaded,is going to be used to make local pagination
     public filteredCards:AlCardstackItem<EntityType>[]                          =   [];
 
@@ -214,7 +213,7 @@ export abstract class AlCardstackView< EntityType=any,
         this.filteredCards = [ ...this.rawCards ].filter( c => this.evaluateCardState( c ) );
         this.visibleCards = this.filteredCards.length;
 
-        if(this.localPagination){
+        if(this.characteristics.localPagination){
             this.startPagination(this.filteredCards);
             this.resetPagination(this.filteredCards.length);
         } else{
@@ -466,7 +465,7 @@ export abstract class AlCardstackView< EntityType=any,
         this.cards.forEach( c => this.evaluateCardState( c ) );
         this.visibleCards = this.cards.reduce( ( count, card ) => count + ( card.visible ? 1 : 0 ), 0 );
 
-        if (this.localPagination && this.checked && newData.length > 0) {
+        if (this.characteristics.localPagination && this.checked && newData.length > 0) {
             this.markCardsAsCheck();
         }
     }
