@@ -109,7 +109,8 @@ export class AlSessionInstance
       AlLocation.IntegrationsAPI,
       AlLocation.GestaltAPI,
       AlLocation.EndpointsAPI,
-      AlLocation.AETunerAPI
+      AlLocation.AETunerAPI,
+      AlLocation.ResponderAPI
     ];
 
 

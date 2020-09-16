@@ -472,5 +472,20 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
         environment: 'integration|development'
     },
 
+    /**
+     * Responder  API locations
+     */
+    {
+        locTypeId: AlLocation.ResponderAPI,
+        aspect: 'api',
+        uri: 'https://responder.mdr.global.alertlogic.com',
+        environment: 'production|production-staging'
+    },
+    {
+        locTypeId: AlLocation.ResponderAPI,
+        aspect: 'api',
+        uri: 'https://responder.mdr.product.dev.alertlogic.com',
+        environment: 'integration|development'
+    },
 ];
 
