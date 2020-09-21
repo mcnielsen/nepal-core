@@ -90,7 +90,9 @@ export class AlEntitlementCollection
         "tmpro",
         "web_application_firewall",
         "web_security_managed",
-        "web_security_manager"
+        "web_security_manager",
+        "dashboard_authentication",
+        "dashboard_firewall"
     ];
     protected collection:{[productId:string]:AlEntitlementRecord} = {};
     protected evaluationCache:{[expression:string]:boolean} = {};
