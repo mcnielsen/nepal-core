@@ -97,3 +97,14 @@ export class AlDatacenterSessionErrorEvent extends AlTriggeredEvent<void>
         super();
     }
 }
+
+/**
+ * AlExternalTrackableEvent is used to catch runtime metrics from embedded defender views and relay them to google analytics.
+ */
+@AlTrigger( 'AlExternalTrackableEvent' )
+export class AlExternalTrackableEvent extends AlTriggeredEvent<void>
+{
+    constructor( public data:unknown ) {
+        super();
+    }
+}

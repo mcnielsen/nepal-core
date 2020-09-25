@@ -11,6 +11,7 @@ import {
 import {
     AlDatacenterSessionErrorEvent,
     AlDatacenterSessionEstablishedEvent,
+    AlExternalTrackableEvent,
 } from '../events';
 
 export class AlConduitClient
@@ -200,9 +201,11 @@ export class AlConduitClient
             case "conduit.externalSessionReady":
                 return this.onExternalSessionEstablished(event);
             case "conduit.externalSessionError":
-                return this.onExternalSessionError(event );
+                return this.onExternalSessionError(event);
+            case "conduit.externalEvent":
+                return this.onExternalTrackableEvent(event);
             default:
-                console.warn('O3ConduitService: Ignoring unrecognized message type: %s', event.data.type, event);
+                console.warn('AlConduitClient: Ignoring unrecognized message type: %s', event.data.type, event);
                 break;
         }
     }
@@ -262,6 +265,13 @@ export class AlConduitClient
      */
     protected onExternalSessionError( event:any ) {
         AlConduitClient.events.trigger( new AlDatacenterSessionErrorEvent( event.data.locationId, event.data.errorType || "unknown", event.data ) );
+    }
+
+    /**
+     * Pass the event upstream on the internal event bus
+     */
+    protected onExternalTrackableEvent( event:any ) {
+        AlConduitClient.events.trigger( new AlExternalTrackableEvent( event.data ) );
     }
 
     /**
