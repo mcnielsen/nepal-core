@@ -1,6 +1,7 @@
 /**
  * A client for interacting with the Alert Logic Search Stylist API.
  */
+import { AlLocation } from 'src/common/locator/al-locator.types';
 import {
     AlDefaultClient,
     APIRequestParams,
@@ -12,6 +13,7 @@ import { AlSearchResultsQueryParamsV2,
 class AlSearchStylist {
 
     private serviceName = 'search_stylist';
+    private version = 1;
 
     /**
      *  Get the results of a search with applied human readable transformations.
@@ -22,7 +24,9 @@ class AlSearchStylist {
         // Let's set the general fetch request arguments
         // that will be used in all the fetching types
         const fetchRequestArgs: APIRequestParams = {
+            service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
+            version: this.version,
             account_id: accountId,
             path: `/searches/${uuid}/transform/${type}`
         };

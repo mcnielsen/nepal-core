@@ -1,6 +1,7 @@
 /**
  * A client for interacting with the Alert Logic Search Public API.
  */
+import { AlLocation } from 'src/common/locator/al-locator.types';
 import {
     AlDefaultClient,
     APIRequestParams,
@@ -150,6 +151,7 @@ class AlSearchClientV2 {
      */
     async submit(searchQuery: string, accountId: string, additionalParams?: AlAdditionalSubmitParams): Promise<AlSearchSubmitV2> {
         const submitRequestArgs: APIRequestParams = {
+            service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: 2,
             account_id: accountId,
@@ -170,6 +172,7 @@ class AlSearchClientV2 {
      */
     async get(accountId: string, uuid: string, additionalParams?: AlSearchResultsQueryParamsV2): Promise<AlSearchGetV2> {
         const fetchRequestArgs: APIRequestParams = {
+            service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: 2,
             account_id: accountId,
@@ -194,6 +197,7 @@ class AlSearchClientV2 {
      */
     async status(accountId: string, uuid: string): Promise<AlSearchStatusV2> {
         const status = await AlDefaultClient.get({
+            service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: 2,
             account_id: accountId,
@@ -208,6 +212,7 @@ class AlSearchClientV2 {
      */
     async delete(accountId: string, uuid: string): Promise<any> {
         const response = await AlDefaultClient.delete({
+            service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: 2,
             account_id: accountId,
@@ -221,6 +226,7 @@ class AlSearchClientV2 {
      */
     async getGrammar(): Promise<AlSearchSQLGrammar> {
         const grammar = await AlDefaultClient.get({
+            service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: 2,
             path: `/grammar`,
