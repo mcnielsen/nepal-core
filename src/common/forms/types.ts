@@ -12,7 +12,7 @@ export interface AlDynamicFormControlElement {
     secret?: string;
     description?: string;
     descriptionOnUpdate?: string;
-    defaultValue?: string | string[] | boolean;
+    defaultValue?: string | string[] | boolean | object;
     validationPattern?: string;
     optional?: boolean;
     options?: AlDynamicFormControlElementOptions[];
@@ -22,4 +22,7 @@ export interface AlDynamicFormControlElement {
     belowDescription?: string;
     patternError?: string;
     requiredError?: string;
+    dataType?: string;
+    joinExpresion?: string;
+    splitExpresion?: RegExp | string;
 }
