@@ -4,6 +4,18 @@ export interface AlDynamicFormControlElementOptions {
     disabled?: boolean;
 }
 
+export interface AlDynamicFormControlInputResponderOptions {
+    type ?:'input' | 'textarea';
+    buttonLabel ?: string;
+    options ?: {
+        group: string;
+        options: {
+            label:string;
+            value: string;
+        }[];
+    }[];
+}
+
 export interface AlDynamicFormControlElement {
     updateNotAllowed?: boolean;
     type: string;
@@ -17,6 +29,7 @@ export interface AlDynamicFormControlElement {
     optional?: boolean;
     options?: AlDynamicFormControlElementOptions[];
     editorOptions?: any;
+    responderOptions?: AlDynamicFormControlInputResponderOptions;
     placeholder?: string;
     aboveDescription?: string;
     belowDescription?: string;
