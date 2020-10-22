@@ -115,6 +115,8 @@ export interface AlSearchStatusV2 {
     search_status: string;
     status_details: string;
     details: AlSearchDetailsV2;
+    search_uuid: string;
+    total_found?: number;
 }
 
 export interface AlAdditionalSubmitParams {
