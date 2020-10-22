@@ -5,12 +5,13 @@ export interface AlDynamicFormControlElementOptions {
 }
 
 export interface AlDynamicFormControlInputResponderOptions {
-    type ?:'input' | 'textarea';
-    buttonLabel ?: string;
-    options ?: {
+    type?: 'input' | 'textarea';
+    buttonLabel?: string;
+    options?: {
         group: string;
         options: {
-            label:string;
+            label: string;
+            description?: string;
             value: string;
         }[];
     }[];
