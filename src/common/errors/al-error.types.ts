@@ -7,6 +7,8 @@
  * Copyright 2019 Alert Logic, Inc.
  */
 
+import { AxiosResponse } from 'axios';
+
 /**
  * @public
  *
@@ -17,7 +19,13 @@ export class AlBaseError extends Error
     /* tslint:disable:variable-name */
     __proto__: Error;
 
-    constructor( message?:string) {
+    /**
+     * Optional reference to underlying Error, AxiosResponse, or <any>thing that triggered
+     * this error.
+     */
+    public origin?:any;
+
+    constructor( message?:string, derivedFrom?:any ) {
         const trueProto = new.target.prototype;
         super(message);
 
@@ -36,9 +44,10 @@ export class AlAPIServerError extends AlBaseError
 {
     constructor( message:string,
                  public serviceName:string,
-                 public statusCode:number ) {
+                 public statusCode:number,
+                 origin?:AxiosResponse|any ) {
         /* istanbul ignore next */
-        super( message );
+        super( message, origin );
     }
 }
 
