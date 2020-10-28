@@ -188,6 +188,23 @@ export class AlCabinet
     }
 
     /**
+     * Touches a property in the cabinet (and schedules synchronization), effectively extending the
+     * cached item's TTL.
+     *
+     * @param property - The property to touch.
+     * @param ttl Number of seconds the data should be retained for.
+     */
+    public touch( property:string, ttl:number = 0 ) {
+        let expirationTS = ttl === 0 ? 0 : + new Date() + ( ttl * 1000 );
+        if ( property in this.data ) {
+            this.data[property].expires = expirationTS;
+            if ( this.syncronizer ) {
+                this.syncronizer.again();
+            }
+        }
+    }
+
+    /**
      *  Deletes a property in the cabinet (and schedules synchronization)
      *
      *  @param property - The property to be deleted.
