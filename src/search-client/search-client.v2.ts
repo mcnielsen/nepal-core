@@ -104,6 +104,7 @@ export interface AlSearchResultsQueryParamsV2 {
     next_token?: string;
     utc_offset?: string;
     from_epochtime?: AlFromEpochTime;
+    selected?: string;
 }
 
 export interface AlFromEpochTime {
