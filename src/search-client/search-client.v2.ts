@@ -236,6 +236,19 @@ class AlSearchClientV2 {
         });
         return grammar as AlSearchSQLGrammar;
     }
+
+    /**
+     *  Complete interactive search (in suspended status)
+     */
+    async completeSuspendedSearch(accountId: string, uuid: string): Promise<void> {
+        return AlDefaultClient.post({
+            service_stack: AlLocation.InsightAPI,
+            service_name: this.serviceName,
+            version: 2,
+            account_id: accountId,
+            path: `/searches/${uuid}/complete`,
+        });
+    }
 }
 
 export const alSearchClientV2 = new AlSearchClientV2();
