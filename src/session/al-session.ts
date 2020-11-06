@@ -27,6 +27,7 @@ import {
     AlLocatorService,
 } from "../common/locator";
 import { AlBehaviorPromise } from "../common/promises";
+import { AlRuntimeConfiguration, ConfigOption } from '../configuration';
 import {
     AlCabinet,
     AlGlobalizer,
@@ -47,23 +48,6 @@ import {
     AlConsolidatedAccountMetadata,
     AlFoxSnapshot,
 } from './types';
-
-export interface AlSessionOptions {
-    /**
-     * Controls whether or not authentication resolves account metadata, like entitlements and managed accounts.  Defaults to `true`.
-     */
-    resolveAccountMetadata?:boolean;
-
-    /**
-     * If account metadata is resolved, should the client use the consolidated/gestalt resolver endpoint?  Defaults to `false`.
-     */
-    useConsolidatedResolver?:boolean;
-
-    /**
-     * Should FOX (features, options, and experiences) profile be retrieved as part of account metadata?  Defaults to `false`.
-     */
-    useFox?:boolean;
-}
 
 /**
  * AlSessionInstance maintains session data for a specific session.
@@ -88,17 +72,12 @@ export class AlSessionInstance
      */
     protected resolvedAccount                     =   new AlActingAccountResolvedEvent( null,
                                                                                         new AlEntitlementCollection(),
-                                                                                        new AlEntitlementCollection(),
-                                                                                        new AlFoxSnapshot() );
+                                                                                        new AlEntitlementCollection() );
     protected managedAccounts:AIMSAccount[]       =   [];
     protected resolutionGuard                     =   new AlBehaviorPromise<boolean>();         //  This functions as a mutex so that access to resolvedAccount is only available at appropriate times.
     protected detectionGuard                      =   new AlBehaviorPromise<boolean>();         //  resolved after first session detection cycle with no outstanding session detection or account resolution processes in flight.
     protected detectionProcesses                  =   0;
     protected storage                             =   AlCabinet.persistent( "al_session" );
-    protected options:AlSessionOptions = {
-        resolveAccountMetadata: true,
-        useConsolidatedResolver: false
-    };
 
     /**
      * List of base locations ("service_stack") that should automatically have X-AIMS-Auth-Token headers added.
@@ -172,10 +151,6 @@ export class AlSessionInstance
       if ( flushClientCache ) {
         AlDefaultClient.reset();
       }
-    }
-
-    public setOptions( options:AlSessionOptions ) {
-      this.options = deepMerge( this.options, options );
     }
 
     public async authenticate( username:string, passphrase:string, options:{actingAccount?:string|AIMSAccount,locationId?:string} = {} ):Promise<boolean> {
@@ -287,13 +262,16 @@ export class AlSessionInstance
 
       AlDefaultClient.defaultAccountId           = account.id;
 
-      if ( ! this.options.resolveAccountMetadata ) {
+      let resolveMetadata = AlRuntimeConfiguration.getOption<boolean>( ConfigOption.ResolveAccountMetadata, true );
+      let useConsolidatedResolver = AlRuntimeConfiguration.getOption<boolean>( ConfigOption.ConsolidatedAccountResolver, false );
+
+      if ( ! resolveMetadata ) {
         //  If metadata resolution is disabled, still trigger changed/resolved events with basic data
-          this.resolvedAccount = new AlActingAccountResolvedEvent( account, new AlEntitlementCollection(), new AlEntitlementCollection(), new AlFoxSnapshot() );
-          this.notifyStream.trigger( new AlActingAccountChangedEvent( previousAccount, account ) );
-          this.resolutionGuard.resolve(true);
-          this.notifyStream.trigger( this.resolvedAccount );
-          return Promise.resolve( this.resolvedAccount );
+        this.resolvedAccount = new AlActingAccountResolvedEvent( account, new AlEntitlementCollection(), new AlEntitlementCollection() );
+        this.notifyStream.trigger( new AlActingAccountChangedEvent( previousAccount, account ) );
+        this.resolutionGuard.resolve(true);
+        this.notifyStream.trigger( this.resolvedAccount );
+        return Promise.resolve( this.resolvedAccount );
       }
 
       if ( actingAccountChanged || ! this.resolutionGuard.isFulfilled() ) {
@@ -304,9 +282,9 @@ export class AlSessionInstance
         } );
         this.notifyStream.trigger( new AlActingAccountChangedEvent( previousAccount, this.sessionData.acting ) );
         this.storage.set("session", this.sessionData );
-        return await this.options.useConsolidatedResolver
-          ? this.resolveActingAccountConsolidated( account )
-          : this.resolveActingAccount( account );
+        return useConsolidatedResolver
+          ? await this.resolveActingAccountConsolidated( account )
+          : await this.resolveActingAccount( account );
       } else {
         return Promise.resolve( this.resolvedAccount );
       }
@@ -598,23 +576,6 @@ export class AlSessionInstance
     }
 
     /**
-     * Convenience method to retrieve the working FOX profile (if useFox is enabled; otherwise, this will be an empty feature tree)
-     */
-    public async getFoxProfile():Promise<AlFoxSnapshot> {
-        return this.resolutionGuard.then( () => this.resolvedAccount.fox );
-    }
-
-    /**
-     * Convenience method to retrieve the working FOX profile syncronously, or null if there is no session.
-     */
-    public getFoxProfileSync():AlFoxSnapshot|null {
-        if ( ! this.sessionIsActive || ! this.resolvedAccount ) {
-            return null;
-        }
-        return this.resolvedAccount.fox;
-    }
-
-    /**
      * Allows an external mechanism to indicate that it is detecting a session.
      */
     public startDetection() {
@@ -662,10 +623,9 @@ export class AlSessionInstance
      * and then emit an AlActingAccountResolvedEvent through the session's notifyStream.
      */
     protected async resolveActingAccount( account:AIMSAccount ) {
-      const resolved:AlActingAccountResolvedEvent = new AlActingAccountResolvedEvent( account, null, null, null );
+      const resolved:AlActingAccountResolvedEvent = new AlActingAccountResolvedEvent( account, null, null );
       let dataSources:Promise<any>[] = [
           AIMSClient.getAccountDetails( account.id ),
-          this.getFoxSnapshot( account.id, AlSession.getUserId() ),
           SubscriptionsClient.getEntitlements( this.getPrimaryAccountId() ) ];
 
       if ( account.id !== this.getPrimaryAccountId() ) {
@@ -675,11 +635,10 @@ export class AlSessionInstance
       return Promise.all( dataSources )
               .then(  dataObjects => {
                         const account:AIMSAccount                           =   dataObjects[0];
-                        const fox:AlFoxSnapshot                             =   dataObjects[1];
-                        const primaryEntitlements:AlEntitlementCollection   =   dataObjects[2];
+                        const primaryEntitlements:AlEntitlementCollection   =   dataObjects[1];
                         let actingEntitlements:AlEntitlementCollection;
                         if ( dataObjects.length > 3 ) {
-                          actingEntitlements                                =   dataObjects[3];
+                          actingEntitlements                                =   dataObjects[2];
                         } else {
                           actingEntitlements                                =   primaryEntitlements;
                         }
@@ -687,7 +646,6 @@ export class AlSessionInstance
                         resolved.actingAccount      =   account;
                         resolved.primaryEntitlements=   primaryEntitlements;
                         resolved.entitlements       =   actingEntitlements;
-                        resolved.fox                =   new AlFoxSnapshot();
                         this.resolvedAccount        =   resolved;
                         this.resolutionGuard.resolve(true);
                         this.notifyStream.trigger( resolved );
@@ -710,15 +668,11 @@ export class AlSessionInstance
         retry_interval: 1000
       };
       try {
-        let [ metadata, fox ] = await Promise.all( [
-          AlDefaultClient.get( request ),
-          this.getFoxSnapshot( account.id, AlSession.getUserId() )
-        ] );
+        let metadata = await AlDefaultClient.get( request );
         this.resolvedAccount = new AlActingAccountResolvedEvent(
-            metadata.actingAccount,
-            AlEntitlementCollection.import(metadata.effectiveEntitlements),
-            AlEntitlementCollection.import(metadata.primaryEntitlements),
-            fox
+          metadata.actingAccount,
+          AlEntitlementCollection.import(metadata.effectiveEntitlements),
+          AlEntitlementCollection.import(metadata.primaryEntitlements)
         );
         this.resolutionGuard.resolve( true );
         this.notifyStream.trigger( this.resolvedAccount );
@@ -726,22 +680,6 @@ export class AlSessionInstance
       } catch( e ) {
         console.warn("Failed to retrieve consolidated account metadata: falling back to default resolution method.", e );
         return this.resolveActingAccount( account );
-      }
-    }
-
-    protected async getFoxSnapshot( accountId:string, userId:string ):Promise<AlFoxSnapshot> {
-      if ( !this.options.useFox ) { return new AlFoxSnapshot(); }
-      try {
-        let rawData = await AlDefaultClient.get( {
-          service_stack: AlLocation.GestaltAPI,
-          service_name: "fox",
-          account_id: accountId,
-          version: 1,
-          path: `/user/${userId}`
-        } );
-        return new AlFoxSnapshot( rawData );
-      } catch( e ) {
-        return new AlFoxSnapshot();
       }
     }
 

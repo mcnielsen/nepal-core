@@ -193,7 +193,7 @@ describe('AlSession - Acting AIMSAccount value persistance Test Suite:', () => {
       managedAccountsStub = sinon.stub( AIMSClient, 'getManagedAccounts' ).returns( Promise.resolve( [] ) );
       entitlementsStub = sinon.stub( SubscriptionsClient, 'getEntitlements' ).resolves( new AlEntitlementCollection() );
     } );
-    xit('should call AIMSClient.getAccountDetails to retrieve the complete account record before executing', async () => {
+    it('should call AIMSClient.getAccountDetails to retrieve the complete account record before executing', async () => {
         await AlSession.setActingAccount( actingAccount.id );
         expect( AlSession.getActingAccountID() ).to.equal( actingAccount.id );
         expect( accountDetailsStub.callCount ).to.equal( 2 );       //  Twice: once to resolve account details, second (cached) during account resolution

@@ -7,7 +7,6 @@ import {
     AlTriggeredEvent,
 } from "../../common/utility";
 import { AlEntitlementCollection } from "../../subscriptions-client/types";
-import { AlFoxSnapshot } from '../types/al-fox.types';
 
 /**
  * AlSessionStartedEvent is broadcast by an AlSessionInstance whenever a new session is created by a successful authentication.
@@ -57,8 +56,7 @@ export class AlActingAccountResolvedEvent extends AlTriggeredEvent<void>
 {
     constructor( public actingAccount:AIMSAccount,
                  public entitlements:AlEntitlementCollection,
-                 public primaryEntitlements:AlEntitlementCollection,
-                 public fox:AlFoxSnapshot ) {
+                 public primaryEntitlements:AlEntitlementCollection ) {
         super();
     }
 }

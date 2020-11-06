@@ -9,24 +9,30 @@ import {
     AlSessionDetector,
     AlLocatorService,
     AIMSClient,
-    AlSession
+    AlSession,
+    ConfigOption,
+    AlRuntimeConfiguration
 } from '@al/core';
 
 describe('AlSessionDetector', () => {
     let conduit:AlConduitClient;
     let sessionDetector:AlSessionDetector;
-    let warnStub, errorStub;
+    let warnStub, errorStub, getTokenInfoStub;
 
     beforeEach( () => {
+        AlRuntimeConfiguration.setOption( ConfigOption.DisableEndpointsResolution, true );
+        AlRuntimeConfiguration.setOption( ConfigOption.ResolveAccountMetadata, false );
         AlLocatorService.setContext( { environment: "production" } );
         conduit = new AlConduitClient();
         sessionDetector = new AlSessionDetector( conduit, true );
-        warnStub = sinon.stub( console, 'warn' );
-        errorStub = sinon.stub( console, 'error' );
+        warnStub = sinon.stub( console, 'warn' ).callThrough();
+        errorStub = sinon.stub( console, 'error' ).callThrough();
+        getTokenInfoStub = sinon.stub( AIMSClient, 'getTokenInfo' ).returns( Promise.resolve( exampleSession.authentication ) );
     } );
 
     afterEach( () => {
         sinon.restore();
+        AlRuntimeConfiguration.reset();
     } );
 
     describe("after initialization", () => {
@@ -105,10 +111,6 @@ describe('AlSessionDetector', () => {
     } );
 
     describe( ".normalizeSessionDescriptor()", () => {
-        let getTokenInfoStub;
-        beforeEach( () => {
-            getTokenInfoStub = sinon.stub( AIMSClient, 'getTokenInfo' ).returns( Promise.resolve( exampleSession.authentication ) );
-        } );
         it( "should resolve immediately if the descriptor is fully populated", async () => {
             let result = await sessionDetector.normalizeSessionDescriptor( exampleSession );
             expect( result ).to.equal( exampleSession );
@@ -159,6 +161,7 @@ describe('AlSessionDetector', () => {
 
     describe(".ingestExistingSession()", () => {
         it( "should catch errors", async () => {
+            getTokenInfoStub.restore();
             let garbage:any = {
                 authentication: {
                     token: "blahblahblah",
@@ -178,7 +181,6 @@ describe('AlSessionDetector', () => {
         } );
         it( "should normalize and ingest a valid session descriptor", async () => {
             let normalizeStub = sinon.stub( sessionDetector, 'normalizeSessionDescriptor' ).returns( Promise.resolve( exampleSession ) );
-            AlSession.setOptions( { resolveAccountMetadata: false } );
             await sessionDetector.ingestExistingSession( {
                 authentication: {
                     token: exampleSession.authentication.token,
@@ -189,23 +191,10 @@ describe('AlSessionDetector', () => {
             } );
             expect( sessionDetector.authenticated ).to.equal( true );
             expect( errorStub.callCount ).to.equal( 0 );
-            AlSession.setOptions( { resolveAccountMetadata: true } );
         } );
     } );
 
     describe("detectSession()", () => {
-        describe("with an existing session promise", () => {
-            it( "should just return the existing promise", () => {
-                AlSession.deactivateSession();
-                let fakePromise = new Promise<boolean>( ( resolve, reject ) => {} );
-                AlSessionDetector['detectionPromise'] = fakePromise;
-
-                let result = sessionDetector.detectSession();
-                expect( result ).to.equal( fakePromise );
-                sessionDetector.onDetectionFail( () => {} );      //  kill the promise
-            } );
-
-        } );
         describe("with a local session", () => {
             it( "should resolve true", ( done ) => {
                 AlSession.deactivateSession();
@@ -219,9 +208,27 @@ describe('AlSessionDetector', () => {
             } );
         } );
 
+        describe("with a gestalt session", () => {
+            it( "should resolve true", ( done ) => {
+                AlRuntimeConfiguration.setOption( ConfigOption.GestaltAuthenticate, true );
+                AlSession.deactivateSession();
+                sinon.stub( sessionDetector, 'getGestaltSession' ).returns( Promise.resolve( exampleSession ) );
+                sinon.stub( sessionDetector, 'ingestExistingSession' ).returns( Promise.resolve( true ) );
+                sessionDetector.detectSession().then( result => {
+                    expect( result ).to.equal( true );
+                    expect( sessionDetector.authenticated ).to.equal( true );
+                    sessionDetector.onDetectionFail( () => {} );      //  kill the promise
+                    done();
+                }, error => {
+                    expect( "Shouldn't get a promise rejection!").to.equal( false );
+                } );
+            } );
+        } );
+
         describe("with a conduit session", () => {
             it( "should resolve true", ( done ) => {
                 AlSession.deactivateSession();
+                AlRuntimeConfiguration.setOption( ConfigOption.GestaltAuthenticate, false );
                 let getSessionStub = sinon.stub( conduit, 'getSession' ).returns( Promise.resolve( exampleSession ) );
                 let ingestSessionStub = sinon.stub( sessionDetector, 'ingestExistingSession' ).returns( Promise.resolve( true ) );
                 sessionDetector.detectSession().then( result => {
@@ -235,12 +242,9 @@ describe('AlSessionDetector', () => {
             } );
         } );
         describe("with an auth0 session", () => {
-            let getTokenInfoStub;
-            beforeEach( () => {
-                getTokenInfoStub = sinon.stub( AIMSClient, 'getTokenInfo' ).returns( Promise.resolve( exampleSession.authentication ) );
-            } );
             it( "should resolve true", ( done ) => {
                 AlSession.deactivateSession();
+                AlRuntimeConfiguration.setOption( ConfigOption.GestaltAuthenticate, true );
 
                 let auth0AuthStub = sinon.stub( sessionDetector, 'getAuth0Authenticator' ).returns( <WebAuth><unknown>{
                     checkSession: ( config, callback ) => {
@@ -258,7 +262,7 @@ describe('AlSessionDetector', () => {
                         }
                     }
                 } );
-                let getSessionStub = sinon.stub( conduit, 'getSession' ).returns( Promise.resolve( null ) );
+                let getSessionStub = sinon.stub( sessionDetector['conduit'], 'getSession' ).returns( Promise.resolve( null ) );
                 let ingestSessionStub = sinon.stub( sessionDetector, 'ingestExistingSession' ).returns( Promise.resolve( true ) );
                 sessionDetector.detectSession().then( result => {
                     sessionDetector.onDetectionFail( () => {} );      //  kill the promise

@@ -48,6 +48,7 @@ import {
 } from './types';
 import { AlClientBeforeRequestEvent } from './events';
 import { AIMSSessionDescriptor } from '../aims-client/types';
+import { AlRuntimeConfiguration, ConfigOption } from '../configuration';
 
 export type AlEndpointsServiceCollection = {[serviceName:string]:string};
 
@@ -434,6 +435,9 @@ export class AlApiClient
    * Use HTTP Basic Auth
    * Optionally supply an mfa code if the user account is enrolled for Multi-Factor Authentication
    *
+   * There are two variants of this method: one which executes directly against AIMS, and the other which
+   * is levied against a gestalt lambda proxied through console.account.
+   *
    * Under ordinary circumstances, you should *not* be calling this directly -- instead, you should use the top-level
    * `authenticate` method on @al/session's ALSession instance.
    */
@@ -457,10 +461,32 @@ export class AlApiClient
     });
   }
 
+  async authenticateViaGestalt( user:string, pass:string, ignoreWarning?:boolean ):Promise<AIMSSessionDescriptor> {
+    return this.post( {
+      url: this.getGestaltAuthenticationURL(),
+      data: {
+        authorization: `Basic ${this.base64Encode(`${user}:${pass}`)}`
+      }
+    } );
+    /*
+    return this.post( {
+      service_stack: AlLocation.AccountsUI,
+      service_name: 'session',
+      version: 'v1',
+      path: 'authenticate',
+      data: {
+        authorization: `Basic ${this.base64Encode(`${user}:${pass}`)}`
+      }
+    } ); */
+  }
+
   /**
    * Authenticate with an mfa code and a temporary session token.
    * Used when a user inputs correct username:password but does not include mfa code when they are enrolled for Multi-Factor Authentication
    * The session token can be used to complete authentication without re-entering the username and password, but must be used within 3 minutes (token expires)
+   *
+   * There are two variants of this method: one which executes directly against AIMS, and the other which
+   * is levied against a gestalt lambda proxied through console.account.
    *
    * Under ordinary circumstances, you should *not* be calling this directly -- instead, you should use the top-level
    * `authenticateWithMFASessionToken` method on @al/session's ALSession instance.
@@ -480,6 +506,16 @@ export class AlApiClient
       },
       data: {
         mfa_code: mfa_code
+      }
+    } );
+  }
+
+  async authenticateWithMFAViaGestalt( sessionToken:string, mfaCode:string ):Promise<AIMSSessionDescriptor> {
+    return this.post( {
+      url: this.getGestaltAuthenticationURL(),
+      data: {
+        sessionToken: sessionToken,
+        mfa_code: mfaCode
       }
     } );
   }
@@ -634,10 +670,20 @@ export class AlApiClient
       throw error;
   }
 
+  protected getGestaltAuthenticationURL():string {
+      let residency = 'US';
+      let environment = AlLocatorService.getCurrentEnvironment();
+      if ( environment === 'development' ) {
+          environment = 'integration';
+      }
+      return AlLocatorService.resolveURL( AlLocation.AccountsUI, `session/v1/authenticate`, { residency, environment } );
+  }
+
 
   protected async calculateRequestURL( params: APIRequestParams ):Promise<string> {
     let fullPath:string = null;
     if ( ! params.noEndpointsResolution
+           && ! AlRuntimeConfiguration.getOption<boolean>( ConfigOption.DisableEndpointsResolution, false )
            && ( params.target_endpoint || ( params.service_name && params.service_stack === AlLocation.InsightAPI ) ) ) {
       // Utilize the endpoints service to determine which location to use for this service/account pair
       const serviceEndpointId = params.target_endpoint || params.service_name;

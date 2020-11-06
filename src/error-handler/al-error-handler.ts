@@ -13,9 +13,9 @@ export class AlErrorHandler
      *
      *  @param error Can be an AxiosResponse, Error, string, or anything else (although "anything else" will be handled with a generic error message).
      */
-    public static log( error:AxiosResponse|AlBaseError|Error|string|any ) {
+    public static log( error:AxiosResponse|AlBaseError|Error|string|any, commentary?:string ) {
         let normalized = AlErrorHandler.normalize( error );
-        console.log( normalized.message );
+        console.log( commentary ? `${commentary}: ${normalized.message}` : normalized.message );
     }
 
     /**
