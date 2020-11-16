@@ -1,4 +1,5 @@
 export * from "./common/index";
+export * from "./configuration/index";
 export * from "./client/index";
 export * from "./session/index";
 export * from "./aims-client/index";

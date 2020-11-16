@@ -8,6 +8,7 @@
 import { WebAuth } from 'auth0-js';
 import { AIMSClient, AIMSSessionDescriptor } from "../../aims-client";
 import { AlDefaultClient } from "../../client";
+import { AlErrorHandler } from '../../error-handler';
 import {
     AlLocation,
     AlLocatorService,
@@ -16,6 +17,7 @@ import { AlStopwatch } from "../../common/utility";
 
 import { AlSession } from '../al-session';
 import { AlConduitClient } from './al-conduit-client';
+import { AlRuntimeConfiguration, ConfigOption } from '../../configuration';
 
 export class AlSessionDetector
 {
@@ -56,82 +58,13 @@ export class AlSessionDetector
      *  @param {string} preferredActingAccountId - If provided and there is no current session, this accountId will be used instead of the default/primary.
      */
 
-    public detectSession( preferredActingAccountId:string = null ): Promise<boolean> {
+    public async detectSession( preferredActingAccountId:string = null ): Promise<boolean> {
 
-        if ( AlSessionDetector.detectionPromise ) {
-            //  If we're already in the middle of detection, return the promise for the current detection cycle rather than allowing multiple overlapping
-            //  checks to run simultaneously.  No muss, no fuss!
-            return AlSessionDetector.detectionPromise;
+        if ( AlSessionDetector.detectionPromise === null ) {
+            AlSessionDetector.detectionPromise = new Promise( ( resolve, reject ) => {
+                this.innerDetectSession( resolve, reject );
+            } );
         }
-
-        AlSessionDetector.detectionPromise = new Promise( ( resolve, reject ) => {
-
-            AlSession.startDetection();
-
-            /**
-             * Does AlSession say we're active?  If so, then yey!
-             */
-            if ( AlSession.isActive() ) {
-                return this.onDetectionSuccess( resolve );
-            }
-
-            /**
-             * Check conduit to see if it has a session available
-             */
-            this.conduit.getSession()
-                .then( session => {
-                    if ( session && typeof( session ) === 'object' ) {
-                        this.ingestExistingSession( session )
-                            .then(  () => {
-                                        this.onDetectionSuccess( resolve );
-                                    },
-                                    error => {
-                                        this.conduit.deleteSession().then( () => {
-                                            this.onDetectionFail( resolve, "Conduit session could not be ingested; destroying it and triggering unauthenticated access handling.");
-                                        } );
-                                    } );
-                    } else if ( this.useAuth0 ) {
-                        try {
-                            let authenticator = this.getAuth0Authenticator();
-                            let config = this.getAuth0Config( { usePostMessage: true, prompt: 'none' } );
-                            this.getAuth0SessionToken( authenticator, config, 5000 )
-                                .then( accessToken => {
-                                    this.getAuth0UserInfo( authenticator, accessToken, ( userInfoError, userIdentityInfo ) => {
-                                        if ( userInfoError || ! userIdentityInfo ) {
-                                            return this.onDetectionFail( resolve, "Auth0 session detection failure: failed to retrieve user information with valid session!");
-                                        }
-
-                                        let identityInfo = this.extractUserInfo( userIdentityInfo );
-                                        if ( identityInfo.accountId === null || identityInfo.userId === null ) {
-                                            return this.onDetectionFail( resolve, "Auth0 session detection failure: session lacks identity information!");
-                                        }
-
-                                        /* Missing properties (user, account, token_expiration) will be separately requested/calculated by normalizationSessionDescriptor */
-                                        let session:AIMSSessionDescriptor = {
-                                            authentication: {
-                                                token: accessToken,
-                                                token_expiration: null,
-                                                user: null,
-                                                account: null
-                                            }
-                                        };
-                                        this.ingestExistingSession( session )
-                                            .then(  () => {
-                                                        this.onDetectionSuccess( resolve );
-                                                    },
-                                                    error => {
-                                                        this.onDetectionFail( resolve, "Failed to ingest auth0 session" );
-                                                    } );
-                                    } );
-                                },     error => {
-                                    this.onDetectionFail( resolve, `Auth0 session could not be detected within a 5 second timeout interval: ${error.toString()}` );
-                                } );
-                        } catch( e ) {
-                            return this.onDetectionFail( resolve, `Unexpected error: encountered exception while checking session: ${e.toString()}`);
-                        }
-                    }
-                } );
-        } );
 
         return AlSessionDetector.detectionPromise;
     }
@@ -144,6 +77,97 @@ export class AlSessionDetector
         const loginUri = AlDefaultClient.resolveLocation(AlLocation.AccountsUI, '/#/login');
         const returnUri = window.location.origin + ((window.location.pathname && window.location.pathname.length > 1) ? window.location.pathname : "");
         this.redirect( `${loginUri}?return=${encodeURIComponent(returnUri)}&token=null`, "User is not authenticated; redirecting to login." );
+    }
+
+    async innerDetectSession( resolve:any, reject:any ) {
+
+        AlSession.startDetection();
+
+        /**
+         * Does AlSession say we're active?  If so, then yey!
+         */
+        if ( AlSession.isActive() ) {
+            return this.onDetectionSuccess( resolve );
+        }
+
+        /**
+         * Can Gestalt's session status endpoint confirm we have a session?
+         */
+        if ( AlRuntimeConfiguration.getOption( ConfigOption.GestaltAuthenticate, false ) ) {
+            try {
+                let session = await this.getGestaltSession();
+                await this.ingestExistingSession( session );
+                return this.onDetectionSuccess( resolve );
+            } catch( e ) {
+                console.error( 'Unexpected error encountered while attempting to get session status from Gestalt; falling through.', e );
+            }
+        }
+
+        /**
+         * Check conduit to see if it has a session available
+         */
+        let session = await this.conduit.getSession();
+        if ( session && typeof( session ) === 'object' && this.sessionIsValid( session ) ) {
+            try {
+                await this.ingestExistingSession( session );
+                return this.onDetectionSuccess( resolve );
+            } catch ( e ) {
+                await this.conduit.deleteSession();
+                return this.onDetectionFail( resolve, "Conduit session could not be ingested; destroying it and triggering unauthenticated access handling.");
+            }
+        }
+        if ( this.useAuth0 ) {
+            try {
+                let authenticator = this.getAuth0Authenticator();
+                let config = this.getAuth0Config( { usePostMessage: true, prompt: 'none' } );
+                let accessToken = await this.getAuth0SessionToken( authenticator, config, 5000 );
+                this.getAuth0UserInfo( authenticator, accessToken, ( userInfoError, userIdentityInfo ) => {
+                    if ( userInfoError || ! userIdentityInfo ) {
+                        return this.onDetectionFail( resolve, "Auth0 session detection failure: failed to retrieve user information with valid session!");
+                    }
+
+                    let identityInfo = this.extractUserInfo( userIdentityInfo );
+                    if ( identityInfo.accountId === null || identityInfo.userId === null ) {
+                        return this.onDetectionFail( resolve, "Auth0 session detection failure: session lacks identity information!");
+                    }
+
+                    /* Missing properties (user, account, token_expiration) will be separately requested/calculated by normalizationSessionDescriptor */
+                    let session:AIMSSessionDescriptor = {
+                        authentication: {
+                            token: accessToken,
+                            token_expiration: null,
+                            user: null,
+                            account: null
+                        }
+                    };
+                    this.ingestExistingSession( session ).then( () => this.onDetectionSuccess( resolve ),
+                                                                error => this.onDetectionFail( resolve, `Failed to detect auth0 session` ) );
+                } );
+            } catch( e ) {
+                let error = AlErrorHandler.normalize( e );
+                return this.onDetectionFail( resolve, `Failed to detect auth0 session: ${e.message}` );
+            }
+        }
+    }
+
+    async getGestaltSession():Promise<AIMSSessionDescriptor> {
+        let residency = 'US';
+        let environment = AlLocatorService.getCurrentEnvironment();
+        if ( environment === 'development' ) {
+            environment = 'integration';
+        }
+        let sessionStatusURL = AlLocatorService.resolveURL( AlLocation.AccountsUI, `session/v1/status`, { residency, environment } );
+        let sessionStatus = await AlDefaultClient.get( {
+            url: sessionStatusURL,
+            withCredentials: true
+        } );
+        let sessionDescriptor = {
+            authentication: sessionStatus.session || {}
+        };
+        if ( this.sessionIsValid( sessionDescriptor ) ) {
+            return sessionDescriptor;
+        }
+        throw new Error("No session found." );
     }
 
     /**
@@ -162,6 +186,20 @@ export class AlSessionDetector
             console.error("Failed to ingest session: ", e );
             throw new Error( e.toString() );
         }
+    }
+
+    /**
+     * Checks to see if a session is currently active
+     */
+    sessionIsValid( proposed: AIMSSessionDescriptor ):boolean {
+        if ( 'authentication' in proposed
+                && 'token' in proposed.authentication
+                && 'token_expiration' in proposed.authentication ) {
+            if ( proposed.authentication.token_expiration > Date.now() / 1000 ) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /* istanbul ignore next */
@@ -345,8 +383,9 @@ export class AlSessionDetector
                                authenticator.checkSession( config, ( error, authResult ) => {
                                    if ( error || ! authResult || ! authResult.accessToken ) {
                                        reject("auth0's checkSession method failed with an error" );
+                                   } else {
+                                       resolve( authResult.accessToken );
                                    }
-                                   resolve( authResult.accessToken );
                                } );
                            } ) ] )
                       .then( ( accessToken:string|any ) => {

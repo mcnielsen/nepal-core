@@ -26,6 +26,8 @@ export class AlCabinet
 
     public syncronizer?:AlStopwatch;
 
+    public noStorage:boolean = false;
+
     constructor( public name:string,
                  public data:any = {},
                  public type:number = AlCabinet.LOCAL ) {
@@ -242,6 +244,9 @@ export class AlCabinet
      *  @returns The class instance.
      */
     public synchronize = () => {
+        if ( this.noStorage ) {
+            return;
+        }
         /**
          *  Perform garbage collection on the dataset and purge any expired stuff
          */
@@ -268,6 +273,7 @@ export class AlCabinet
         } catch( e ) {
             //  Argh, snarfblatt!
             console.warn("An error occurred while trying to syncronize data to local or session storage. ", e.toString() );
+            this.noStorage = true;
         }
 
         /**
