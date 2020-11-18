@@ -494,6 +494,16 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
     {
         locTypeId: AlLocation.DistributorAPI,
         aspect: 'api',
+        uri: 'https://distributor.mdr.global.alertlogic.com',
+        environment: 'production|production-staging'
+    },
+
+    /**
+     * Distributor  API locations
+     */
+    {
+        locTypeId: AlLocation.DistributorAPI,
+        aspect: 'api',
         uri: 'https://distributor.mdr.product.dev.alertlogic.com',
         environment: 'integration|development'
     },
