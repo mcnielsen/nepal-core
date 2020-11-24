@@ -20,194 +20,170 @@ import {
     exampleSession,
 } from '../mocks/session-data.mocks';
 
-describe('AlSession - AIMSAuthentication value persistance Test Suite:', () => {
-  let sessionDescriptor;
+
+const sessionDescriptor = {
+  authentication: {
+      user: {
+        id: '12345-ABCDE',
+        name: 'Alert Logic',
+        email: 'alertlogic@unknown.com',
+        active: true,
+        locked: false,
+        version: 1,
+        linked_users: [],
+        created: {
+          at: 0,
+          by: 'ui-team',
+        },
+        modified: {
+          at: 0,
+          by: 'ui-team',
+        },
+      },
+      account: {
+        id: '2',
+        name: 'Alert Logic',
+        active: false,
+        accessible_locations: ['location-a', 'location-b'],
+        default_location: 'location-a',
+        mfa_required: false,
+        created: {
+          at: 0,
+          by: 'ui-team',
+        },
+        modified: {
+          at: 0,
+          by: 'ui-team',
+        },
+      },
+      token: 'abig-fake.JUICY-token',
+      token_expiration: + new Date() + 86400,
+  }
+};
+
+const actingAccount: AIMSAccount = {
+  id: '5',
+  name: 'ACME Corp',
+  active: false,
+  version: 1,
+  accessible_locations: ['location-a', 'location-b'],
+  default_location: 'location-a',
+  created: {
+    at: 0,
+    by: 'al-ui-team',
+  },
+  modified: {
+    at: 0,
+    by: 'al-ui-team',
+  },
+};
+
+describe('AlSession Test Suite:', () => {
   let storage = AlCabinet.persistent("al_session" );
-  beforeEach(() => {
-    sessionDescriptor = {
-      authentication: {
-          user: {
-            id: '12345-ABCDE',
-            name: 'Alert Logic',
-            email: 'alertlogic@unknown.com',
-            active: true,
-            locked: false,
-            version: 1,
-            linked_users: [],
-            created: {
-              at: 0,
-              by: 'ui-team',
-            },
-            modified: {
-              at: 0,
-              by: 'ui-team',
-            },
-          },
-          account: {
-            id: '2',
-            name: 'Alert Logic',
-            active: false,
-            accessible_locations: ['location-a', 'location-b'],
-            default_location: 'location-a',
-            mfa_required: false,
-            created: {
-              at: 0,
-              by: 'ui-team',
-            },
-            modified: {
-              at: 0,
-              by: 'ui-team',
-            },
-          },
-          token: 'abig-fake.JUICY-token',
-          token_expiration: + new Date() + 86400,
-      }
-    };
-    AlSession.setAuthentication(sessionDescriptor);
+  let accountDetailsStub;
+  let managedAccountsStub;
+  let entitlementsStub;
+  beforeEach( async () => {
+    accountDetailsStub = sinon.stub( AIMSClient, 'getAccountDetails' ).returns( Promise.resolve( actingAccount ) );
+    managedAccountsStub = sinon.stub( AIMSClient, 'getManagedAccounts' ).returns( Promise.resolve( [] ) );
+    entitlementsStub = sinon.stub( SubscriptionsClient, 'getEntitlements' );
+    entitlementsStub.withArgs("2").resolves( AlEntitlementCollection.fromArray( [ 'cloud_defender', 'cloud_insight' ] ) );
+    entitlementsStub.withArgs("5").resolves( AlEntitlementCollection.fromArray( [ 'assess', 'detect', 'respond' ] ) );
+    await AlSession.setAuthentication(sessionDescriptor);
   });
   afterEach( () => {
       sinon.restore();
   } );
 
-  describe('After setting the authentication value of the session object', () => {
+  describe('After installing a session with `setAuthentication`', () => {
     it('should persist this to local storage"', () => {
       let session = storage.get( "session" );
       expect( session ).to.be.an( 'object' );
       expect( session.authentication ).to.be.an( 'object' );
       expect( session.authentication ).to.deep.equal( sessionDescriptor.authentication );
     });
-  });
-  describe('On retrieving the session token value', () => {
-    it('should retrieve the persisted value', () => {
+    it('should provide the correct token from `.getToken()`', () => {
       expect(AlSession.getToken()).to.equal(sessionDescriptor.authentication.token);
     });
-  });
-  describe('On retrieving the session token expiry value', () => {
-    it('should retrieve the persisted value', () => {
+    it('should retrieve the correct expiration timestamp from `.getTokenExpiry()`', () => {
       expect(AlSession.getTokenExpiry()).to.equal(sessionDescriptor.authentication.token_expiration);
     });
-  });
-  describe('On retrieving the session user ID value', () => {
-    it('should retrieve the persisted value', () => {
+    it('should retrieve the correct user ID from `.getUserID()`', () => {
       expect(AlSession.getUserID()).to.equal(sessionDescriptor.authentication.user.id);
     });
-  });
-  describe('On retrieving the session user name value', () => {
-    it('should retrieve the persisted value', () => {
+    it('should retrieve the correct user name from `.getUserName()`', () => {
       expect(AlSession.getUserName()).to.equal(sessionDescriptor.authentication.user.name);
     });
-  });
-  describe('On retrieving the session user email value', () => {
-    it('should retrieve the persisted value', () => {
+    it('should retrieve the correct email from `.getUserEmail()`', () => {
       expect(AlSession.getUserEmail()).to.equal(sessionDescriptor.authentication.user.email);
     });
-  });
-  describe('On retrieving the session user account ID value', () => {
-    it('should retrieve the persisted value', () => {
+    it('should retrieve the correct account id from `.getUserAccountID()`', () => {
       expect(AlSession.getUserAccountID()).to.equal(sessionDescriptor.authentication.account.id);
     });
-  });
-  describe('On retrieving the session AIMS Authentication value', () => {
-    it('should retrieve the persisted value', () => {
+    it('should retrieve the authentication record from `.getAuthentication()`', () => {
       expect(AlSession.getAuthentication()).to.deep.equal(sessionDescriptor.authentication);
     });
-  });
-  describe('On retrieving the session user accessible locations', () => {
-    it('should retrieve the persisted value', () => {
+    it('should retrieve the correct values from `.getUserAccessibleLocations()`', () => {
       expect(AlSession.getUserAccessibleLocations()).to.deep.equal(sessionDescriptor.authentication.account.accessible_locations);
     });
+    describe('On setting the session token details', () => {
+      it('should persisted these correctly', () => {
+        const token = 'my-token.is-great';
+        const tokenExpiry = + new Date() + 1000;
+        AlSession.setTokenInfo(token, tokenExpiry);
+        expect(AlSession.getToken()).to.equal(token);
+        expect(AlSession.getTokenExpiry()).to.equal(tokenExpiry);
+      });
+    } );
   });
-  describe('On setting the session token details', () => {
-    it('should persisted these correctly', () => {
-      const token = 'my-token.is-great';
-      const tokenExpiry = + new Date() + 1000;
-      AlSession.setTokenInfo(token, tokenExpiry);
-      expect(AlSession.getToken()).to.equal(token);
-      expect(AlSession.getTokenExpiry()).to.equal(tokenExpiry);
-    });
-  });
-});
-
-describe('AlSession - Acting AIMSAccount value persistance Test Suite:', () => {
-  let actingAccount: AIMSAccount;
-  let storage:AlCabinet = AlCabinet.persistent("al_session");
-  beforeEach(() => {
-    actingAccount = {
-      id: '5',
-      name: 'ACME Corp',
-      active: false,
-      version: 1,
-      accessible_locations: ['location-a', 'location-b'],
-      default_location: 'location-a',
-      created: {
-        at: 0,
-        by: 'al-ui-team',
-      },
-      modified: {
-        at: 0,
-        by: 'al-ui-team',
-      },
-    };
-    AlSession.setActingAccount(actingAccount);
-  });
-  afterEach( () => {
-      sinon.restore();
-  } );
-  describe('After setting the acting account value of the session object', () => {
-    it('should persist this to local storage"', () => {
+  describe('After changing the acting account', async () => {
+    beforeEach( async () => {
+      await AlSession.setActingAccount(actingAccount);
+    } );
+    it('should persist the acting account to local storage', () => {
       const auth = storage.get("session" );
       expect(auth.acting).to.deep.equal(actingAccount);
     });
-  });
-  describe('On retrieving the session acting account ID value', () => {
-    it('should retrieve the persisted value', () => {
+    it('should return the correct account ID from `.getActingAccountID()`', () => {
       expect(AlSession.getActingAccountID()).to.equal(actingAccount.id);
     });
-  });
-  describe('On retrieving the session acting account name value', () => {
-    it('should retrieve the persisted value', () => {
+    it('should return the correct acting account name from `getActingAccountName()`', () => {
       expect(AlSession.getActingAccountName()).to.equal(actingAccount.name);
     });
-  });
-  describe('On retrieving the session session acting account value', () => {
-    it('should retrieve the persisted value', () => {
+    it('should return the correct acting account record from `.getActingAccount()`', () => {
       expect(AlSession.getActingAccount()).to.deep.equal(actingAccount);
     });
-  });
-  describe('On retrieving the acting account accessible locations', () => {
-    it('should retrieve the persisted value', () => {
+    it('should return the correct locations from `.getActingAccountAccessibleLocation()`', () => {
       expect(AlSession.getActingAccountAccessibleLocations()).to.equal(actingAccount.accessible_locations);
     });
-  });
-  describe('On retrieving the acting account default location', () => {
-    it('should retrieve the persisted value', () => {
+    it('should retrieve the correct location from `.getActingAccountDefaultLocation()`', () => {
       expect(AlSession.getActingAccountDefaultLocation()).to.equal(actingAccount.default_location);
     });
-  });
-  describe('calling setActingAccount with just an account ID', () => {
-      let accountDetailsStub;
-      let managedAccountsStub;
-      let entitlementsStub;
-    beforeEach( () => {
-      accountDetailsStub = sinon.stub( AIMSClient, 'getAccountDetails' ).returns( Promise.resolve( actingAccount ) );
-      managedAccountsStub = sinon.stub( AIMSClient, 'getManagedAccounts' ).returns( Promise.resolve( [] ) );
-      entitlementsStub = sinon.stub( SubscriptionsClient, 'getEntitlements' ).resolves( new AlEntitlementCollection() );
-    } );
-    it('should call AIMSClient.getAccountDetails to retrieve the complete account record before executing', async () => {
-        await AlSession.setActingAccount( actingAccount.id );
-        expect( AlSession.getActingAccountID() ).to.equal( actingAccount.id );
-        expect( accountDetailsStub.callCount ).to.equal( 2 );       //  Twice: once to resolve account details, second (cached) during account resolution
+    it('should expose the correct entitlements via `.getEffectiveEntitlements().`', async () => {
+        let entitlements = await AlSession.getEffectiveEntitlements();
+        expect( entitlements.isEntitlementActive( 'assess' ) ).to.equal( true );
+        expect( entitlements.isEntitlementActive( 'cloud_insight' ) ).to.equal( false );
 
-        AlSession.setActingAccount( actingAccount );
-        expect( AlSession.getActingAccountID() ).to.equal( actingAccount.id );
+        entitlements = AlSession.getEffectiveEntitlementsSync();
+        expect( entitlements.isEntitlementActive( 'assess' ) ).to.equal( true );
+        expect( entitlements.isEntitlementActive( 'cloud_insight' ) ).to.equal( false );
+
+
+        let primary = await AlSession.getPrimaryEntitlements();
+        expect( primary.isEntitlementActive( 'assess' ) ).to.equal( false );
+        expect( primary.isEntitlementActive( 'cloud_insight' ) ).to.equal( true );
+
+        primary = AlSession.getPrimaryEntitlementsSync();
+        expect( primary.isEntitlementActive( 'assess' ) ).to.equal( false );
+        expect( primary.isEntitlementActive( 'cloud_insight' ) ).to.equal( true );
+
+
     } );
-  } );
-  describe('calling setActingAccount with nothing', () => {
-      it('should throw', () => {
-          return AlSession.setActingAccount( null )
-              .then( () => Promise.reject( new Error('Expected method to reject') ),
-                     err => assert.instanceOf( err, Error ) );
-      } );
+    it( `should throw when setting the acting account to nothing`, async () => {
+        return AlSession.setActingAccount( null )
+            .then( () => Promise.reject( new Error('Expected method to reject') ),
+                   err => assert.instanceOf( err, Error ) );
+    } );
   } );
 });
 
@@ -232,7 +208,7 @@ describe('AlSession', () => {
     beforeEach( () => {
       accountDetailsStub = sinon.stub( AIMSClient, 'getAccountDetails' ).returns( Promise.resolve( exampleSession.authentication.account ) );
       managedAccountsStub = sinon.stub( AIMSClient, 'getManagedAccounts' ).returns( Promise.resolve( [] ) );
-      entitlementsStub = sinon.stub( SubscriptionsClient, 'getEntitlements' ).resolves( new AlEntitlementCollection() );
+      entitlementsStub = sinon.stub( SubscriptionsClient, 'getEntitlements' ).resolves( AlEntitlementCollection.fromArray( [ 'cloud_defender', 'cloud_insight' ] ) );
     } );
     afterEach( () => {
       sinon.restore();

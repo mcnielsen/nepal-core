@@ -10,6 +10,7 @@ import {
 import {
     AIMSClient,
     AIMSClientInstance,
+    AIMSEnrollURI
 } from '../../src/aims-client/index';
 
 const accountId = '12345';
@@ -396,4 +397,11 @@ describe('AIMS Client Test Suite:', () => {
       expect( payload.url ).to.equal( `${apiBaseURL}/aims/v1/${accountId}/users/${userId}/access_keys/${accessKeyId}` );
     });
   });
+  describe( 'AIMSEnrollURI', () => {
+      it("should be constructable", () => {
+          let uri = new AIMSEnrollURI( "knielsen@alertlogic.com", "dunderMifflin1234" );
+          let uriValue = uri.toString();
+          expect( uriValue ).to.equal(`otpauth://totp/Alert%20Logic:knielsen@alertlogic.com?secret=dunderMifflin1234&issuer=Alert%20Logic&algorithm=SHA1` );
+      } );
+  } );
 });

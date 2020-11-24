@@ -150,14 +150,15 @@ export class AlEntitlementCollection
      * Convenience method to generate a working collection from a simple list of productIds/entitlement keys.
      */
     public static fromArray( entitlementKeys:string[] ):AlEntitlementCollection {
-        return AlEntitlementCollection.import( entitlementKeys.map( entitlementKey => {
+        let entitlements = entitlementKeys.map( entitlementKey => {
             return {
-                productId: entitlementKey,
-                active: true,
-                expires: new Date( Date.now() + 86400000 ),
+                product_family: entitlementKey,
+                status: 'active',
+                end_date: Math.floor( ( Date.now() + 86400000 ) / 1000 ),
                 value: 0
             };
-        } ) );
+        } );
+        return AlEntitlementCollection.import( { entitlements } );
     }
 
     /**
@@ -201,6 +202,13 @@ export class AlEntitlementCollection
             active: false,
             expires: new Date(-8640000000000000)
         };
+    }
+
+    /**
+     * Determines whether or not a given product is active or not.
+     */
+    public isEntitlementActive( productId:string ):boolean {
+        return this.getProduct( productId ).active;
     }
 
     /**

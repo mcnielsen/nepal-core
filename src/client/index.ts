@@ -1,4 +1,4 @@
-export { AlMockAxiosResponse, APIRequestParams } from './types';
+export { APIRequestParams } from './types';
 export * from './events';
 export {
     AlEndpointsServiceCollection,

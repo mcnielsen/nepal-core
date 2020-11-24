@@ -106,12 +106,3 @@ export interface APIRequestParams extends AxiosRequestConfig {
     */
     response_type?: string;
 }
-
-export class AlMockAxiosResponse implements AxiosResponse<any> {
-    public statusText:string = '';
-    public headers:any = {};
-    public config:AxiosRequestConfig;
-
-    constructor( public status:number, public data:any ) {
-    }
-}

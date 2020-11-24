@@ -21,13 +21,33 @@ export interface AlNavigationSchema
     conditions: {[conditionId:string]:AlRouteCondition};
 }
 
+/**
+ * AlExperienceToggle defines a set of conditions under which an experience flag will be turned on.
+ * Internally, these will be evaluated using the same mechanics as AlRouteCondition, with the addition
+ * of time constraints and specific accounts.
+ */
 export interface AlExperienceToggle
 {
-    after?:string|number;           //  If provided, the timestamp or iso8601 datetime string after which the experience flag should be enabled
-    before?:string|number;          //  If provided, the timestamp or iso8601 datetime string before which the experience flag should be enabled
-    accounts?:string[];             //  If provided, an array of *acting accounts* for which the experience flag should be enabled
-    primaryAccounts?:string[];      //  If provided, an array of *primary accounts* for which the experience flag should be enabled
-    environments?:string[];         //  If provided, an array of environments in which the experience flag should be enabled
+    //  If provided, the timestamp or iso8601 datetime string after which the experience flag should be enabled
+    after?:string|number;
+
+    //  If provided, the timestamp or iso8601 datetime string before which the experience flag should be enabled
+    before?:string|number;
+
+    //  If provided, an array of *acting accounts* for which the experience flag should be enabled
+    accounts?:string[];
+
+    //  If provided, an array of *primary accounts* for which the experience flag should be enabled
+    primaryAccounts?:string[];
+
+    //  If provided, an array of environments in which the experience flag should be enabled
+    environments?:string[];
+
+    //  If provided, an entitlement expression (or array of entitlement expressions) that must be satisfied for the experience flag to be enabled.
+    entitlements?:string|string[];
+
+    //  If provided, an entitlement expression (or array of entitlement expressions) that the primary account's entitlements must satisfy for the experience flag to be enabled.
+    primaryEntitlements?:string|string[];
 }
 
 /**
