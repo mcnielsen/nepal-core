@@ -7,7 +7,7 @@
  * Copyright 2019 Alert Logic, Inc.
  */
 
-import { AxiosResponse, AxiosRequestConfig } from 'axios';
+import { AxiosResponse } from 'axios';
 
 /**
  * @public
@@ -28,6 +28,7 @@ export class AlBaseError extends Error
     constructor( message?:string, derivedFrom?:any ) {
         const trueProto = new.target.prototype;
         super(message);
+        this.origin = derivedFrom;
 
         this.__proto__ = trueProto;
     }
@@ -52,7 +53,7 @@ export class AlAPIServerError extends AlBaseError
 }
 
 /**
- * @deprecated
+ * @public
  *
  * The AlResponseValidationError is intended to alert of unexpected responses from an internal API.
  * These responses need to be identified separately from other errors so that the relevant
@@ -65,34 +66,9 @@ export class AlAPIServerError extends AlBaseError
  */
 export class AlResponseValidationError extends AlBaseError
 {
-    constructor( message:string, public errors:any[] = [] ) {
-        /* istanbul ignore next */
-        super( message );
-    }
-}
-
-/**
- * @public
- *
- * The AlDataValidationError is intended to alert of unexpected responses from an internal API.
- * These responses need to be identified separately from other errors so that the relevant
- * system health checks or communication with an appropriate backend team can be organized in response.
- * Please note that this should NOT be used to handler general server-side failures; please see AlAPIServerError
- * for that error condition.
- *
- * @param message - Descriptive error text
- * @param data - a reference to the data that is invalid
- * @param schemaId - The top level schema that was used to validate the data
- * @param validationErrors - Unstructured information about specific response validation issues
- * @param request - A reference to the request from which the data was retrieved (if applicable)
- */
-export class AlDataValidationError extends AlBaseError
-{
     constructor( message:string,
-                 public data:unknown,
-                 public schemaId:string,
-                 public validationErrors:any[] = [],
-                 public request?:AxiosRequestConfig ) {
+                 public invalidResponse:AxiosResponse,
+                 public validationErrors:any[] = [] ) {
         /* istanbul ignore next */
         super( message );
     }

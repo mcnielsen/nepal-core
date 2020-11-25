@@ -269,7 +269,7 @@ describe('AlConduitClient', () => {
                 source: {
                     postMessage: sinon.stub()
                 },
-                origin: AlLocatorService.resolveURL( AlLocation.AccountsUI ),
+                origin: AlLocatorService.resolveURL( AlLocation.AccountsUI, '', { residency: 'US' } ),
                 data: {
                     type: 'conduit.ready',
                     requestId: 'yohoho'

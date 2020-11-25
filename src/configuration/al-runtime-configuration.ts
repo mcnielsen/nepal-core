@@ -43,7 +43,8 @@ export enum ConfigOption {
     NavigationViaConduit        = "navigation_use_conduit",
     NavigationViaGestalt        = "navigation_use_gestalt",
     NavigationAssetPath         = "navigation_asset_path",
-    NavigationDefaultAuthState  = "navigation_default_authentication"
+    NavigationDefaultAuthState  = "navigation_default_authentication",
+    NavigationIntegratedAuth    = "navigation_use_integrated_auth"
 }
 
 /**
