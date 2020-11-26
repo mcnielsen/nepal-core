@@ -41,7 +41,12 @@ export class AlConduitClient
     }
 
     public render():DocumentFragment {
-        AlConduitClient.conduitUri = AlLocatorService.resolveURL( AlLocation.AccountsUI, '/conduit.html', { residency: 'US' } );
+        const residency = "US";
+        let environment = AlLocatorService.getCurrentEnvironment();
+        if ( environment === 'development' ) {
+            environment = 'integration';
+        }
+        AlConduitClient.conduitUri = AlLocatorService.resolveURL( AlLocation.AccountsUI, '/conduit.html', { residency, environment } );
         const fragment = document.createDocumentFragment();
         const container = document.createElement( "div" );
         container.setAttribute("id", "conduitClient" );
@@ -294,8 +299,7 @@ export class AlConduitClient
                  * have been established.  However, no actually message will be broadcast until the initial handshake has occurred.
                  */
                 const payload = Object.assign({ type: methodName, requestId: requestId }, data);
-                const targetOrigin = AlLocatorService.resolveURL(AlLocation.AccountsUI, null, { residency: 'US' } );
-                AlConduitClient.conduitWindow.postMessage(payload, targetOrigin);
+                AlConduitClient.conduitWindow.postMessage(payload, AlConduitClient.conduitOrigin );
             } );
             if ( timeout > 0 ) {
                 AlStopwatch.once(   () => {
