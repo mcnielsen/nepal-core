@@ -1,12 +1,13 @@
 import { expect } from 'chai';
 import { describe } from 'mocha';
 import * as sinon from 'sinon';
+import { AxiosRequestConfig } from 'axios';
 import {
     AlAPIServerError,
     AlBadGatewayError,
     AlBadRequestError,
     AlNotFoundError,
-    AlResponseValidationError,
+    AlDataValidationError,
     AlUnauthenticatedRequestError,
     AlUnauthorizedRequestError,
     AlUnimplementedMethodError,
@@ -28,19 +29,15 @@ describe( `Errors`, () => {
 
     } );
 
-    describe( 'AlResponseValidationError', () => {
+    describe( 'AlDataValidationError', () => {
         it( 'should instantiate as expected', () => {
-            const error = new AlResponseValidationError( "Some error happened somewhere, somehow", [ { error: true, file: '/file1', line: 120 } ] );
+            let requestConfig = {} as AxiosRequestConfig;
+            let data = {} as unknown;
+            const error = new AlDataValidationError( "Some error happened somewhere, somehow", data, 'https://something#definitions/something-else', [ { thing: true } ], requestConfig );
 
             expect( error.message ).to.be.a("string" );
-            expect( error.errors ).to.be.an("array");
-            expect( error.errors.length ).to.equal( 1 );
-
-            const error2 = new AlResponseValidationError( "Blahblahblah" );
-
-            expect( error2.message ).to.be.a("string" );
-            expect( error2.errors ).to.be.an("array");
-            expect( error2.errors.length ).to.equal( 0 );
+            expect( error.validationErrors ).to.be.an("array");
+            expect( error.validationErrors.length ).to.equal( 1 );
         } );
     } );
 

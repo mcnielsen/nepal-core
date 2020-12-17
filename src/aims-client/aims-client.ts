@@ -6,7 +6,7 @@ import {
     AlApiClient,
     AlDefaultClient,
 } from "../client";
-import { AlResponseValidationError } from "../common/errors";
+import { AlValidationSchemaProvider } from '../common/utility';
 import {
     AlLocation,
     AlLocatorService,
@@ -23,8 +23,9 @@ import {
     AIMSUserDetails,
     AIMSEnrollURI,
 } from './types';
+import { aimsTypeSchematics } from './aims.schematics';
 
-export class AIMSClientInstance {
+export class AIMSClientInstance implements AlValidationSchemaProvider {
 
   private client:AlApiClient;
   private serviceName = 'aims';
@@ -780,27 +781,8 @@ export class AIMSClientInstance {
   }
 
   /**
-   * Starts/Refreshes an Endpoints Session
+   * Retrieve linked organization
    */
-  async startEndpointsSession():Promise<string> {
-    const requestDescriptor = {
-      service_stack: AlLocation.InsightAPI,
-      service_name: this.serviceName,
-      version: 'v1',
-      path: '/endpoints_session'
-    };
-    return await this.client.get( requestDescriptor )
-                          .then( responseData => {
-                            if ( ! responseData.hasOwnProperty("cookie") ) {
-                              return Promise.reject( new AlResponseValidationError( "Unexpected response format: no 'cookie' property present." ) );
-                            }
-                            return responseData.cookie as string;
-                          } );
-  }
-
-    /**
-     * Retrieve linked organization
-     */
   async getAccountOrganization( accountId:string ):Promise<AIMSOrganization> {
       const requestDescriptor = {
           service_stack: AlLocation.InsightAPI,
@@ -861,6 +843,18 @@ export class AIMSClientInstance {
     return (await Promise.all(
       accountList.map(account => this.getUsers(account, { include_role_ids: false, include_user_credential: false }))
     )).flat();
+  }
+
+  public hasSchema( schemaId:string ) {
+    return schemaId in aimsTypeSchematics;
+  }
+
+  public async getSchema( schemaId:string ) {
+    return aimsTypeSchematics[schemaId];
+  }
+
+  public getProviders() {
+    return [ AlDefaultClient ];
   }
 
 }

@@ -156,7 +156,7 @@ export class AlSessionDetector
         if ( environment === 'development' ) {
             environment = 'integration';
         }
-        let sessionStatusURL = AlLocatorService.resolveURL( AlLocation.AccountsUI, `session/v1/status`, { residency, environment } );
+        let sessionStatusURL = AlLocatorService.resolveURL( AlLocation.AccountsUI, `/session/v1/status`, { residency, environment } );
         let sessionStatus = await AlDefaultClient.get( {
             url: sessionStatusURL,
             withCredentials: true

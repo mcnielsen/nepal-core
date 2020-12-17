@@ -240,7 +240,24 @@ export class AlRoute {
     }
 
     public static link( host:AlRoutingHost, locationId:string, path:string, caption:string = "Link" ) {
-        return new AlRoute( host, { caption: caption, action: { type: "link", location: locationId, path: path }, properties: {} } );
+        return new AlRoute( host, {
+            caption,
+            action: {
+                type: "link",
+                location: locationId,
+                path: path
+            },
+            properties: {} } );
+    }
+
+    public static trigger( host:AlRoutingHost, triggerName:string, caption:string = "Trigger" ) {
+        return new AlRoute( host, {
+            caption,
+            action: {
+                type: "trigger",
+                trigger: triggerName
+            },
+            properties: {} } );
     }
 
     /**
