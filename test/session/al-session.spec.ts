@@ -7,13 +7,16 @@ import * as sinon from 'sinon';
 import {
     AIMSClient,
     AIMSAccount,
+    AIMSSessionDescriptor,
     AlClientBeforeRequestEvent,
     AlDefaultClient,
+    AlDataValidationError,
     AlSession,
     AlSessionInstance,
     AlCabinet,
     SubscriptionsClient,
     AlEntitlementCollection,
+    AlRuntimeConfiguration, ConfigOption,
 } from "@al/core";
 import {
     exampleActing,
@@ -270,8 +273,8 @@ describe('AlSession', () => {
           account: "ABCD1234"      /*  this is incorrect structure */
         }
       };
-      let warnStub = sinon.stub( console, 'warn' );
-      let errorStub = sinon.stub( console, 'error' );
+      let warnStub = sinon.stub( console, 'warn' ).callThrough();
+      let errorStub = sinon.stub( console, 'error' ).callThrough();
       storage.set("session", badSession );
       let session = new AlSessionInstance();
       expect( session.isActive() ).to.equal( false );
@@ -309,16 +312,12 @@ describe('AlSession', () => {
   } );
 
   describe('when authenticated', () => {
-
-    let session:AlSessionInstance;
-
-    beforeEach( () => {
-      session = new AlSessionInstance();
-      session.setAuthentication(exampleSession);
-    } );
-
     describe('primary and acting accounts', () => {
-      it( 'should return expected values', () => {
+      before( () => AlRuntimeConfiguration.setOption( ConfigOption.ResolveAccountMetadata, false ) );
+      after( () => AlRuntimeConfiguration.reset() );
+      it( 'should return expected values', async () => {
+        let session:AlSessionInstance = new AlSessionInstance();
+        await session.setAuthentication(exampleSession);
         let auth = session.getSession();
         expect( auth ).to.be.an( 'object' );
         expect( auth.authentication ).to.be.an( 'object' );
@@ -336,13 +335,34 @@ describe('AlSession', () => {
 
   } );
 
+  describe(".setAuthentication", () => {
+    it( "should throw an error when given malformed data", async () => {
+      try {
+        let badSession:unknown = {
+          authentication: {
+            account: null,
+            token: "SOME FAKE TOKEN",
+            token_expiration: "2021-10-01"
+          }
+        };
+        let session = new AlSessionInstance();
+        await session.setAuthentication( badSession as AIMSSessionDescriptor );
+        expect( true ).to.equal( false );
+      } catch( e ) {
+        expect( e instanceof AlDataValidationError ).to.equal( true );
+      }
+    } );
+  } );
+
   describe( 'authentication methods', () => {
 
     beforeEach( () => {
         storage.destroy();
+        AlRuntimeConfiguration.setOption( ConfigOption.ResolveAccountMetadata, false );
     } );
     afterEach( () => {
         sinon.restore();
+        AlRuntimeConfiguration.reset();
     } );
 
     describe( 'by username and password', () => {
@@ -393,7 +413,9 @@ describe('AlSession', () => {
 
         let fakeAccount = {
           id: '6710880',
-          name: 'Big Bird & Friends, Inc.'
+          name: 'Big Bird & Friends, Inc.',
+          accessible_locations: [ "defender-uk-newport", "insight-eu-ireland" ],
+          default_location: "defender-uk-newport"
         } as AIMSAccount;
 
         expect( session.isActive() ).to.equal( false );

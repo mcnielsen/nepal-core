@@ -20,7 +20,7 @@ import {
     AlClientBeforeRequestEvent,
     AlDefaultClient,
 } from "../client";
-import { AlResponseValidationError } from "../common/errors";
+import { AlDataValidationError } from "../common/errors";
 import {
     AlInsightLocations,
     AlLocation,
@@ -31,6 +31,7 @@ import { AlRuntimeConfiguration, ConfigOption } from '../configuration';
 import {
     AlCabinet,
     AlGlobalizer,
+    AlJsonValidator,
     AlTriggerStream,
     deepMerge
 } from "../common/utility";
@@ -104,9 +105,9 @@ export class AlSessionInstance
        */
       const persistedSession = this.storage.get("session") as AIMSSessionDescriptor;
       if ( persistedSession && persistedSession.hasOwnProperty( "authentication" ) && persistedSession.authentication.token_expiration >= this.getCurrentTimestamp() ) {
-        setTimeout( () => {
+        setTimeout( async () => {
                         try {
-                            this.setAuthentication(persistedSession);
+                            await this.setAuthentication(persistedSession);
                         } catch( e ) {
                             this.deactivateSession();
                             console.warn(`Failed to reinstate session from localStorage: ${e.message}`, e );
@@ -154,40 +155,21 @@ export class AlSessionInstance
     }
 
     public async authenticate( username:string, passphrase:string, options:{actingAccount?:string|AIMSAccount,locationId?:string} = {} ):Promise<boolean> {
-      return new Promise<boolean>( ( resolve, reject ) => {
-        this.client.authenticate( username, passphrase, undefined, true )
-          .then(  session => {
-                    this.setAuthentication( session, options );
-                    resolve( true );
-                  },
-                  error => reject( error ) );
-      } );
+      let session = await this.client.authenticate( username, passphrase, undefined, true );
+      await this.setAuthentication( session, options );
+      return true;
     }
 
-    public authenticateWithSessionToken( sessionToken:string, mfaCode:string, options:{actingAccount?:string|AIMSAccount,locationId?:string} = {} ):Promise<boolean> {
-      return new Promise<boolean>( ( resolve, reject ) => {
-        this.client.authenticateWithMFASessionToken( sessionToken, mfaCode, true )
-          .then(  session => {
-                    this.setAuthentication( session, options );
-                    resolve( true );
-                  },
-                  error => reject( error ) );
-      } );
+    public async authenticateWithSessionToken( sessionToken:string, mfaCode:string, options:{actingAccount?:string|AIMSAccount,locationId?:string} = {} ):Promise<boolean> {
+      let session = await this.client.authenticateWithMFASessionToken( sessionToken, mfaCode, true );
+      await this.setAuthentication( session, options );
+      return true;
     }
 
     public async authenticateWithAccessToken( accessToken:string, options:{actingAccount?:string|AIMSAccount,locationId?:string} = {} ):Promise<boolean> {
-      return AIMSClient.getTokenInfo( accessToken ).then( tokenInfo => {
-        let session:AIMSSessionDescriptor = {
-          authentication: {
-            account: tokenInfo.account,
-            user: tokenInfo.user,
-            token: accessToken,
-            token_expiration: tokenInfo.token_expiration
-          }
-        };
-        this.setAuthentication( session, options );
-        return true;
-      } );
+      let tokenInfo = await AIMSClient.getTokenInfo( accessToken );
+      await this.setAuthentication( { authentication: tokenInfo }, options );
+      return true;
     }
 
     /**
@@ -197,15 +179,15 @@ export class AlSessionInstance
      * the change of state.
      */
     public async setAuthentication( proposal: AIMSSessionDescriptor, options:{actingAccount?:string|AIMSAccount,locationId?:string} = {} ):Promise<AlActingAccountResolvedEvent> {
-      try {
-        this.validateSessionDescriptor( proposal );
-      } catch( e ) {
-        console.error("Failed to set authentication with malformed data: ", proposal );
-        throw e;
+      let authenticationSchemaId = "https://alertlogic.com/schematics/aims#definitions/authentication";
+      let validator = new AlJsonValidator( AIMSClient );
+      let test = await validator.test( proposal.authentication, authenticationSchemaId );
+      if ( ! test.valid ) {
+        throw new AlDataValidationError( `The provided data is not a valid session descriptor.`, proposal, authenticationSchemaId, [ test.error ] );
       }
 
       if ( proposal.authentication.token_expiration <= this.getCurrentTimestamp()) {
-        throw new AlResponseValidationError( "AIMS authentication response contains unexpected expiration timestamp in the past" );
+        throw new Error( "AIMS authentication response contains unexpected expiration timestamp in the past" );
       }
 
       // Now that the content of the authentication session descriptor has been validated, let's make it effective
@@ -681,44 +663,6 @@ export class AlSessionInstance
         console.warn("Failed to retrieve consolidated account metadata: falling back to default resolution method.", e );
         return this.resolveActingAccount( account );
       }
-    }
-
-    /**
-     * This is a vastly simplified version of the json schema validator provided by AJV.  It isn't as thorough -- it doesn't descend into the 3rd tier of data structures
-     * or lower -- but it should be sufficient to validate that the right entities are being provided, and not require so many extraneous src.
-     */
-    protected validateSessionDescriptor( descriptor:any ):void {
-      const requireProps = ( target:any, properties:{[propName:string]:string}, jsonPath:string = '.' ) => {
-        Object.entries( properties ).forEach( ( [ propName, propType ] ) => {
-          if ( ! target.hasOwnProperty( propName ) || typeof( target[propName] ) !== propType ) {
-            throw new AlResponseValidationError( `The provided data does not match the schema for a session descriptor: ${jsonPath}.${propName} is missing or of the wrong type.` );
-          }
-        } );
-      };
-      if ( ! descriptor || ! descriptor.authentication ) {
-        throw new AlResponseValidationError("The provided data does not match the schema for a session descriptor" );
-      }
-      requireProps( descriptor.authentication, { 'token': 'string', 'token_expiration': 'number', 'user': 'object', 'account': 'object' }, '.authentication' );
-      requireProps( descriptor.authentication.user,
-                    {
-                      "id": "string",
-                      "name": "string",
-                      "email": "string",
-                      "linked_users": "object",
-                      "created": "object",
-                      "modified": "object"
-                    },
-                    '.authentication.user' );
-      requireProps( descriptor.authentication.account,
-                    {
-                      "id": "string",
-                      "name": "string",
-                      "accessible_locations": "object",
-                      "default_location": "string",
-                      "created": "object",
-                      "modified": "object"
-                    },
-                    '.authentication.account' );
     }
 }
 

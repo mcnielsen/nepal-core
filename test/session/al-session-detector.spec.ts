@@ -196,32 +196,26 @@ describe('AlSessionDetector', () => {
 
     describe("detectSession()", () => {
         describe("with a local session", () => {
-            it( "should resolve true", ( done ) => {
+            it( "should resolve true", async () => {
                 AlSession.deactivateSession();
-                AlSession.setAuthentication( exampleSession );
-                sessionDetector.detectSession().then( result => {
-                    expect( result ).to.equal( true );
-                    expect( sessionDetector.authenticated ).to.equal( true );
-                    sessionDetector.onDetectionFail( () => {} );      //  kill the promise
-                    done();
-                } );
+                await AlSession.setAuthentication( exampleSession );
+                let result = await sessionDetector.detectSession();
+                expect( result ).to.equal( true );
+                expect( sessionDetector.authenticated ).to.equal( true );
+                sessionDetector.onDetectionFail( () => {} );      //  kill the promise
             } );
         } );
 
         describe("with a gestalt session", () => {
-            it( "should resolve true", ( done ) => {
+            it( "should resolve true", async () => {
                 AlRuntimeConfiguration.setOption( ConfigOption.GestaltAuthenticate, true );
                 AlSession.deactivateSession();
                 sinon.stub( sessionDetector, 'getGestaltSession' ).returns( Promise.resolve( exampleSession ) );
                 sinon.stub( sessionDetector, 'ingestExistingSession' ).returns( Promise.resolve( true ) );
-                sessionDetector.detectSession().then( result => {
-                    expect( result ).to.equal( true );
-                    expect( sessionDetector.authenticated ).to.equal( true );
-                    sessionDetector.onDetectionFail( () => {} );      //  kill the promise
-                    done();
-                }, error => {
-                    expect( "Shouldn't get a promise rejection!").to.equal( false );
-                } );
+                let result = await sessionDetector.detectSession();
+                expect( result ).to.equal( true );
+                expect( sessionDetector.authenticated ).to.equal( true );
+                sessionDetector.onDetectionFail( () => {} );      //  kill the promise
             } );
         } );
 
@@ -244,7 +238,7 @@ describe('AlSessionDetector', () => {
         describe("with an auth0 session", () => {
             it( "should resolve true", ( done ) => {
                 AlSession.deactivateSession();
-                AlRuntimeConfiguration.setOption( ConfigOption.GestaltAuthenticate, true );
+                AlRuntimeConfiguration.setOption( ConfigOption.GestaltAuthenticate, false );
 
                 let auth0AuthStub = sinon.stub( sessionDetector, 'getAuth0Authenticator' ).returns( <WebAuth><unknown>{
                     checkSession: ( config, callback ) => {

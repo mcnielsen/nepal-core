@@ -1,6 +1,6 @@
 export interface AlDynamicFormControlElementOptions {
     label: string;
-    value: string | undefined;
+    value: string;
     disabled?: boolean;
 }
 

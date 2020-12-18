@@ -3,6 +3,7 @@ import {
     AxiosResponse,
     Method
 } from 'axios';
+import { AlValidationSchemaProvider } from '../../common/utility/al-validation.types';
 
 /**
  * Describes an execution request with all details or verbose an tracking purposes.
@@ -57,9 +58,9 @@ export interface APIExecutionLogSummary {
 
 export interface APIRequestParams extends AxiosRequestConfig {
     /**
-    * The following parameters are used to resolve the correct service location and request path.
-    * The presence of `service_name` on a request triggers this process.
-    */
+     *  The following parameters are used to resolve the correct service location and request path.
+     *  The presence of `service_name` on a request triggers this process.
+     */
     target_endpoint?:string;          //  Which endpoint should be resolved for this request?  See note about endpoint resolution above.
     service_stack?:string;            //  Indicates which service stack the request should be issued to.  This should be one of the location identifiers in @al/common's AlLocation.
     service_name?: string;            //  Which service are we trying to talk to?
@@ -74,23 +75,36 @@ export interface APIRequestParams extends AxiosRequestConfig {
     rawResponse?:boolean;             //  If set and truthy, the entire response object (not just its data payload) will be emitted as the result of a successful request.
 
     /**
-    * Should data fetched from this endpoint be cached?  0 ignores caching, non-zero values are treated as milliseconds to persist retrieved data in local memory.
-    * If provided, `cacheKey` is used to identity unique and redundant/overlapping GET requests in place of a fully qualified URL.
-    */
+     *  Should data retrieved from this endpoint be validated?  If provided, the response structure (which must be JSON) will be evaluated using the
+     *  indicated schema (which may contain a # fragment indicating a child template).
+     *  The caller may optionally indicate that only a subset of the document be validated (e.g., basePath: "elements.element" would evaluate only the
+     *  "element" structure inside an "elements" wrapper) or that the indicated element should be treated as an array of objects of the given type.
+     */
+    validation?: {
+        schema: string;
+        providers: AlValidationSchemaProvider|AlValidationSchemaProvider[];
+        basePath?: string;
+        asArray?: boolean;
+    };
+
+    /**
+     *  Should data fetched from this endpoint be cached?  0 ignores caching, non-zero values are treated as milliseconds to persist retrieved data in local memory.
+     *  If provided, `cacheKey` is used to identity unique and redundant/overlapping GET requests in place of a fully qualified URL.
+     */
     ttl?: number|boolean;
     cacheKey?:string;
     disableCache?:boolean;
     /**
-    *  Specifies an array of alternate cache keys to clear, in a call.
-    *  Example: ["/entity/info/12345","https://api.allapis.com/service/v1/2534/data"]
-    *           This will delete both GET requests from browser cache and
-    *           local storage cache.
-    */
+     *  Specifies an array of alternate cache keys to clear, in a call.
+     *  Example: ["/entity/info/12345","https://api.allapis.com/service/v1/2534/data"]
+     *           This will delete both GET requests from browser cache and
+     *           local storage cache.
+     */
     flushCacheKeys?:string[];
 
     /**
-    * If automatic retry functionality is desired, specify the maximum number of retries and interval multiplier here.
-    */
+     *  If automatic retry functionality is desired, specify the maximum number of retries and interval multiplier here.
+     */
     retry_count?: number;             //  Maximum number of retries
     retry_interval?: number;          //  Delay between any two retries = attemptIndex * retryInterval, defaults to 1000ms
 
