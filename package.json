@@ -1,6 +1,6 @@
 {
   "name": "@al/core",
-  "version": "1.0.91",
+  "version": "1.0.92",
   "description": "Nepal Core",
   "main": "./dist/index.cjs.js",
   "types": "./dist/index.d.ts",

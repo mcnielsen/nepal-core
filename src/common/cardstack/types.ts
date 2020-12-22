@@ -38,6 +38,9 @@ export interface AlCardstackValueDescriptor
     //  Aggregate count (number of matching cards after *all* filters are applied).
     count?:number;
 
+     //  Aggregate total (number of total results).
+    total?: number;
+
     //  Pre-filter count (number of matching cards with this property/value, before any other filters are applied).
     prefilterCount?:number;
 
