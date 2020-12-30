@@ -487,6 +487,18 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
         uri: 'https://responder.mdr.product.dev.alertlogic.com',
         environment: 'integration|development'
     },
+    {
+        locTypeId: AlLocation.ResponderWS,
+        aspect: 'api',
+        uri: 'wss://responder-async.mdr.global.alertlogic.com',
+        environment: 'production|production-staging'
+    },
+    {
+        locTypeId: AlLocation.ResponderWS,
+        aspect: 'api',
+        uri: 'wss://responder-async.mdr.product.dev.alertlogic.com',
+        environment: 'integration|development'
+    },
 
     /**
      * Distributor  API locations

@@ -43,6 +43,7 @@ export class AlLocation
     public static AETunerAPI        = "aetuner:api";
     public static IntegrationsAPI   = "integrations:api";
     public static ResponderAPI      = "responder:api";
+    public static ResponderWS      = "responder:ws";
     public static DistributorAPI    = "distributor:api";
 
     /**
