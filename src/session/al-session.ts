@@ -168,6 +168,7 @@ export class AlSessionInstance
 
     public async authenticateWithAccessToken( accessToken:string, options:{actingAccount?:string|AIMSAccount,locationId?:string} = {} ):Promise<boolean> {
       let tokenInfo = await AIMSClient.getTokenInfo( accessToken );
+      tokenInfo.token = accessToken; // Annoyingly, AIMS does not include the `token` property in its response to this call, making the descriptor somewhat irregular
       await this.setAuthentication( { authentication: tokenInfo }, options );
       return true;
     }
