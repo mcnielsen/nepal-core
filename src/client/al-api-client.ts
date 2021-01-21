@@ -717,7 +717,11 @@ export class AlApiClient implements AlValidationSchemaProvider
       fullPath = AlLocatorService.resolveURL( params.service_stack );
     }
     if ( params.service_name ) {
-        fullPath += `/${params.service_name}`;
+        if ( fullPath.includes( "{service}" ) ) {
+            fullPath = fullPath.replace( "{service}", params.service_name );
+        } else {
+            fullPath += `/${params.service_name}`;
+        }
     }
     if ( params.version ) {
       if ( typeof( params.version ) === 'string' && params.version.length > 0 ) {

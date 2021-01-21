@@ -47,7 +47,7 @@ describe( 'AlStopwatch', () => {
                 stopwatch.cancel();
                 expect( stopwatch.timer ).to.equal( null );
 
-                resolve( true );
+                resolve();
             }, 250 );
 
         } );
@@ -62,7 +62,7 @@ describe( 'AlStopwatch', () => {
 
             setTimeout( () => {
                 //  expect( callCount ).to.equal( 3 );      //  0ms, 100ms, and 200ms
-                resolve( true );
+                resolve();
             }, 250 );
 
         } );

@@ -43,8 +43,9 @@ export class AlLocation
     public static AETunerAPI        = "aetuner:api";
     public static IntegrationsAPI   = "integrations:api";
     public static ResponderAPI      = "responder:api";
-    public static ResponderWS      = "responder:ws";
+    public static ResponderWS       = "responder:ws";
     public static DistributorAPI    = "distributor:api";
+    public static MDRAPI            = "mdr:api";
 
     /**
      * Modern UI Nodes
@@ -85,7 +86,7 @@ export class AlLocation
         return [
             {
                 locTypeId: locTypeId,
-                environment: 'production|beta-nav-prod',
+                environment: 'production',
                 residency: 'US',
                 uri: `https://console.${appCode}.alertlogic.com`,
                 keyword: appCode
@@ -95,20 +96,6 @@ export class AlLocation
                 environment: 'production',
                 residency: 'EMEA',
                 uri: `https://console.${appCode}.alertlogic.co.uk`,
-                keyword: appCode
-            },
-            {
-                locTypeId: locTypeId,
-                environment: 'beta-navigation',
-                residency: 'US',
-                uri: `https://${appCode}-beta-navigation.ui-dev.product.dev.alertlogic.com`,
-                keyword: appCode
-            },
-            {
-                locTypeId: locTypeId,
-                environment: 'beta-nav-prod',
-                residency: 'US',
-                uri: `https://${appCode}-beta-nav-prod.ui-dev.product.dev.alertlogic.com`,
                 keyword: appCode
             },
             {
