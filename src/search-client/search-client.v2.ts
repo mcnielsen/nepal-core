@@ -119,7 +119,7 @@ export interface AlSearchStatusV2 {
     search_uuid: string;
     total_found?: number;
     authoritative_retry?: string;
-    retried_by?: string;
+    retried_by?: string[];
     rerun?: string;
     external_details: string;
     request: string;
