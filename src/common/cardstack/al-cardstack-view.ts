@@ -391,7 +391,7 @@ export abstract class AlCardstackView< EntityType=any,
      *  The second parameter describes any active filters whose properties indicate that they will be applied externally (either in an API call or external
      *  filtration layer).
      */
-    public abstract async fetchData( initialLoad:boolean, remoteFilters:AlCardstackActiveFilter[] ):Promise<EntityType[]>;
+    public abstract fetchData( initialLoad:boolean, remoteFilters:AlCardstackActiveFilter[] ):Promise<EntityType[]>;
 
     /**
      *  Given an entity instance, allows the deriving class to populate a properties object -- which may be correlated or extracted or mapped as necessary

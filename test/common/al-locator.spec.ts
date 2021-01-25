@@ -57,16 +57,6 @@ describe( 'AlLocatorMatrix', () => {
             expect( node.locTypeId ).to.equal( AlLocation.IncidentsUI );
             expect( node.uri ).to.equal( aliasNodeBase );
 
-            //  Beta navigation environment match
-            aliasNodeURL = "https://incidents-beta-navigation.ui-dev.product.dev.alertlogic.com/#/summary/12345678?aaid=12345678&locid=defender-uk-newport";
-            aliasNodeBase = "https://incidents-beta-navigation.ui-dev.product.dev.alertlogic.com";
-            node = locator.getNodeByURI( aliasNodeURL );
-            expect( node ).to.be.an( "object" );
-            expect( node.environment ).to.equal( "beta-navigation" );
-            expect( node.residency ).to.equal( "US" );
-            expect( node.locTypeId ).to.equal( AlLocation.IncidentsUI );
-            expect( node.uri ).to.equal( aliasNodeBase );
-
             //  iris
             aliasNodeURL = "https://iris-ui-pr-8.ui-dev.product.dev.alertlogic.com/";
             aliasNodeBase = "https://iris-ui-pr-8.ui-dev.product.dev.alertlogic.com";
@@ -175,21 +165,6 @@ describe( 'AlLocatorMatrix', () => {
             expect( locator.resolveURL( AlLocation.InsightAPI, "/aims/v1/2/accounts" ) ).to.equal( "https://api.cloudinsight.alertlogic.co.uk/aims/v1/2/accounts" );
         } );
 
-        it("should infer correct context/sibling nodes for beta-navigation URLs", () => {
-            //  Context inferred from beta-navigation URL
-            locator.setActingUri( 'https://overview-beta-navigation.ui-dev.product.dev.alertlogic.com/#/remediations-scan-status/2' );
-            let context = locator.getContext();
-            expect( context.environment ).to.equal( "beta-navigation" );
-            expect( context.residency ).to.equal( "US" );
-
-            let matching = locator.getNode( AlLocation.IncidentsUI );
-            expect( matching ).to.be.an( 'object' );
-            expect( matching.environment ).to.equal( 'beta-navigation' );
-            expect( matching.residency ).to.equal( 'US' );
-            expect( matching.uri ).to.equal( "https://incidents-beta-navigation.ui-dev.product.dev.alertlogic.com" );
-            expect( locator.resolveURL( AlLocation.InsightAPI, "/aims/v1/2/accounts" ) ).to.equal( "https://api.product.dev.alertlogic.com/aims/v1/2/accounts" );
-        } );
-
         it("should infer correct context/sibling nodes for integration URLs", () => {
 
             //  Context inferred from integration URL
@@ -282,9 +257,6 @@ describe( 'AlLocatorMatrix', () => {
             uri = locator.resolveURL( AlLocation.IncidentsUI, '/#/some/path', { residency: 'EMEA', environment: 'production' } );
             expect( uri ).to.equal( "https://console.incidents.alertlogic.co.uk/#/some/path" );
 
-            uri = locator.resolveURL( AlLocation.ExposuresUI, '/#/some/path', { residency: 'US', environment: 'beta-navigation' } );
-            expect( uri ).to.equal( "https://exposures-beta-navigation.ui-dev.product.dev.alertlogic.com/#/some/path" );
-
             uri = locator.resolveURL( AlLocation.SearchUI, undefined, { residency: 'US', environment: 'integration' } );
             expect( uri ).to.equal( "https://console.search.product.dev.alertlogic.com" );
 
@@ -329,7 +301,6 @@ describe( 'AlLocatorMatrix', () => {
                     //  30% aliases and cache misses.  These will test the outside edges of pattern matching, and should be the worst-performing lookups.
                     let urls = [
                         "https://exposures.ui-dev.product.dev.alertlogic.com",                      //  canonical alias
-                        "https://overview-beta-navigation.ui-dev.product.dev.alertlogic.com",       //  feature-branch alias
                         "https://remediations-pr-15.ui-dev.product.dev.alertlogic.com",             //  PR demo bucket alias
                         "https://12.o3-search.product.dev.alertlogic.com",                          //  old-fashioned demo bucket alias (soon to be deprecated)
                         "https://lmgtfy.com/?q=cache+miss",                                         //  cache failure test

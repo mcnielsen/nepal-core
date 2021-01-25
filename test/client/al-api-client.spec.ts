@@ -413,38 +413,49 @@ describe('when normalizing a request to get the fullURL',() => {
     it('should return the full url', async() => {
       const config: APIRequestParams = { service_name: 'aims', version: 'v1', account_id: '2', path: 'users', params: {foo: 'bar', bar: 'foo'}, ttl: true };
       config.method = 'GET';
-      await ALClient.fromConfigToFullUrl(config).then((fullURL) => {
-        expect(fullURL).equals("https://api.global-integration.product.dev.alertlogic.com/aims/v1/2/users?foo=bar&bar=foo");
-      });
+      let fullURL = await ALClient.fromConfigToFullUrl(config);
+      expect(fullURL).equals("https://api.global-integration.product.dev.alertlogic.com/aims/v1/2/users?foo=bar&bar=foo");
     });
   });
   describe('a POST request with parameters', () => {
     it('should return the full url', async() => {
       const config: APIRequestParams = { service_name: 'aims', version: 'v1', account_id: '2', path: 'postme', ttl: true };
       config.method = 'POST';
-      await ALClient.fromConfigToFullUrl(config).then((fullURL) => {
-        expect(fullURL).equals("https://api.global-integration.product.dev.alertlogic.com/aims/v1/2/postme");
-      });
+      let fullURL = await ALClient.fromConfigToFullUrl(config);
+      expect(fullURL).equals("https://api.global-integration.product.dev.alertlogic.com/aims/v1/2/postme");
     });
   });
   describe('a PUT request with parameters', () => {
     it('should return the full url', async() => {
       const config: APIRequestParams = { service_name: 'aims', version: 'v1', account_id: '2', path: 'putme', ttl: true };
       config.method = 'PUT';
-      await ALClient.fromConfigToFullUrl(config).then((fullURL) => {
-        expect(fullURL).equals("https://api.global-integration.product.dev.alertlogic.com/aims/v1/2/putme");
-      });
+      let fullURL = await ALClient.fromConfigToFullUrl(config);
+      expect(fullURL).equals("https://api.global-integration.product.dev.alertlogic.com/aims/v1/2/putme");
     });
   });
   describe('a DELETE request with parameters', () => {
     it('should return the full url', async() => {
       const config: APIRequestParams = { service_name: 'aims', version: 'v1', account_id: '2', path: 'deleteme', ttl: true };
       config.method = 'DELETE';
-      await ALClient.fromConfigToFullUrl(config).then((fullURL) => {
-        expect(fullURL).equals("https://api.global-integration.product.dev.alertlogic.com/aims/v1/2/deleteme");
-      });
+      let fullURL = await ALClient.fromConfigToFullUrl(config);
+      expect(fullURL).equals("https://api.global-integration.product.dev.alertlogic.com/aims/v1/2/deleteme");
     });
   });
+  describe('for an MDR API Endpoint', () => {
+    it('should properly install the service_name into the domain', async () => {
+      const config:APIRequestParams = {
+        service_stack: AlLocation.MDRAPI,
+        service_name: 'responder',
+        version: 1,
+        account_id: "12345678",
+        path: '/something/wicked',
+        params: { 'this-way': 'comes' },
+        method: 'GET'
+      };
+      let fullURL = await ALClient.fromConfigToFullUrl( config );
+      expect( fullURL ).to.equal( "https://responder.mdr.product.dev.alertlogic.com/v1/12345678/something/wicked?this-way=comes" );
+    } );
+  } );
 });
 
 describe('when flushCacheKeys is present',() => {
