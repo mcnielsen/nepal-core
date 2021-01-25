@@ -118,6 +118,41 @@ export interface AlSearchStatusV2 {
     details: AlSearchDetailsV2;
     search_uuid: string;
     total_found?: number;
+    authoritative_retry?: string;
+    retried_by?: string;
+    rerun?: string;
+    external_details: string;
+    request: string;
+    requested_type: 'auto'|'batch'|'report';
+    search_type: 'interactive'|'batch'|'report';
+    submit_ts: number;
+    update_ts: number;
+    stats: AlSearchStatusStatsV2;
+}
+
+export interface AlSearchStatusStatsV2 {
+    fetchers_executed: number;
+    filter_process_time: number;
+    filtered_batches: number;
+    filtered_bytes: number;
+    filtered_compressed_bytes: number;
+    filtered_records: number;
+    filters_executed: number;
+    filters_scheduled: number;
+    input_scanned_bytes: number;
+    input_scanned_packets: number;
+    input_scanned_records: number;
+    intervals_requested: number;
+    libalalgo_gaps_parse_call_count: number;
+    libalalgo_json_parse_call_count: number;
+    libalalgo_kv_parse_call_count: number;
+    messages_parse_error: number;
+    messages_parsed: number;
+    messages_unparsed: number;
+    output_records: number;
+    recurse_sorts: number;
+    sort_recurse_time: number;
+    sorts_executed: number;
 }
 
 export interface AlAdditionalSubmitParams {
