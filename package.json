@@ -28,7 +28,8 @@
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run build",
     "interactive": "npm run build && node -i -e \"const AIMSClient = require('./dist/index.cjs.js').AIMSClient;\"",
-    "compile-documentation": "api-extractor run && api-documenter markdown --input-folder 'temp' --output-folder 'docs'"
+    "compile-documentation": "api-extractor run && api-documenter markdown --input-folder 'temp' --output-folder 'docs'",
+    "build-local": "PATH=$(cd ../.. && npm bin):$PATH npm run build"
   },
   "license": "MIT",
   "dependencies": {
