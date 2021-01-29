@@ -128,6 +128,7 @@ export interface AlSearchStatusV2 {
     submit_ts: number;
     update_ts: number;
     stats: AlSearchStatusStatsV2;
+    progress?: number;
 }
 
 export interface AlSearchStatusStatsV2 {
