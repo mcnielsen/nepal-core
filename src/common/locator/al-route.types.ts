@@ -170,6 +170,14 @@ export interface AlRouteDefinition {
 
     /* Optional sub-route definitions.  If present, the first item whose `visible` conditions are met will have its `action` promoted into the main route definition. */
     options?: { visible?:AlRouteCondition|boolean, action:AlRouteAction|string }[];
+
+    /* Optional behavior inflection for activatibility of this menu item:
+     *
+     * If the value "inert" is provided, this route is not activatable.
+     * If the value "primary" is provided, it indicates that this route is the primary instance of a shared route that may be used in multiple places in
+     * the navigational hierarchy.
+     */
+    activationRule?:"primary"|"inert";
 }
 
 /**
@@ -332,10 +340,7 @@ export class AlRoute {
         }
 
         /* Evaluate children recursively, and deduce activation state from them. */
-        let childActivated = this.children.reduce(  ( activated, child ) => {
-                                                        return child.refresh( resolve ) || activated;
-                                                    },
-                                                    false );
+        let childActivated = this.children.reduce( ( activated, child ) => child.refresh( resolve ) || activated, false );
 
         /* Evaluate fully qualified href, if visible/relevant */
         let action:AlRouteAction|null = this.getRouteAction();
@@ -415,13 +420,17 @@ export class AlRoute {
      * Diagnostic method for logging the current hierarchy and state of a given navigational tree.  Excluded from unit test coverage because no production code should utilize it!
      */
     /* istanbul ignore next */
-    summarize( showAll:boolean = true, depth:number = 0 ) {
+    summarize( showAll:boolean = true, depth:number = 0 ):string {
+        let response:string = '';
         if ( showAll || this.visible ) {
-            console.log( "    ".repeat( depth ) + `${this.definition.caption} (${this.visible ? 'visible' : 'hidden'}, ${this.activated ? 'activated' : 'inactive'})` + ( this.href ? ' - ' + this.href : '' ) );
+            response += "    ".repeat( depth ) + ( depth > 0 ? `- ` : '' );
+            response += `[${this.definition.caption}] (${this.visible ? 'visible' : 'hidden'}, ${this.activated ? 'activated' : 'inactive'})` + ( this.href ? ' - ' + this.href : '' );
+            response += "\n";
             for ( let i = 0; i < this.children.length; i++ ) {
-                this.children[i].summarize( showAll, depth + 1 );
+                response += this.children[i].summarize( showAll, depth + 1 );
             }
         }
+        return response;
     }
 
     /**
@@ -480,7 +489,8 @@ export class AlRoute {
      * Evaluates the activation state of the route
      */
     evaluateActivation():boolean {
-        if ( !this.href ) {
+        if ( this.definition.activationRule === 'inert' || ! this.href ) {
+            //  Not a candidate for activation
             return false;
         }
         if ( this.baseHREF && this.host.currentUrl.startsWith( this.baseHREF ) ) {
