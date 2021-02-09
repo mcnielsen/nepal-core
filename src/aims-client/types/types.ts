@@ -1,41 +1,42 @@
 import { AlChangeStamp } from '../../types/index';
 
 export interface AIMSAuthentication {
-  user: AIMSUser;
-  account: AIMSAccount;
-  token: string;
-  token_expiration: number;
+    user: AIMSUser;
+    account: AIMSAccount;
+    token: string;
+    token_expiration: number;
 }
 
 export interface AIMSUser {
-  account_id?: string;
-  id?: string;
-  name: string;
-  email: string;
-  active?: boolean;
-  locked?: boolean;
-  version?: number;
-  created: AlChangeStamp;
-  modified: AlChangeStamp;
-  linked_users: any[];
+    account_id?: string;
+    id?: string;
+    name: string;
+    email: string;
+    active?: boolean;
+    locked?: boolean;
+    version?: number;
+    created: AlChangeStamp;
+    modified: AlChangeStamp;
+    linked_users: any[];
 }
 
 export interface AIMSAccount {
-  id?: string;
-  name: string;
-  active: boolean;
-  version?: number;
-  accessible_locations: string[];
-  default_location: string;
-  mfa_required?: boolean;
-  created: AlChangeStamp;
-  modified: AlChangeStamp;
+    id?: string;
+    name: string;
+    active: boolean;
+    version?: number;
+    accessible_locations: string[];
+    default_location: string;
+    mfa_required?: boolean;
+    idle_session_timeout?:number;
+    created: AlChangeStamp;
+    modified: AlChangeStamp;
 }
 
 export interface AIMSSessionDescriptor {
-  authentication: AIMSAuthentication;
-  acting?: AIMSAccount;
-  boundLocationId?: string;
+    authentication: AIMSAuthentication;
+    acting?: AIMSAccount;
+    boundLocationId?: string;
 }
 
 

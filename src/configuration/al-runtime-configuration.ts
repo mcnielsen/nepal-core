@@ -1,4 +1,4 @@
-import { AlLocatorService } from '../common/locator/index';
+import { AlLocatorService, AlLocationContext } from '../common/locator/index';
 
 /**
  * AlRuntimeConfiguration provides a single interface to control different behaviors across Alert Logic's UI surface area.
@@ -66,6 +66,14 @@ export class AlRuntimeConfiguration {
     };
 
     protected static options:{[optionKey:string]:string|number|boolean|unknown} = Object.assign( {}, AlRuntimeConfiguration.defaultOptions );
+
+    public static setContext( environment:string, residency:"US"|"EMEA" = "US", locationId?:string ) {
+        let context:AlLocationContext = { environment, residency };
+        if ( locationId ) {
+            context.insightLocationId = locationId;
+        }
+        AlLocatorService.setContext( context );
+    }
 
     public static setOption<ValueType=any>( option:ConfigOption, value:ValueType ) {
         this.options[option] = value;
