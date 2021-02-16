@@ -24,8 +24,8 @@ import { AlDataValidationError } from "../common/errors";
 import {
     AlInsightLocations,
     AlLocation,
-    AlLocatorService,
-} from "../common/locator";
+    AlLocatorService
+} from "../common/navigation";
 import { AlBehaviorPromise } from "../common/promises";
 import { AlRuntimeConfiguration, ConfigOption } from '../configuration';
 import {
@@ -47,8 +47,14 @@ import {
 import { AlNullSessionDescriptor } from './null-session';
 import {
     AlConsolidatedAccountMetadata,
-    AlFoxSnapshot,
+    AlSessionProfile
 } from './types';
+
+interface AuthenticationOptions {
+  actingAccount?:AIMSAccount|string;
+  locationId?:string;
+  profileId?:string;
+}
 
 /**
  * AlSessionInstance maintains session data for a specific session.
@@ -136,9 +142,17 @@ export class AlSessionInstance
                                 console.warn("Failed to set the acting account", error );
                             } );
           },
-          expireIn: ( offset:number ) => {
+          expireIn: ( offset:number, mangle?:boolean ) => {
               let expirationTTL = Math.floor( Date.now() / 1000 ) + offset;
-              this.setTokenInfo( this.getToken(), expirationTTL );
+              let token = this.getToken();
+              if ( mangle ) {
+                  let targetToken = '';
+                  for ( let i = 0; i < token.length; i++ ) {
+                      targetToken += Math.random() < 0.2 ? 'X' : token[i];
+                  }
+                  token = targetToken;
+              }
+              this.setTokenInfo( token, expirationTTL );
               console.log("Updated AIMS Token to expire in %s seconds from now", offset );
           }
       } );
@@ -154,22 +168,26 @@ export class AlSessionInstance
       }
     }
 
-    public async authenticate( username:string, passphrase:string, options:{actingAccount?:string|AIMSAccount,locationId?:string} = {} ):Promise<boolean> {
+    public async authenticate(  username:string, passphrase:string, options:AuthenticationOptions = {} ):Promise<boolean> {
       let session = await this.client.authenticate( username, passphrase, undefined, true );
-      await this.setAuthentication( session, options );
+      this.mergeSessionOptions( session, options );
+      await this.setAuthentication( session );
       return true;
     }
 
-    public async authenticateWithSessionToken( sessionToken:string, mfaCode:string, options:{actingAccount?:string|AIMSAccount,locationId?:string} = {} ):Promise<boolean> {
+    public async authenticateWithSessionToken( sessionToken:string, mfaCode:string, options:AuthenticationOptions = {} ):Promise<boolean> {
       let session = await this.client.authenticateWithMFASessionToken( sessionToken, mfaCode, true );
-      await this.setAuthentication( session, options );
+      this.mergeSessionOptions( session, options );
+      await this.setAuthentication( session );
       return true;
     }
 
-    public async authenticateWithAccessToken( accessToken:string, options:{actingAccount?:string|AIMSAccount,locationId?:string} = {} ):Promise<boolean> {
+    public async authenticateWithAccessToken( accessToken:string, options:AuthenticationOptions = {} ):Promise<boolean> {
       let tokenInfo = await AIMSClient.getTokenInfo( accessToken );
       tokenInfo.token = accessToken; // Annoyingly, AIMS does not include the `token` property in its response to this call, making the descriptor somewhat irregular
-      await this.setAuthentication( { authentication: tokenInfo }, options );
+      let session:AIMSSessionDescriptor = { authentication: tokenInfo };
+      this.mergeSessionOptions( session, options );
+      await this.setAuthentication( session );
       return true;
     }
 
@@ -179,7 +197,7 @@ export class AlSessionInstance
      * Successful completion of this action triggers an AlSessionStartedEvent so that non-causal elements of an application can respond to
      * the change of state.
      */
-    public async setAuthentication( proposal: AIMSSessionDescriptor, options:{actingAccount?:string|AIMSAccount,locationId?:string} = {} ):Promise<AlActingAccountResolvedEvent> {
+    public async setAuthentication( proposal: AIMSSessionDescriptor ):Promise<AlActingAccountResolvedEvent> {
       let authenticationSchemaId = "https://alertlogic.com/schematics/aims#definitions/authentication";
       let validator = new AlJsonValidator( AIMSClient );
       let test = await validator.test( proposal.authentication, authenticationSchemaId );
@@ -196,18 +214,14 @@ export class AlSessionInstance
       deepMerge( this.sessionData.authentication.account, proposal.authentication.account );
       this.sessionData.authentication.token = proposal.authentication.token;
       this.sessionData.authentication.token_expiration = proposal.authentication.token_expiration;
-      if ( options.locationId ) {
-          this.sessionData.boundLocationId = options.locationId;
+      if ( proposal.boundLocationId ) {
+          this.sessionData.boundLocationId = proposal.boundLocationId;
       }
       this.activateSession();
-      let result:AlActingAccountResolvedEvent;
-      if ( options.actingAccount ) {
-          result = await this.setActingAccount( options.actingAccount );
-      } else if ( proposal.acting ) {
-          result = await this.setActingAccount( proposal.acting );
-      } else {
-          result = await this.setActingAccount( proposal.authentication.account );
-      }
+      let result:AlActingAccountResolvedEvent = proposal.acting
+                                                ? await this.setActingAccount( proposal.acting, proposal.profileId )
+                                                : await this.setActingAccount( proposal.authentication.account, proposal.profileId );
+
       this.storage.set("session", this.sessionData );
       return result;
     }
@@ -218,35 +232,38 @@ export class AlSessionInstance
      * Successful completion of this action triggers an AlActingAccountChangedEvent so that non-causal elements of an application can respond to
      * the change of effective account and entitlements.
      *
-     * @param account {string|AIMSAccount} The AIMSAccount object representating the account to
-     * focus on.
+     * @param account {string|AIMSAccount} The AIMSAccount object representating the account to focus on.
+     * @param profileId {string, optional} If provided, the name of a profile to load.  This profile can override the primary and effective entitlements
+     *                                      of the acting account.
      *
      * @returns A promise that resolves
      */
-    public async setActingAccount( account: string|AIMSAccount ):Promise<AlActingAccountResolvedEvent> {
+    public async setActingAccount( account: string|AIMSAccount, profileId?:string ):Promise<AlActingAccountResolvedEvent> {
 
       if ( ! account ) {
         throw new Error("Usage error: setActingAccount requires an account ID or account descriptor." );
       }
       if ( typeof( account ) === 'string' ) {
         const accountDetails = await AIMSClient.getAccountDetails( account );
-        return await this.setActingAccount( accountDetails );
+        return await this.setActingAccount( accountDetails, profileId );
       }
-
       const previousAccount               = this.sessionData.acting;
-      const actingAccountChanged          = ! this.sessionData.acting || this.sessionData.acting.id !== account.id;
+      const mustResolveAccount            = ! this.sessionData.acting
+                                              || this.sessionData.acting.id !== account.id
+                                              || profileId !== this.sessionData.profileId;
 
       this.sessionData.acting             = account;
+      this.sessionData.profileId          = profileId;
 
       const targetLocationId              = account.accessible_locations.indexOf( this.sessionData.boundLocationId ) !== -1
                                               ? this.sessionData.boundLocationId
                                               : account.default_location;
       this.setActiveDatacenter( targetLocationId );
 
-      AlDefaultClient.defaultAccountId           = account.id;
+      AlDefaultClient.defaultAccountId    = account.id;
 
-      let resolveMetadata = AlRuntimeConfiguration.getOption<boolean>( ConfigOption.ResolveAccountMetadata, true );
-      let useConsolidatedResolver = AlRuntimeConfiguration.getOption<boolean>( ConfigOption.ConsolidatedAccountResolver, false );
+      let resolveMetadata                 = AlRuntimeConfiguration.getOption<boolean>( ConfigOption.ResolveAccountMetadata, true );
+      let useConsolidatedResolver         = AlRuntimeConfiguration.getOption<boolean>( ConfigOption.ConsolidatedAccountResolver, false );
 
       if ( ! resolveMetadata ) {
         //  If metadata resolution is disabled, still trigger changed/resolved events with basic data
@@ -257,7 +274,7 @@ export class AlSessionInstance
         return Promise.resolve( this.resolvedAccount );
       }
 
-      if ( actingAccountChanged || ! this.resolutionGuard.isFulfilled() ) {
+      if ( mustResolveAccount || ! this.resolutionGuard.isFulfilled() ) {
         this.resolutionGuard.rescind();
         AlLocatorService.setContext( {
             insightLocationId: this.sessionData.boundLocationId,
@@ -266,11 +283,12 @@ export class AlSessionInstance
         this.notifyStream.trigger( new AlActingAccountChangedEvent( previousAccount, this.sessionData.acting ) );
         this.storage.set("session", this.sessionData );
         return useConsolidatedResolver
-          ? await this.resolveActingAccountConsolidated( account )
-          : await this.resolveActingAccount( account );
+          ? await this.resolveActingAccountConsolidated( account, profileId )
+          : await this.resolveActingAccount( account, profileId );
       } else {
         return Promise.resolve( this.resolvedAccount );
       }
+
     }
 
     /**
@@ -514,6 +532,10 @@ export class AlSessionInstance
       return this.resolutionGuard.then( () => {} );
     }
 
+    public getProfileId():string|undefined {
+        return this.sessionData.profileId;
+    }
+
     /**
      * Retrieves the primary account's entitlements, or null if there is no session.
      */
@@ -533,6 +555,16 @@ export class AlSessionInstance
     }
 
     /**
+     * Sets primary entitlements.
+     */
+    public setPrimaryEntitlements( collection:AlEntitlementCollection ) {
+        if ( ! this.sessionIsActive || ! this.resolvedAccount ) {
+            throw new Error("Entitlements cannot be set without an established session." );
+        }
+        this.resolvedAccount.primaryEntitlements = collection;
+    }
+
+    /**
      * Retrieves the acting account's entitlements, or null if there is no session.
      */
     public getEffectiveEntitlementsSync():AlEntitlementCollection|null {
@@ -548,6 +580,16 @@ export class AlSessionInstance
      */
     public async getEffectiveEntitlements():Promise<AlEntitlementCollection> {
       return this.resolutionGuard.then( () => this.resolvedAccount.entitlements );
+    }
+
+    /**
+     * Sets effective entitlements.
+     */
+    public setEffectiveEntitlements( collection:AlEntitlementCollection ) {
+        if ( ! this.sessionIsActive || ! this.resolvedAccount ) {
+            throw new Error("Entitlements cannot be set without an established session." );
+        }
+        this.resolvedAccount.entitlements = collection;
     }
 
     /**
@@ -580,6 +622,50 @@ export class AlSessionInstance
      * Private Internal/Utility Methods
      */
 
+    protected async getSessionProfile( profileId?:string ):Promise<AlSessionProfile> {
+      if ( ! profileId ) {
+        return {};
+      }
+      try {
+        if ( AlRuntimeConfiguration.getOption( ConfigOption.NavigationViaGestalt, true ) ) {
+          let profile = await AlDefaultClient.get<AlSessionProfile>( {
+            service_stack: AlLocation.GestaltAPI,
+            service_name: 'content',
+            version: 1,
+            path: `navigation/profiles/${profileId}.json`,
+            withCredentials: false
+          } );
+          return profile;
+        } else {
+          let profile = await AlDefaultClient.get<AlSessionProfile>( {
+            url: `/assets/navigation/profiles/${profileId}.json`
+          } );
+          return profile;
+        }
+      } catch( e ) {
+        console.error( `Failed to load profile '${profileId}'; ignoring`, e );
+        return {};
+      }
+    }
+
+    protected async mergeSessionOptions( session:AIMSSessionDescriptor,
+                                         options:AuthenticationOptions ) {
+      if ( options.actingAccount ) {
+        if ( typeof( options.actingAccount ) === 'string' ) {
+          session.acting = await AIMSClient.getAccountDetails( options.actingAccount );
+        } else {
+          session.acting = options.actingAccount;
+        }
+      }
+      if ( options.locationId ) {
+        session.boundLocationId = options.locationId;
+      }
+      if ( options.profileId ) {
+        session.profileId = options.profileId;
+      }
+    }
+
+
     protected onBeforeRequest = ( event:AlClientBeforeRequestEvent ) => {
       /*  tslint:disable:no-boolean-literal-compare */
       if ( this.sessionIsActive ) {
@@ -605,11 +691,13 @@ export class AlSessionInstance
      * This method will retrieve the full account details, managed accounts, and entitlements for this account
      * and then emit an AlActingAccountResolvedEvent through the session's notifyStream.
      */
-    protected async resolveActingAccount( account:AIMSAccount ) {
+    protected async resolveActingAccount( account:AIMSAccount, profileId?:string ) {
       const resolved:AlActingAccountResolvedEvent = new AlActingAccountResolvedEvent( account, null, null );
       let dataSources:Promise<any>[] = [
           AIMSClient.getAccountDetails( account.id ),
-          SubscriptionsClient.getEntitlements( this.getPrimaryAccountId() ) ];
+          this.getSessionProfile( profileId ),
+          SubscriptionsClient.getEntitlements( this.getPrimaryAccountId() )
+      ];
 
       if ( account.id !== this.getPrimaryAccountId() ) {
         dataSources.push( SubscriptionsClient.getEntitlements( account.id ) );
@@ -618,17 +706,22 @@ export class AlSessionInstance
       return Promise.all( dataSources )
               .then(  dataObjects => {
                         const account:AIMSAccount                           =   dataObjects[0];
-                        const primaryEntitlements:AlEntitlementCollection   =   dataObjects[1];
+                        const sessionProfile:AlSessionProfile               =   dataObjects[1];
+                        const primaryEntitlements:AlEntitlementCollection   =   dataObjects[2];
                         let actingEntitlements:AlEntitlementCollection;
-                        if ( dataObjects.length > 2 ) {
-                          actingEntitlements                                =   dataObjects[2];
+                        if ( dataObjects.length > 3 ) {
+                          actingEntitlements                                =   dataObjects[3];
                         } else {
                           actingEntitlements                                =   primaryEntitlements;
                         }
 
                         resolved.actingAccount      =   account;
-                        resolved.primaryEntitlements=   primaryEntitlements;
-                        resolved.entitlements       =   actingEntitlements;
+                        resolved.primaryEntitlements = sessionProfile.primaryEntitlements
+                          ? AlEntitlementCollection.fromArray( sessionProfile.primaryEntitlements )
+                          : primaryEntitlements;
+                        resolved.entitlements       =   sessionProfile.entitlements
+                          ? AlEntitlementCollection.fromArray( sessionProfile.entitlements )
+                          : actingEntitlements;
                         this.resolvedAccount        =   resolved;
                         this.resolutionGuard.resolve(true);
                         this.notifyStream.trigger( resolved );
@@ -641,7 +734,7 @@ export class AlSessionInstance
                       } );
     }
 
-    protected async resolveActingAccountConsolidated( account:AIMSAccount ) {
+    protected async resolveActingAccountConsolidated( account:AIMSAccount, profileId?:string ) {
       let request = {
         service_stack: AlLocation.GestaltAPI,
         service_name: undefined,
@@ -651,12 +744,17 @@ export class AlSessionInstance
         retry_interval: 1000
       };
       try {
-        let metadata = await AlDefaultClient.get( request );
-        this.resolvedAccount = new AlActingAccountResolvedEvent(
-          metadata.actingAccount,
-          AlEntitlementCollection.import(metadata.effectiveEntitlements),
-          AlEntitlementCollection.import(metadata.primaryEntitlements)
-        );
+        let [ metadata, profile ] = await Promise.all( [
+          AlDefaultClient.get( request ),
+          this.getSessionProfile( profileId )
+        ] );
+        let effectiveEntitlements = profile.entitlements
+          ? AlEntitlementCollection.fromArray( profile.entitlements )
+          : AlEntitlementCollection.import( metadata.effectiveEntitlements );
+        let primaryEntitlements = profile.primaryEntitlements
+          ? AlEntitlementCollection.fromArray( profile.primaryEntitlements )
+          : AlEntitlementCollection.import( metadata.primaryEntitlements );
+        this.resolvedAccount = new AlActingAccountResolvedEvent( metadata.actingAccount, effectiveEntitlements, primaryEntitlements );
         this.resolutionGuard.resolve( true );
         this.notifyStream.trigger( this.resolvedAccount );
         return this.resolvedAccount;

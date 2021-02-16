@@ -34,7 +34,7 @@ import {
     AlLocationContext,
     AlLocationDescriptor,
     AlLocatorService,
-} from "../common/locator";
+} from "../common/navigation";
 import {
     AlCabinet,
     AlGlobalizer,
