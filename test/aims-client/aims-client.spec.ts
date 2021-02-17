@@ -6,7 +6,7 @@ import { AlDefaultClient } from "../../src/client";
 import {
     AlLocation,
     AlLocatorService,
-} from "../../src/common/locator";
+} from "../../src/common/navigation";
 import {
     AIMSClient,
     AIMSClientInstance,

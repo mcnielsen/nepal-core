@@ -1,4 +1,4 @@
-import { AlLocatorService, AlLocationContext } from '../common/locator/index';
+import { AlLocatorService, AlLocationContext } from '../common/navigation/index';
 
 /**
  * AlRuntimeConfiguration provides a single interface to control different behaviors across Alert Logic's UI surface area.

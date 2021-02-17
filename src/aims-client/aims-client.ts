@@ -10,7 +10,7 @@ import { AlValidationSchemaProvider } from '../common/utility';
 import {
     AlLocation,
     AlLocatorService,
-} from "../common/locator";
+} from "../common/navigation";
 import {
     AIMSAccessKey,
     AIMSAccount,

@@ -2,7 +2,7 @@ import { AIMSSessionDescriptor } from "../../aims-client/types";
 import {
     AlLocation,
     AlLocatorService,
-} from "../../common/locator";
+} from "../../common/navigation";
 import { AlBehaviorPromise } from "../../common/promises";
 import {
     AlStopwatch,
