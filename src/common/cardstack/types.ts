@@ -94,6 +94,9 @@ export interface AlCardstackPropertyDescriptor
 
     // An optional sort position to be applied when converting this property to a filter in the consuming cardstack component
     sortPositionIndex?: number;
+
+    // optional, allow us to mark a filter as not reduceable for static filters
+    avoidReduce?:boolean;
 }
 
 /**
