@@ -25,6 +25,7 @@ export class AlCabinet
     static openCabinets: {[cabinetName:string]:AlCabinet} = {};
 
     public syncronizer?:AlStopwatch;
+    public syncDelay:number = 0;
 
     public noStorage:boolean = false;
 
@@ -41,11 +42,12 @@ export class AlCabinet
      *  Instantiates a persistent information cache (uses localStorage), deserializing data from the provided name if it exists.
      *
      *  @param rawName - The name of the data cluster.
+     *  @param syncLatency An optional delay interval between when a change is made and when it is flushed to local storage.
      *
      *  @returns A cabinet instance that can be used to interrogate/update the data.
      */
 
-    public static persistent( rawName:string ):AlCabinet {
+    public static persistent( rawName:string, syncLatency:number = 0 ):AlCabinet {
         const name = `${rawName}_persistent`;
         if ( AlCabinet.openCabinets.hasOwnProperty( name ) ) {
             return AlCabinet.openCabinets[name];
@@ -57,6 +59,7 @@ export class AlCabinet
                 if ( content ) {
                     cabinet.data = JSON.parse( content );
                 }
+                cabinet.syncDelay = syncLatency;
             } else {
                 return AlCabinet.local( rawName );
             }
@@ -71,11 +74,12 @@ export class AlCabinet
      *  Instantiates a temporary information cache (uses sessionStorage), deserializing data from the provided name if it exists.
      *
      *  @param rawName - The name of the data cluster.
+     *  @param syncLatency An optional delay interval between when a change is made and when it is flushed to session storage.
      *
      *  @returns A cabinet instance that can be used to interrogate/update the data.
      */
 
-    public static ephemeral( rawName:string ):AlCabinet {
+    public static ephemeral( rawName:string, syncLatency:number = 0 ):AlCabinet {
         const name = `${rawName}_ephemeral`;
         if ( AlCabinet.openCabinets.hasOwnProperty( name ) ) {
             return AlCabinet.openCabinets[name];
@@ -87,6 +91,7 @@ export class AlCabinet
                 if ( content ) {
                     cabinet.data = JSON.parse( content );
                 }
+                cabinet.syncDelay = syncLatency;
             } else {
                 return AlCabinet.local( rawName );
             }
@@ -104,7 +109,7 @@ export class AlCabinet
      *
      *  @returns A cabinet instance that can be used just to hold arbitrary data.
      */
-    public static local( name:string ):AlCabinet {
+    public static local( name:string, syncDelay:number = 0 ):AlCabinet {
         if ( AlCabinet.openCabinets.hasOwnProperty( name ) ) {
             return AlCabinet.openCabinets[name];
         }
@@ -131,7 +136,7 @@ export class AlCabinet
         if ( ! disableExpiration && ( this.data[property].expires > 0 && this.data[property].expires < currentTS ) ) {
             delete this.data[property];
             if ( this.syncronizer ) {
-                this.syncronizer.again();
+                this.syncronizer.again( this.syncDelay );
             }
             return defaultValue;
         }
@@ -184,7 +189,7 @@ export class AlCabinet
             value:      value
         };
         if ( this.syncronizer ) {
-            this.syncronizer.again();
+            this.syncronizer.again( this.syncDelay );
         }
         return this;
     }
@@ -217,7 +222,7 @@ export class AlCabinet
         if ( this.data.hasOwnProperty( property ) ) {
             delete this.data[property];
             if ( this.syncronizer ) {
-                this.syncronizer.again();
+                this.syncronizer.again( this.syncDelay );
             }
         }
         return this;

@@ -57,28 +57,39 @@ import { commonTypeSchematics } from './common.schematics';
 
 export type AlEndpointsServiceCollection = {[serviceName:string]:string};
 
+export type AlEndpointsResidencyServiceCollection = {
+    [serviceName:string]: {
+        [residency:string]:{
+            [endpointHost:string]:string
+        }
+    }
+};
+
 export class AlApiClient implements AlValidationSchemaProvider
 {
   /**
    * The following list of services are the ones whose endpoints will be resolved by default.  Added globally/commonly used services here for optimized API performance.
    */
-  protected static defaultServiceList = [ "aims", "subscriptions", "search", "sources", "assets_query", "assets_write", "dashboards", "iris", "suggestions", "cargo", "connectors"];
-  protected static defaultServiceParams = {
-    service_stack:      AlLocation.InsightAPI,  //  May also be AlLocation.GlobalAPI, AlLocation.EndpointsAPI, or ALLocation.LegacyUI
-    residency:          'default',              //  "us" or "emea" or "default"
-    version:            'v1',                   //  Version of the service
-    ttl:                false                   //  Default to no caching
+  protected static defaultServiceList = [ "aims", "subscriptions", "search", "sources", "assets_query", "assets_write", "dashboards", "iris", "suggestions", "cargo", "connectors", "herald" ];
+  protected static defaultServiceParams: APIRequestParams = {
+    service_stack:                  AlLocation.InsightAPI,  //  May also be AlLocation.GlobalAPI, AlLocation.EndpointsAPI, or ALLocation.LegacyUI
+    residency:                      'default',              //  "us" or "emea" or "default"
+    version:                        'v1',                   //  Version of the service
+    ttl:                            false,                   //  Default to no caching
+    resolveEndpointsByResidency:    false
   };
 
-  public events:AlTriggerStream = new AlTriggerStream();
-  public verbose:boolean = false;
-  public collectRequestLog:boolean = false;
-  public mockMode:boolean = false;              //  If true, requests will be normalized but not actually dispatched.
-  public defaultAccountId:string = null;        //  If specified, uses *this* account ID to resolve endpoints if no other account ID is explicitly specified
+  public events:AlTriggerStream     =   new AlTriggerStream();
+  public verbose:boolean            =   false;
+  public collectRequestLog:boolean  =   false;
+  public mockMode:boolean           =   false;              //  If true, requests will be normalized but not actually dispatched.
+  public defaultAccountId:string    =   null;        //  If specified, uses *this* account ID to resolve endpoints if no other account ID is explicitly specified
 
-  private storage = AlCabinet.local( 'apiclient.cache' );
+  private storage                   =   AlCabinet.local( 'apiclient.cache' );
+  private persistentStorage         =   AlCabinet.persistent( 'apiclient.pcache' );
   private endpointResolution: {[environment:string]:{[accountId:string]:Promise<AlEndpointsServiceCollection>}} = {};
-  private instance:AxiosInstance = null;
+  private endpointResidencyResolution: {[environment:string]:{[accountId:string]:Promise<AlEndpointsResidencyServiceCollection>}} = {};
+  private instance:AxiosInstance    =   null;
   private lastError:{ status:number, statusText:string, url:string, data:string, headers:{[header:string]:any} } = null;
 
   /* Default request parameters */
@@ -100,6 +111,7 @@ export class AlApiClient implements AlValidationSchemaProvider
    */
   public reset():AlApiClient {
     this.endpointResolution = {};
+    this.endpointResidencyResolution = {};
     this.instance = null;
     this.executionRequestLog = [];
     this.storage.destroy();
@@ -166,7 +178,9 @@ export class AlApiClient implements AlValidationSchemaProvider
     if ( cacheTTL && ! normalized.disableCache ) {
       let cachedValue = this.getCachedValue( fullUrl );
       if ( cachedValue ) {
-        this.log(`APIClient::XHR GET ${fullUrl} (from cache)` );
+        if ( this.verbose ) {
+          console.log(`APIClient::XHR GET ${fullUrl} (from cache)` );
+        }
         return {
           data: cachedValue,
           status: 200,
@@ -178,6 +192,9 @@ export class AlApiClient implements AlValidationSchemaProvider
     }
     //  Check for existing in-flight requests for this resource
     if ( this.transientReadCache.hasOwnProperty( cacheKey ) ) {
+      if ( this.verbose ) {
+        console.log(`APIClient::XHR GET Re-using inflight retrieval [${fullUrl}]` );
+      }
       const result = await this.transientReadCache[cacheKey];
       return result;
     }
@@ -191,9 +208,13 @@ export class AlApiClient implements AlValidationSchemaProvider
       const duration = completed - start;
       if ( cacheTTL && ! normalized.disableCache ) {
         this.setCachedValue( cacheKey, response.data, cacheTTL );
-        this.log(`APIClient::XHR GET [${fullUrl}] in ${duration}ms (to cache, ${cacheTTL}ms)` );
+        if ( this.verbose ) {
+          console.log(`APIClient::XHR GET [${fullUrl}] in ${duration}ms (to cache, ${cacheTTL}ms)` );
+        }
       } else {
-        this.log(`APIClient::XHR GET [${fullUrl} in ${duration}ms (nocache)` );
+        if ( this.verbose ) {
+          console.log(`APIClient::XHR GET [${fullUrl} in ${duration}ms (nocache)` );
+        }
       }
 
       if (this.collectRequestLog || this.verbose) {
@@ -204,7 +225,9 @@ export class AlApiClient implements AlValidationSchemaProvider
           responseContentLength: +response.headers['content-length'],
           durationMs: duration
         };
-        this.log(`APIClient::XHR DETAILS ${JSON.stringify(logItem)}`);
+        if ( this.verbose ) {
+          console.log(`APIClient::XHR DETAILS ${JSON.stringify(logItem)}`);
+        }
 
         if (this.collectRequestLog) {
           this.executionRequestLog.push(logItem);
@@ -213,7 +236,9 @@ export class AlApiClient implements AlValidationSchemaProvider
 
       return response;
     } catch( e ) {
-      this.log(`APIClient::XHR GET [${fullUrl}] (FAILED, ${e["message"]})` );
+      if ( this.verbose ) {
+        console.log(`APIClient::XHR GET [${fullUrl}] (FAILED, ${e["message"]})` );
+      }
       throw e;
     } finally {
       delete this.transientReadCache[cacheKey];
@@ -353,7 +378,9 @@ export class AlApiClient implements AlValidationSchemaProvider
         this.executionRequestLog.push(logItem);
       }
 
-      this.log(`APIClient::XHR DETAILS ${JSON.stringify(logItem)}`);
+      if ( this.verbose ) {
+        console.log(`APIClient::XHR DETAILS ${JSON.stringify(logItem)}`);
+      }
 
     } catch( e ) {
       if (this.collectRequestLog) {
@@ -363,7 +390,9 @@ export class AlApiClient implements AlValidationSchemaProvider
         logItem.durationMs = duration;
         logItem.errorMessage = e["message"];
       }
-      this.log(`APIClient::XHR FAILED ${JSON.stringify(logItem)}`);
+      if ( this.verbose ) {
+        console.log(`APIClient::XHR FAILED ${JSON.stringify(logItem)}`);
+      }
       throw e;
     }
 
@@ -570,13 +599,18 @@ export class AlApiClient implements AlValidationSchemaProvider
   /**
    * Resolves accumulated endpoints data for the given account.
    */
-  public async getServiceEndpoints( accountId:string, requestList?:string[] ):Promise<AlEndpointsServiceCollection> {
+  public async getServiceEndpoints( accountId:string, requestList:string[], resolveByResidency = false ):Promise<AlEndpointsServiceCollection | AlEndpointsResidencyServiceCollection> {
     const environment = AlLocatorService.getCurrentEnvironment();
-    const cacheKey = `/endpoints/${environment}/${accountId}`;
+    const context = AlLocatorService.getContext();
+    const cacheKey = resolveByResidency ? `/endpointsByResidency/${environment}/${accountId}` : `/endpoints/${environment}/${accountId}`;
+    let existingEndpoints: AlEndpointsServiceCollection | AlEndpointsResidencyServiceCollection;
+    let translated: AlEndpointsServiceCollection | AlEndpointsResidencyServiceCollection;
+
     if ( ! requestList ) {
       requestList = AlApiClient.defaultServiceList;
     }
-    let existingEndpoints = this.getCachedValue<AlEndpointsServiceCollection>( cacheKey );
+    console.log('getServiceEndpoints - getting endpoints from - ' + cacheKey);
+    existingEndpoints = this.persistentStorage.get( cacheKey, null ) as AlEndpointsServiceCollection;
     if ( existingEndpoints ) {
         if ( ! requestList.find( serviceName => ! existingEndpoints.hasOwnProperty( serviceName ) ) ) {
             return existingEndpoints;   //  we already have all of the requested service in cache!  Yay!
@@ -585,24 +619,59 @@ export class AlApiClient implements AlValidationSchemaProvider
     }
     const endpointsRequest:APIRequestParams = {
       method: "POST",
-      url: AlLocatorService.resolveURL( AlLocation.GlobalAPI, `/endpoints/v1/${accountId}/residency/default/endpoints` ),
+      url: AlLocatorService.resolveURL( AlLocation.GlobalAPI, resolveByResidency ? `/endpoints/v1/${accountId}/endpoints` : `/endpoints/v1/${accountId}/residency/default/endpoints` ),
       data: requestList,
       aimsAuthHeader: true
     };
     return this.axiosRequest( endpointsRequest )
               .then( response => {
-                  existingEndpoints = this.getCachedValue<AlEndpointsServiceCollection>( cacheKey );        //    retrieve cache again, in case it has been modified by others
-                  let translated:AlEndpointsServiceCollection = deepMerge( {}, existingEndpoints );
-                  Object.entries( response.data as AlEndpointsServiceCollection ).forEach( ( [ serviceName, endpointHost ] ) => {
-                    translated[serviceName] = ( endpointHost as string ).startsWith( "http") ? endpointHost : `https://${endpointHost}`;        // ensure that all domains are prefixed with protocol
-                  } );
-                  this.setCachedValue( cacheKey, translated, 15 * 60 * 1000 );
-                  return translated;
+                    if(resolveByResidency) {
+                        console.log('getServiceEndpoints - getting endpoints from - ' + cacheKey);
+                        existingEndpoints = this.persistentStorage.get( cacheKey, {} ) as AlEndpointsResidencyServiceCollection; //    retrieve cache again, in case it has been modified by others
+                        translated = deepMerge( {}, existingEndpoints ) as AlEndpointsResidencyServiceCollection;
+                        Object.entries( response.data as AlEndpointsResidencyServiceCollection ).forEach( ( [ serviceName, residencyLocations ] ) => {
+                            Object.entries(residencyLocations).forEach(([residencyName, residencyHost]) => {
+                                Object.entries(residencyHost).forEach(([endpointHostId, endpointHost]) => {
+                                    if(!translated.hasOwnProperty(serviceName)) {
+                                        translated[serviceName] = {};
+                                    }
+                                    translated[serviceName][residencyName] = {
+                                        [endpointHostId]: (endpointHost as string).startsWith("http") ? endpointHost : `https://${endpointHost}` // ensure that all domains are prefixed with protocol
+                                    };
+                                });
+                            });
+                        } );
+                    } else {
+                        console.log('getServiceEndpoints - getting endpoints from - ' + cacheKey);
+                        existingEndpoints = this.persistentStorage.get( cacheKey, {} ) as AlEndpointsServiceCollection; //    retrieve cache again, in case it has been modified by others
+                        translated = deepMerge( {}, existingEndpoints ) as AlEndpointsServiceCollection;
+                        Object.entries( response.data as AlEndpointsServiceCollection ).forEach( ( [ serviceName, endpointHost ] ) => {
+                            translated[serviceName] = ( endpointHost as string ).startsWith( "http") ? endpointHost : `https://${endpointHost}`;        // ensure that all domains are prefixed with protocol
+                        } );
+                    }
+                    console.log('getServiceEndpoints - settings endpoints in cache entry - ' + cacheKey);
+                    this.persistentStorage.set( cacheKey, translated, 15 * 60 );
+                    return translated;
               }, error => {
                 console.warn(`Could not retrieve data for endpoints for [${requestList.join(",")}]; using defaults for environment '${AlLocatorService.getCurrentEnvironment()}'; disabling caching` );
-                existingEndpoints = this.getCachedValue<AlEndpointsServiceCollection>( cacheKey );
-                let serviceLocations:AlEndpointsServiceCollection = deepMerge( {}, existingEndpoints );
-                requestList.forEach( serviceId => { serviceLocations[serviceId] = AlLocatorService.resolveURL( AlLocation.InsightAPI ); } );
+                console.log('getServiceEndpoints - getting endpoints from - ' + cacheKey);
+                existingEndpoints = this.persistentStorage.get( cacheKey, {} ) as AlEndpointsServiceCollection;
+                let serviceLocations: AlEndpointsServiceCollection | AlEndpointsResidencyServiceCollection;
+                if(resolveByResidency) {
+                    serviceLocations = deepMerge( {}, existingEndpoints ) as AlEndpointsResidencyServiceCollection;
+                    requestList.forEach( serviceId => {
+                        if(!serviceLocations.hasOwnProperty(serviceId)) {
+                            serviceLocations[serviceId] = {};
+                        }
+                        if(serviceLocations.hasOwnProperty(serviceId) && !serviceLocations[serviceId].hasOwnProperty(context.residency)) {
+                            serviceLocations[serviceId][context.residency] = {};
+                        }
+                        serviceLocations[serviceId][context.residency][context.insightLocationId]= AlLocatorService.resolveURL( AlLocation.InsightAPI );
+                    } );
+                } else {
+                    serviceLocations = deepMerge( {}, existingEndpoints ) as AlEndpointsServiceCollection;
+                    requestList.forEach( serviceId => { serviceLocations[serviceId] = AlLocatorService.resolveURL( AlLocation.InsightAPI ); } );
+                }
                 return Promise.resolve( serviceLocations );
               } );
   }
@@ -702,14 +771,30 @@ export class AlApiClient implements AlValidationSchemaProvider
 
   protected async calculateRequestURL( params: APIRequestParams ):Promise<string> {
     let fullPath:string = null;
+    const context = AlLocatorService.getContext();
+    const residency = params.resolveEndpointsByResidency ? context.residency : 'default';
+    const serviceEndpointId = params.target_endpoint || params.service_name;
     if ( ! params.noEndpointsResolution
            && ! AlRuntimeConfiguration.getOption<boolean>( ConfigOption.DisableEndpointsResolution, false )
            && ( params.target_endpoint || ( params.service_name && params.service_stack === AlLocation.InsightAPI ) ) ) {
       // Utilize the endpoints service to determine which location to use for this service/account pair
-      const serviceEndpointId = params.target_endpoint || params.service_name;
       const serviceCollection = await this.prepare( params );
       if ( serviceEndpointId in serviceCollection ) {
-        fullPath = serviceCollection[serviceEndpointId];
+        // Any global service entries returned are always stored in a global -> insight-global nested property
+        if(params.resolveEndpointsByResidency) {
+            if(serviceCollection[serviceEndpointId]['global']) {
+                fullPath = serviceCollection[serviceEndpointId]['global']['insight-global'];
+            } else {
+                if(serviceCollection[serviceEndpointId][residency] && serviceCollection[serviceEndpointId][residency][context.insightLocationId]){
+                    fullPath = serviceCollection[serviceEndpointId][residency][context.insightLocationId];
+                }
+            }
+        } else {
+            if ( serviceEndpointId in serviceCollection ) {
+                fullPath = (<AlEndpointsServiceCollection>serviceCollection)[serviceEndpointId];
+            }
+        }
+
       }
     }
     if ( ! fullPath ) {
@@ -746,28 +831,56 @@ export class AlApiClient implements AlValidationSchemaProvider
    *    b) the initial call is guaranteed to included the service a request is being formed for
    *    c) only one outstanding call to the endpoints service will be issued, per account, at a given time
    */
-  protected prepare( requestParams:APIRequestParams ):Promise<AlEndpointsServiceCollection> {
+  protected prepare( requestParams:APIRequestParams ):Promise<AlEndpointsServiceCollection | AlEndpointsResidencyServiceCollection> {
     const environment = AlLocatorService.getCurrentEnvironment();
     const accountId = requestParams.context_account_id || requestParams.account_id || this.defaultAccountId || "0";
-    if ( ! this.endpointResolution.hasOwnProperty( environment ) ) {
-      this.endpointResolution[environment] = {};
-    }
-    const serviceEndpointId = requestParams.target_endpoint || requestParams.service_name;
-    if ( ! this.endpointResolution[environment].hasOwnProperty( accountId ) ) {
-      let serviceList = AlApiClient.defaultServiceList;
-      if ( ! serviceList.includes( serviceEndpointId ) ) {
-        serviceList.push( serviceEndpointId );
-      }
-      this.endpointResolution[environment][accountId] = this.getServiceEndpoints( accountId, serviceList );
-    }
-    return this.endpointResolution[environment][accountId].then( collection => {
-        if ( serviceEndpointId in collection ) {
-          return collection;
+    const cacheKey = requestParams.resolveEndpointsByResidency ? `/endpointsByResidency/${environment}/${accountId}` : `/endpoints/${environment}/${accountId}`;
+
+    if (requestParams.resolveEndpointsByResidency) {
+        if (!this.endpointResidencyResolution.hasOwnProperty(environment)) {
+            this.endpointResidencyResolution[environment] = {};
         }
-        this.deleteCachedValue( `/endpoints/${environment}/${accountId}` );
-        this.endpointResolution[environment][accountId] = this.getServiceEndpoints( accountId, Object.keys( collection ).concat( serviceEndpointId ) );
-        return this.endpointResolution[environment][accountId];
-    } );
+        const serviceEndpointId = requestParams.target_endpoint || requestParams.service_name;
+        if (!this.endpointResidencyResolution[environment].hasOwnProperty(accountId)) {
+           this.endpointResidencyResolution[environment][accountId] = this.getServiceEndpoints(accountId, [serviceEndpointId], true) as Promise<AlEndpointsResidencyServiceCollection>;
+        }
+        return this.endpointResidencyResolution[environment][accountId].then(collection => {
+            if (serviceEndpointId in collection) {
+                return collection;
+            }
+            this.deleteCachedValue(cacheKey);
+            console.log('prepare - deleteCachedValue - ' + cacheKey);
+            this.endpointResidencyResolution[environment][accountId] = this.getServiceEndpoints(
+                accountId,
+                Object.keys(collection).concat(serviceEndpointId),
+                true
+            ) as Promise<AlEndpointsResidencyServiceCollection>;
+            return this.endpointResidencyResolution[environment][accountId];
+        });
+    } else {
+        if (!this.endpointResolution.hasOwnProperty(environment)) {
+            this.endpointResolution[environment] = {};
+        }
+        const serviceEndpointId = requestParams.target_endpoint || requestParams.service_name;
+        if (!this.endpointResolution[environment].hasOwnProperty(accountId)) {
+            let serviceList = AlApiClient.defaultServiceList;
+            if (!serviceList.includes(serviceEndpointId)) {
+                serviceList.push(serviceEndpointId);
+            }
+            this.endpointResolution[environment][accountId] = this.getServiceEndpoints(accountId, serviceList) as Promise<AlEndpointsServiceCollection>;
+        }
+        return this.endpointResolution[environment][accountId].then(collection => {
+            if (serviceEndpointId in collection) {
+                return collection;
+            }
+            this.deleteCachedValue(cacheKey);
+            console.log('prepare - deleteCachedValue - ' + cacheKey);
+            this.endpointResolution[environment][accountId] = this.getServiceEndpoints(accountId, Object.keys(collection).concat(serviceEndpointId)) as Promise<AlEndpointsServiceCollection>;
+            return this.endpointResolution[environment][accountId];
+        });
+    }
+
+
   }
 
   /**
@@ -831,7 +944,9 @@ export class AlApiClient implements AlValidationSchemaProvider
         //  TODO: not quite sure...
         console.error(`APIClient Warning: received ${errorResponse.status} from API request [${errorResponse.config.method} ${errorResponse.config.url}]`);
     }
-    this.log( `APIClient Failed Request Snapshot: ${JSON.stringify( this.lastError, null, 4 )}` );
+    if ( this.verbose ) {
+      console.log( `APIClient Failed Request Snapshot: ${JSON.stringify( this.lastError, null, 4 )}` );
+    }
     return Promise.reject( errorResponse );
   }
 
@@ -987,12 +1102,6 @@ export class AlApiClient implements AlValidationSchemaProvider
       return false;
     }
     return true;
-  }
-
-  private log( text:string, ...otherArgs:any[] ) {
-      if ( this.verbose ) {
-          console.log.apply( console, (arguments as any) );
-      }
   }
 
   /**

@@ -50,16 +50,16 @@ stages:
                 PKGNAME=$(node -e 'console.log(require("./package.json").name)')
                 echo "⚠️ **WARNING** - Merging this pull request will result in a publish of **$PKGNAME** to npm from version **$LATEST_VERSION** to **$PKGVERSION**" >> comments.txt
               fi
-              
+
               #comments api call
               bin/hub api repos/alertlogic/$ALPS_REPO_NAME/issues/$ALPS_PR_NUMBER/comments --field body=@comments.txt
-            
+
             - echo done
 
     -
         name: Master Push - Publish
         when:
-            - push: ['master']
+            - push: ['master', 'Datacenter-Stuff']
         image: node:13
         compute_size: small
         commands:
@@ -69,7 +69,7 @@ stages:
             - export CHROME_BIN='/usr/bin/google-chrome'
             - |
               set -ex
-              
+
               printenv
 
               if [ -z "$NPM_TOKEN" ]
@@ -77,32 +77,32 @@ stages:
                   echo "\$NPM_TOKEN is empty"
                   exit 1
               fi
-              
+
               #git config --global --add url."git@github.com:".insteadOf "https://github.com/"
 
-              
+
               echo //registry.npmjs.org/:_authToken="$NPM_TOKEN" > .npmrc
               npm whoami
-              
+
               PKGNAME=$(node -e 'console.log(require("./package.json").name)')
               PKGVERSION=$(node -e 'console.log(require("./package.json").version)')
               V_VERSION=v$PKGVERSION
               WORDCOUNT=$(npm view "${PKGNAME}@${PKGVERSION}" | wc -c)
-              
+
               #git tag -a $V_VERSION -m "$PKGNAME release $V_VERSION" HEAD
 
               # Release section
               curl -fsSL https://github.com/github/hub/raw/master/script/get | bash -s 2.14.2
               GITHUB_TOKEN=$ALPS_GH_TOKEN
-              
+
               npm install
-              
+
               if [ "$WORDCOUNT" -eq 0  ]; then
                  echo "PUBLISHING $PKGNAME $PKGVERSION"
                  npm run build
                 # git push origin $V_VERSION
-                 npm publish --access public
-                 
+                 npm publish --access public --tag=beta
+
                  echo "Continuous Delivery release for ${PKGNAME}@${PKGVERSION}" > release_notes.txt
 
                  echo "CREATING RELEASE FOR ${PKGNAME}@${PKGVERSION}"
@@ -110,7 +110,7 @@ stages:
                  # See: https://hub.github.com/hub-release.1.html
                  bin/hub release create -F release_notes.txt -t $CODEBUILD_SOURCE_VERSION $V_VERSION
                  # End release section
-              
+
               else
                  echo "NOT PUBLISHING $PKGNAME $PKGVERSION"
               fi
