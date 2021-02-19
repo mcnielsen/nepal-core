@@ -70,13 +70,17 @@ export class AlApiClient implements AlValidationSchemaProvider
   /**
    * The following list of services are the ones whose endpoints will be resolved by default.  Added globally/commonly used services here for optimized API performance.
    */
-  protected static defaultServiceList = [ "aims", "subscriptions", "search", "sources", "assets_query", "assets_write", "dashboards", "iris", "suggestions", "cargo", "connectors", "herald" ];
+  protected static defaultServiceList = [ "aims", "subscriptions", "search", "sources", "assets_query", "assets_write", "dashboards", "cargo", "suggestions", "connectors", "herald" ];
+  /**
+   * The following list of services are the ones whose endpoints will need to be determined for the current context active residency location.
+   */
+  protected static resolveByResidencyServiceList = [ "iris", "kalm", "ticketmaster", "tacoma" ];
+
   protected static defaultServiceParams: APIRequestParams = {
     service_stack:                  AlLocation.InsightAPI,  //  May also be AlLocation.GlobalAPI, AlLocation.EndpointsAPI, or ALLocation.LegacyUI
     residency:                      'default',              //  "us" or "emea" or "default"
     version:                        'v1',                   //  Version of the service
-    ttl:                            false,                   //  Default to no caching
-    resolveEndpointsByResidency:    false
+    ttl:                            false                   //  Default to no caching
   };
 
   public events:AlTriggerStream     =   new AlTriggerStream();
@@ -598,6 +602,14 @@ export class AlApiClient implements AlValidationSchemaProvider
 
   /**
    * Resolves accumulated endpoints data for the given account.
+   *
+   * Update Feb 2021
+   * ---------------
+   * This has been overhauled to deal with services whose endpoints now must be determined for the current context residency (selected datacenter location in UI).
+   * The reason for this is to cater for scenarios where a parent account manages children that are located across different geographical locations to one another and therefore
+   * any data retrieval for views in the UI where child account roll-ups exist must be fetched from the appropriate location.
+   * The previous implementation ALWAYS calculated service endpoints for the default location of the primary account for the logged in user and so any roll ups for views for child accounts never worked eva!!!
+   *
    */
   public async getServiceEndpoints( accountId:string, requestList:string[], resolveByResidency = false ):Promise<AlEndpointsServiceCollection | AlEndpointsResidencyServiceCollection> {
     const environment = AlLocatorService.getCurrentEnvironment();
@@ -772,21 +784,21 @@ export class AlApiClient implements AlValidationSchemaProvider
   protected async calculateRequestURL( params: APIRequestParams ):Promise<string> {
     let fullPath:string = null;
     const context = AlLocatorService.getContext();
-    const residency = params.resolveEndpointsByResidency ? context.residency : 'default';
     const serviceEndpointId = params.target_endpoint || params.service_name;
+    const resolveEndpointsByResidency = AlApiClient.resolveByResidencyServiceList.includes(serviceEndpointId);
     if ( ! params.noEndpointsResolution
            && ! AlRuntimeConfiguration.getOption<boolean>( ConfigOption.DisableEndpointsResolution, false )
            && ( params.target_endpoint || ( params.service_name && params.service_stack === AlLocation.InsightAPI ) ) ) {
       // Utilize the endpoints service to determine which location to use for this service/account pair
-      const serviceCollection = await this.prepare( params );
+      const serviceCollection = await this.prepare( params, resolveEndpointsByResidency );
       if ( serviceEndpointId in serviceCollection ) {
         // Any global service entries returned are always stored in a global -> insight-global nested property
-        if(params.resolveEndpointsByResidency) {
+        if(resolveEndpointsByResidency) {
             if(serviceCollection[serviceEndpointId]['global']) {
                 fullPath = serviceCollection[serviceEndpointId]['global']['insight-global'];
             } else {
-                if(serviceCollection[serviceEndpointId][residency] && serviceCollection[serviceEndpointId][residency][context.insightLocationId]){
-                    fullPath = serviceCollection[serviceEndpointId][residency][context.insightLocationId];
+                if(serviceCollection[serviceEndpointId][context.residency] && serviceCollection[serviceEndpointId][context.residency][context.insightLocationId]){
+                    fullPath = serviceCollection[serviceEndpointId][context.residency][context.insightLocationId];
                 }
             }
         } else {
@@ -831,16 +843,17 @@ export class AlApiClient implements AlValidationSchemaProvider
    *    b) the initial call is guaranteed to included the service a request is being formed for
    *    c) only one outstanding call to the endpoints service will be issued, per account, at a given time
    */
-  protected prepare( requestParams:APIRequestParams ):Promise<AlEndpointsServiceCollection | AlEndpointsResidencyServiceCollection> {
+  protected prepare( requestParams:APIRequestParams, resolveEndpointsByResidency: boolean ):Promise<AlEndpointsServiceCollection | AlEndpointsResidencyServiceCollection> {
     const environment = AlLocatorService.getCurrentEnvironment();
     const accountId = requestParams.context_account_id || requestParams.account_id || this.defaultAccountId || "0";
-    const cacheKey = requestParams.resolveEndpointsByResidency ? `/endpointsByResidency/${environment}/${accountId}` : `/endpoints/${environment}/${accountId}`;
+    const serviceEndpointId = requestParams.target_endpoint || requestParams.service_name;
+    const cacheKey = resolveEndpointsByResidency ? `/endpointsByResidency/${environment}/${accountId}` : `/endpoints/${environment}/${accountId}`;
 
-    if (requestParams.resolveEndpointsByResidency) {
+    if (resolveEndpointsByResidency) {
         if (!this.endpointResidencyResolution.hasOwnProperty(environment)) {
             this.endpointResidencyResolution[environment] = {};
         }
-        const serviceEndpointId = requestParams.target_endpoint || requestParams.service_name;
+
         if (!this.endpointResidencyResolution[environment].hasOwnProperty(accountId)) {
            this.endpointResidencyResolution[environment][accountId] = this.getServiceEndpoints(accountId, [serviceEndpointId], true) as Promise<AlEndpointsResidencyServiceCollection>;
         }
@@ -861,7 +874,7 @@ export class AlApiClient implements AlValidationSchemaProvider
         if (!this.endpointResolution.hasOwnProperty(environment)) {
             this.endpointResolution[environment] = {};
         }
-        const serviceEndpointId = requestParams.target_endpoint || requestParams.service_name;
+
         if (!this.endpointResolution[environment].hasOwnProperty(accountId)) {
             let serviceList = AlApiClient.defaultServiceList;
             if (!serviceList.includes(serviceEndpointId)) {
