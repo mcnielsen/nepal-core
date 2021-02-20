@@ -54,15 +54,15 @@ beforeEach(() => {
     AlLocatorService.setContext( { environment: "integration" } );      //  for unit tests, assume integration environment
     ALClient['endpointResolution']["integration"] = {};
     ALClient['endpointResolution']["integration"]["0"] = Promise.resolve( {
-      "cargo": "https://api.global-integration.product.dev.alertlogic.com",
-      "kevin": "https://kevin.product.dev.alertlogic.com",
-      'search': "https://api.global-fake-integration.product.dev.alertlogic.com",
-      "aims": "https://api.global-integration.product.dev.alertlogic.com"
+      "cargo": { "default" : "https://api.global-integration.product.dev.alertlogic.com" },
+      "kevin": { "default" : "https://kevin.product.dev.alertlogic.com" },
+      'search': { "default" : "https://api.global-fake-integration.product.dev.alertlogic.com" },
+      "aims": { "default" : "https://api.global-integration.product.dev.alertlogic.com" }
     } );
     ALClient['endpointResolution']["integration"]["2"] = ALClient['endpointResolution']["integration"][0];
     ALClient['endpointResolution']["integration"]["3"] = Promise.resolve( {
-      "cargo": "https://api.global-integration.product.dev.alertlogic.com",
-      "kevin": "https://kevin.product.dev.alertlogic.co.uk"
+      "cargo": { "default" : "https://api.global-integration.product.dev.alertlogic.com" },
+      "kevin": { "default" : "https://kevin.product.dev.alertlogic.co.uk" }
     } );
     ALClient['endpointResolution']["integration"]["67108880"] = ALClient['endpointResolution']["integration"][0];
 } );
