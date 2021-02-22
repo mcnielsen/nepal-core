@@ -2,7 +2,7 @@ import {
     AlApiClient,
     AlDefaultClient,
 } from "../client";
-import { AlLocation } from "../common/locator";
+import { AlLocation } from "../common/navigation";
 import { AlEntitlementCollection } from './types';
 
 export class AlSubscriptionsClient {

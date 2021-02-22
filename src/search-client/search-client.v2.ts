@@ -1,7 +1,7 @@
 /**
  * A client for interacting with the Alert Logic Search Public API.
  */
-import { AlLocation } from 'src/common/locator/al-locator.types';
+import { AlLocation } from 'src/common/navigation/al-locator.types';
 import {
     AlDefaultClient,
     APIRequestParams,

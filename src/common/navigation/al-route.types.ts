@@ -14,7 +14,7 @@ import { AlLocatorService } from './al-locator.service';
  */
 export interface AlRoutingHost
 {
-    /* Exposes the current URL of the application (required). */
+    /* Exposes the current URL, actingAccountId, and primaryAccountId of the application (required). */
     currentUrl:string;
 
     /* Routing parameters */
@@ -77,26 +77,52 @@ export const AlNullRoutingHost = {
 
 /**
  *  @public
- *
- *  Conditional expressions
  */
 export interface AlRouteCondition
 {
-    conditionId?:string;                    //  If the condition is a shared condition, this is the ID/hash used to identify it
-    rule?:"any"|"all"|"none";               //  must be "any", "all", or "none"
-    conditions?:AlRouteCondition[];         //  An array of child conditions to evaluate using the indicated rule
+    //  If the condition is a shared condition, this is the ID/hash used to identify it
+    conditionId?:string;
 
-    //  The following five conditions -- entitlements, primaryEntitlements, environments, experiences, and authentication -- are environmental
-    //  conditions that the routing layer will ask the
-    authentication?:boolean;                //  If specified, indicates whether the menu item should only appear if authenticated (true) or unauthenticated (false)
-    entitlements?:string[];                 //  An array of entitlement expressions to evaluate against the acting account's entitlements
-    primaryEntitlements?:string[];          //  An array of entitlement expressions to evaluate against the primary account's entitlements
-    environments?:string[];                 //  An array of environments to match against (e.g., "integration", "development", "production", etc.
-    experiences?:string[];                  //  An array of navigation experiences to match against (e.g., "beta", "default", "delta", "omega-123")
-    query?:any;                             //  If provided, the query must be a valid search_lib style filter expression.  This filter will be applied to the current navigation state.
+    //  must be "any", "all", or "none", and defaults to "all"
+    rule?:"any"|"all"|"none";
 
+    //  An array of child conditions to evaluate using the indicated rule
+    conditions?:AlRouteCondition[];
+    //
+    //  An array of regular expressions
     path_matches?:string;                   //  Path matches a given regular expression
+
+    //  An array of route parameters (or equivalence tests) that must be satisfied
     parameters?:string[];                   //  An array of route parameters that must be present, or parameter equivalence tests that must be true
+
+    //  If specified, indicates whether the menu item should only appear if authenticated (true) or unauthenticated (false).  Note that
+    //  entitlement and account conditions automatically imply an authentication test.
+    authentication?:boolean;
+
+    //  An array of entitlement expressions to evaluate against the acting account's entitlements
+    entitlements?:string[];
+
+    //  An array of entitlement expressions to evaluate against the primary account's entitlements
+    primaryEntitlements?:string[];
+
+    //  An array of environments to match against (e.g., "integration", "development", "production", etc.
+    environments?:string[];
+
+    //  An array of account IDs that fulfill the condition
+    accounts?:string[];
+
+    //  An array of primary account IDs that fulfill the condition
+    primaryAccounts?:string[];
+
+    //  An array of navigation experiences to match against (e.g., "beta", "default", "delta", "omega-123").  Please note that this matches
+    //  both the "global" experience and any experience mappings that may be true (e.g., log#siemless or search#universal).
+    experiences?:string[];
+
+    //  If provided, the timestamp or iso8601 datetime string after which the condition will evaluate true
+    after?:string|number;
+
+    //  If provided, the timestamp or iso8601 datetime string before which the condition will evaluate true
+    before?:string|number;
 }
 
 /**
@@ -546,14 +572,13 @@ export class AlRoute {
             //  Evaluates true only if the current path matches a given regular expression
             evaluations.push( this.evaluatePathMatch( condition.path_matches ) );
         }
-        if ( condition.query || condition.authentication || condition.entitlements || condition.primaryEntitlements || condition.environments || condition.experiences ) {
+        if ( condition.authentication
+                || condition.accounts || condition.primaryAccounts
+                || condition.entitlements || condition.primaryEntitlements
+                || condition.environments
+                || condition.experiences ) {
             //  This condition refers to entitlement or other externally managed data -- ask the host to evaluate it.
-            let externals = this.host.evaluate( condition );
-            if ( typeof( externals ) === 'boolean' ) {
-                evaluations.push( externals );
-            } else if ( Array.isArray( externals ) ) {
-                evaluations = evaluations.concat( externals );
-            }
+            evaluations = evaluations.concat( this.host.evaluate( condition ) );
         }
         if ( condition.rule === 'none' ) {
             return ! evaluations.some( value => value );        //  no items are true

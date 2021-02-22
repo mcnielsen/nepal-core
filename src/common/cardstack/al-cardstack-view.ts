@@ -44,6 +44,7 @@ export abstract class AlCardstackView< EntityType=any,
     //  Defines which filters are currently "active"
     public activeFilters: AlCardstackActiveFilter<EntityType,PropertyType>[]    =   [];
     public autoIndexProperties:AlCardstackPropertyDescriptor[]                  =   [];
+    public autoDefineCardsChanged: boolean                                      = false;
 
     //  If defined, indicates the view has failed to load and optionally provides description and details of error
     public error?:string|Error;
@@ -736,7 +737,7 @@ export abstract class AlCardstackView< EntityType=any,
      */
     private fillPropertiesReduceFilters(): void {
         this.characteristics.filterableBy.forEach((filter) => {
-            if(typeof filter === 'string'){
+            if(typeof filter === 'string' && !this.characteristics.definitions[filter].avoidReduce) {
                 this.reduceFilters[filter] = [];
             }
         });

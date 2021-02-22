@@ -37,8 +37,8 @@ export interface AIMSSessionDescriptor {
     authentication: AIMSAuthentication;
     acting?: AIMSAccount;
     boundLocationId?: string;
+    profileId?:string;
 }
-
 
 export interface AIMSAuthenticationTokenInfo extends AIMSAuthentication {
     entity_id?: string;

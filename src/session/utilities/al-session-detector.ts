@@ -12,7 +12,7 @@ import { AlErrorHandler } from '../../error-handler';
 import {
     AlLocation,
     AlLocatorService,
-} from "../../common/locator";
+} from "../../common/navigation";
 import { AlStopwatch } from "../../common/utility";
 
 import { AlSession } from '../al-session';
@@ -118,31 +118,13 @@ export class AlSessionDetector
         }
         if ( this.useAuth0 ) {
             try {
-                let authenticator = this.getAuth0Authenticator();
-                let config = this.getAuth0Config( { usePostMessage: true, prompt: 'none' } );
-                let accessToken = await this.getAuth0SessionToken( authenticator, config, 5000 );
-                this.getAuth0UserInfo( authenticator, accessToken, ( userInfoError, userIdentityInfo ) => {
-                    if ( userInfoError || ! userIdentityInfo ) {
-                        return this.onDetectionFail( resolve, "Auth0 session detection failure: failed to retrieve user information with valid session!");
-                    }
+                let authenticator   =   this.getAuth0Authenticator();
+                let config          =   this.getAuth0Config( { usePostMessage: true, prompt: 'none' } );
+                let accessToken     =   await this.getAuth0SessionToken( authenticator, config, 5000 );
+                let tokenInfo       =   await AIMSClient.getTokenInfo( accessToken );
 
-                    let identityInfo = this.extractUserInfo( userIdentityInfo );
-                    if ( identityInfo.accountId === null || identityInfo.userId === null ) {
-                        return this.onDetectionFail( resolve, "Auth0 session detection failure: session lacks identity information!");
-                    }
-
-                    /* Missing properties (user, account, token_expiration) will be separately requested/calculated by normalizationSessionDescriptor */
-                    let session:AIMSSessionDescriptor = {
-                        authentication: {
-                            token: accessToken,
-                            token_expiration: null,
-                            user: null,
-                            account: null
-                        }
-                    };
-                    this.ingestExistingSession( session ).then( () => this.onDetectionSuccess( resolve ),
-                                                                error => this.onDetectionFail( resolve, `Failed to detect auth0 session` ) );
-                } );
+                this.ingestExistingSession( session ).then( () => this.onDetectionSuccess( resolve ),
+                                                            error => this.onDetectionFail( resolve, `Failed to detect auth0 session` ) );
             } catch( e ) {
                 let error = AlErrorHandler.normalize( e );
                 return this.onDetectionFail( resolve, `Failed to detect auth0 session: ${e.message}` );
@@ -341,9 +323,17 @@ export class AlSessionDetector
             throw new Error(`Unexpected identity data received from auth0; no audience '${config.audience}' found.` );
         }
 
-        let userInfo        =   domainIdInfo.split(":");
-        let accountId       =   userInfo.length > 1 ? userInfo[0] : null;
-        let userId          =   userInfo.length > 1 ? userInfo[1] : null;
+        let userInfo = domainIdInfo.split(":");
+        if ( userInfo.length !== 2 ) {
+            throw new Error(`Unexpected identity data received from auth0; audience '${config.audience}' contains unexpected content '${domainIdInfo}'.` );
+        }
+
+        let accountId       =   userInfo[0];
+        let userId          =   userInfo[1];
+        if ( ! accountId || ! userId ) {
+            throw new Error(`Unexpected identity data received from auth0; audience '${config.audience}' contains empty account or user in '${domainIdInfo}'.` );
+        }
+        console.log("Auth0: extracted user identity information %s/%s", accountId, userId );
         return {
             "accountId": accountId,
             "userId": userId
