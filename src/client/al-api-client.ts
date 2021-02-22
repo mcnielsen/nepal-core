@@ -799,17 +799,18 @@ export class AlApiClient implements AlValidationSchemaProvider
            && ( params.target_endpoint || ( params.service_name && params.service_stack === AlLocation.InsightAPI ) ) ) {
       // Utilize the endpoints service to determine which location to use for this service/account pair
       const serviceCollection = await this.prepare( params, resolveEndpointsByResidency );
-      if ( serviceEndpointId in serviceCollection ) {
+      const serviceEndpoints = serviceCollection[serviceEndpointId];
+      if ( serviceEndpoints ) {
         if(resolveEndpointsByResidency) {
-            if(serviceCollection[serviceEndpointId][context.residency] && serviceCollection[serviceEndpointId][context.residency][context.insightLocationId]){
-                fullPath = serviceCollection[serviceEndpointId][context.residency][context.insightLocationId];
+            const serviceEndpointsForResidency = serviceEndpoints[context.residency];
+            if(serviceEndpointsForResidency && serviceEndpointsForResidency[context.insightLocationId]){
+                fullPath = serviceEndpointsForResidency[context.insightLocationId];
             }
         } else {
-            if ( serviceEndpointId in serviceCollection ) {
-                fullPath = serviceCollection[serviceEndpointId][AlApiClient.defaultEndpointHostId] as string;
+            if ( serviceEndpoints[AlApiClient.defaultEndpointHostId] ) {
+                fullPath = serviceEndpoints[AlApiClient.defaultEndpointHostId] as string;
             }
         }
-
       }
     }
     if ( ! fullPath ) {
