@@ -55,7 +55,7 @@ describe( 'AlRoute', () => {
     let routingHost = new MockRoutingHost( fakeEntitlements );
 
     beforeEach( () => {
-        AlLocatorService.setContext( { environment: "production" } );
+        AlLocatorService.setContext( { environment: "production", residency: 'US', insightLocationId: 'defender-us-denver' } );
         AlLocatorService.setActingUri("https://console.overview.alertlogic.com" );
         routingHost.routeParameters["accountId"] = "2";
         routingHost.routeParameters["deploymentId"] = "1234ABCD-1234-ABCD1234";

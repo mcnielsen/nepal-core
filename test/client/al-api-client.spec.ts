@@ -51,7 +51,7 @@ const defaultAuthResponse = {
 
 beforeEach(() => {
     xhrMock.setup();
-    AlLocatorService.setContext( { environment: "integration" } );      //  for unit tests, assume integration environment
+    AlLocatorService.setContext( { environment: "integration", residency: 'EMEA', insightLocationId: 'defender-uk-newport' } );      //  for unit tests, assume integration environment
     ALClient['endpointResolution']["integration"] = {};
     ALClient['endpointResolution']["integration"]["0"] = Promise.resolve( {
       "cargo": { "default" : "https://api.global-integration.product.dev.alertlogic.com" },
@@ -65,6 +65,13 @@ beforeEach(() => {
       "kevin": { "default" : "https://kevin.product.dev.alertlogic.co.uk" }
     } );
     ALClient['endpointResolution']["integration"]["67108880"] = ALClient['endpointResolution']["integration"][0];
+    ALClient['endpointResolution']["integration"]["1234567"] = Promise.resolve( {
+        "iris": {
+            "EMEA" : {
+                "defender-uk-newport" : "https://rob.product.dev.alertlogic.co.uk"
+            }
+        }
+      } );
 } );
 afterEach(() => {
   xhrMock.teardown();
@@ -146,6 +153,10 @@ describe('when calculating request URLs', () => {
       endpointURL = await ALClient['calculateRequestURL']( { service_name: 'cargo', target_endpoint: 'kevin', path: '/some/endpoint' } );
       //  expect target endpoint ID to be honored
       expect( endpointURL ).to.equal( `https://kevin.product.dev.alertlogic.com/cargo/some/endpoint` );
+
+      endpointURL = await ALClient['calculateRequestURL']( { service_name: 'iris', version: 1, account_id: '1234567', path: '/some/endpoint', service_stack: AlLocation.InsightAPI  } );
+      //  expect target endpoint to be referenced from residency based lookup
+      expect( endpointURL ).to.equal( `https://rob.product.dev.alertlogic.co.uk/iris/v1/1234567/some/endpoint` );
 
       ALClient.defaultAccountId = "67108880";
       endpointURL = await ALClient['calculateRequestURL']( { service_name: 'kevin', version: 16, path: 'some/arbitrary/endpoint', service_stack: AlLocation.InsightAPI } );
