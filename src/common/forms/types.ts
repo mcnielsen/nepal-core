@@ -43,4 +43,6 @@ export interface AlDynamicFormControlElement {
     title?: string;
     minLength?: number;
     maxLength?: number;
+    minValue?: number;
+    maxValue?: number;
 }
