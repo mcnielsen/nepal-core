@@ -1,4 +1,3 @@
-import { AlEndpointsServiceCollection } from "../../client";
 import {
     AIMSAccount,
     AIMSUser,
@@ -12,7 +11,7 @@ export interface AlConsolidatedAccountMetadata {
     managedAccounts?:AIMSAccount[];
     primaryEntitlements:AlEntitlementRecord[];
     effectiveEntitlements:AlEntitlementRecord[];
-    endpointsData:AlEndpointsServiceCollection;
+    endpointsData:any;
 }
 
 export interface AlSessionProfile {

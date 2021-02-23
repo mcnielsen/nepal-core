@@ -39,11 +39,13 @@ import {
     AlCabinet,
     AlGlobalizer,
     AlJsonValidator,
+    AlMutex,
     AlValidationSchemaProvider,
     AlStopwatch,
     AlTriggerStream,
     deepMerge,
-    getJsonPath
+    getJsonPath,
+    setJsonPath
 } from "../common/utility";
 import {
     APIExecutionLogItem,
@@ -55,14 +57,18 @@ import { AIMSSessionDescriptor } from '../aims-client/types';
 import { AlRuntimeConfiguration, ConfigOption } from '../configuration';
 import { commonTypeSchematics } from './common.schematics';
 
-export type AlEndpointsServiceCollection = {[serviceName:string]:string};
-
-export type AlEndpointsResidencyServiceCollection = {
-    [serviceName:string]: {
-        [residency:string]: {
-            [endpointHost:string]:string
-        } | string;
+/**
+ *  A dictionary of resolved endpoints, keyed by environment, account, service, and residency.
+ *  Residency may be US, EMEA, or default (which corresponds with the legacy "infer from primary account's default location" logic.
+ */
+type AlEndpointsDictionary = {
+  [environment:string]: {
+    [accountId:string]: {
+      [serviceId:string]: {
+        [residency:string]: string;
+      };
     }
+  }
 };
 
 export class AlApiClient implements AlValidationSchemaProvider
@@ -83,7 +89,7 @@ export class AlApiClient implements AlValidationSchemaProvider
     ttl:                            false                   //  Default to no caching
   };
 
-  protected static defaultEndpointHostId = 'default';
+  protected static defaultResidency = 'default';
 
   public events:AlTriggerStream     =   new AlTriggerStream();
   public verbose:boolean            =   false;
@@ -93,8 +99,10 @@ export class AlApiClient implements AlValidationSchemaProvider
 
   private storage                   =   AlCabinet.local( 'apiclient.cache' );
   private persistentStorage         =   AlCabinet.persistent( 'apiclient.pcache' );
-  private endpointResolution: {[environment:string]:{[accountId:string]:Promise<AlEndpointsResidencyServiceCollection>}} = {};
   private instance:AxiosInstance    =   null;
+  private endpointsGuard            =   new AlMutex();
+  private endpointCache:AlEndpointsDictionary = {};
+
   private lastError:{ status:number, statusText:string, url:string, data:string, headers:{[header:string]:any} } = null;
 
   /* Default request parameters */
@@ -115,7 +123,7 @@ export class AlApiClient implements AlValidationSchemaProvider
    * Resets internal state back to its factory defaults.
    */
   public reset():AlApiClient {
-    this.endpointResolution = {};
+    this.endpointCache = {};
     this.instance = null;
     this.executionRequestLog = [];
     this.storage.destroy();
@@ -600,104 +608,6 @@ export class AlApiClient implements AlValidationSchemaProvider
     return config;
   }
 
-  /**
-   * Resolves accumulated endpoints data for the given account.
-   *
-   * Update Feb 2021
-   * ---------------
-   * This has been overhauled to deal with services whose endpoints now must be determined for the current context residency (selected datacenter location in UI).
-   * The reason for this is to cater for scenarios where a parent account manages children that are located across different geographical locations to one another and therefore
-   * any data retrieval for views in the UI where child account roll-ups exist must be fetched from the appropriate location.
-   * The previous implementation ALWAYS calculated service endpoints for the default location of the primary account for the logged in user and so any roll ups for views for child accounts never worked eva!!!
-   *
-   */
-  public async getServiceEndpoints( accountId:string, requestList:string[], resolveByResidency = false ):Promise<AlEndpointsResidencyServiceCollection> {
-    const environment = AlLocatorService.getCurrentEnvironment();
-    const context = AlLocatorService.getContext();
-    const cacheKey = `/endpoints/${environment}/${accountId}`;
-    let existingEndpoints: AlEndpointsResidencyServiceCollection;
-    let translated: AlEndpointsResidencyServiceCollection;
-
-    if ( ! requestList ) {
-      requestList = AlApiClient.defaultServiceList;
-    }
-    this.log('getServiceEndpoints - getting endpoints from - ' + cacheKey);
-    existingEndpoints = this.persistentStorage.get( cacheKey, null );
-    if ( existingEndpoints ) {
-        if ( ! requestList.find( serviceName => ! existingEndpoints.hasOwnProperty( serviceName ) ) ) {
-            return existingEndpoints;   //  we already have all of the requested service in cache!  Yay!
-        }
-        requestList = requestList.filter( serviceName => ! existingEndpoints.hasOwnProperty( serviceName ) );
-    }
-    const endpointsRequest:APIRequestParams = {
-      method: "POST",
-      url: AlLocatorService.resolveURL( AlLocation.GlobalAPI, resolveByResidency ? `/endpoints/v1/${accountId}/endpoints` : `/endpoints/v1/${accountId}/residency/default/endpoints` ),
-      data: requestList,
-      aimsAuthHeader: true
-    };
-    return this.axiosRequest( endpointsRequest )
-              .then( response => {
-                    if(resolveByResidency) {
-                        this.log('getServiceEndpoints - getting endpoints from - ' + cacheKey);
-                        existingEndpoints = this.persistentStorage.get( cacheKey, {} ); //    retrieve cache again, in case it has been modified by others
-                        translated = deepMerge( {}, existingEndpoints );
-                        Object.entries( response.data as AlEndpointsResidencyServiceCollection ).forEach( ( [ serviceName, residencyLocations ] ) => {
-                            Object.entries(residencyLocations).forEach(([residencyName, residencyHost]) => {
-                                Object.entries(residencyHost).forEach(([endpointHostId, endpointHost]) => {
-                                    if(!translated.hasOwnProperty(serviceName)) {
-                                        translated[serviceName] = {};
-                                    }
-                                    translated[serviceName][residencyName] = {
-                                        [endpointHostId]: (endpointHost as string).startsWith("http") ? endpointHost : `https://${endpointHost}` // ensure that all domains are prefixed with protocol
-                                    };
-                                });
-                            });
-                        } );
-                    } else {
-                        this.log('getServiceEndpoints - getting endpoints from - ' + cacheKey);
-                        existingEndpoints = this.persistentStorage.get( cacheKey, {} ); //    retrieve cache again, in case it has been modified by others
-                        translated = deepMerge( {}, existingEndpoints );
-                        Object.entries( response.data as AlEndpointsServiceCollection ).forEach( ( [ serviceName, endpointHost ] ) => {
-                            if(!translated.hasOwnProperty(serviceName)) {
-                                translated[serviceName] = {};
-                                translated[serviceName][AlApiClient.defaultEndpointHostId] = ( endpointHost as string ).startsWith( "http") ? endpointHost : `https://${endpointHost}`;
-                            }
-                        } );
-                    }
-                    this.log('getServiceEndpoints - settings endpoints in cache entry - ' + cacheKey);
-                    this.persistentStorage.set( cacheKey, translated, 15 * 60 );
-                    return translated;
-              }, error => {
-                console.warn(`Could not retrieve data for endpoints for [${requestList.join(",")}]; using defaults for environment '${AlLocatorService.getCurrentEnvironment()}'; disabling caching` );
-                this.log('getServiceEndpoints - getting endpoints from - ' + cacheKey);
-                existingEndpoints = this.persistentStorage.get( cacheKey, {} );
-                let serviceLocations: AlEndpointsResidencyServiceCollection;
-                if(resolveByResidency) {
-                    serviceLocations = deepMerge( {}, existingEndpoints );
-                    requestList.forEach( serviceId => {
-                        if(!serviceLocations.hasOwnProperty(serviceId)) {
-                            serviceLocations[serviceId] = {};
-                        }
-                        if(serviceLocations.hasOwnProperty(serviceId) && !serviceLocations[serviceId].hasOwnProperty(context.residency)) {
-                            serviceLocations[serviceId][context.residency] = {};
-                        }
-                        serviceLocations[serviceId][context.residency][context.insightLocationId]= AlLocatorService.resolveURL( AlLocation.InsightAPI );
-                    } );
-                } else {
-                    serviceLocations = deepMerge( {}, existingEndpoints );
-                    requestList.forEach( serviceId => {
-                        if(!serviceLocations.hasOwnProperty(serviceId)) {
-                            serviceLocations[serviceId] = {};
-                            serviceLocations[serviceId][AlApiClient.defaultEndpointHostId] = AlLocatorService.resolveURL( AlLocation.InsightAPI );
-                        }
-                    } );
-                }
-                return Promise.resolve( serviceLocations );
-              } );
-  }
-
-
-
   public getCachedData():any {
     this.storage.synchronize();     //  flush any expired data
     return this.storage.data;
@@ -752,7 +662,7 @@ export class AlApiClient implements AlValidationSchemaProvider
                                                       data:any,
                                                       headers:any = {} ):Promise<ResponseType> {
       const actualResponse = await request;
-      const lastRequest:AxiosRequestConfig = this.executionRequestLog.length > 0 ? this.executionRequestLog[this.executionRequestLog.length - 1] : { method: "GET", url: "/nothing" };
+      const lastRequest:AxiosRequestConfig = this.executionRequestLog.length > 0 ? this.executionRequestLog[this.executionRequestLog.length - 1] : { method: "GET", url: "/nadazipzilch" };
 
       const error: AxiosResponse = {
           status,
@@ -791,27 +701,12 @@ export class AlApiClient implements AlValidationSchemaProvider
 
   protected async calculateRequestURL( params: APIRequestParams ):Promise<string> {
     let fullPath:string = null;
-    const context = AlLocatorService.getContext();
     const serviceEndpointId = params.target_endpoint || params.service_name;
-    const resolveEndpointsByResidency = AlApiClient.resolveByResidencyServiceList.includes(serviceEndpointId);
     if ( ! params.noEndpointsResolution
            && ! AlRuntimeConfiguration.getOption<boolean>( ConfigOption.DisableEndpointsResolution, false )
            && ( params.target_endpoint || ( params.service_name && params.service_stack === AlLocation.InsightAPI ) ) ) {
       // Utilize the endpoints service to determine which location to use for this service/account pair
-      const serviceCollection = await this.prepare( params, resolveEndpointsByResidency );
-      const serviceEndpoints = serviceCollection[serviceEndpointId];
-      if ( serviceEndpoints ) {
-        if(resolveEndpointsByResidency) {
-            const serviceEndpointsForResidency = serviceEndpoints[context.residency];
-            if(serviceEndpointsForResidency && serviceEndpointsForResidency[context.insightLocationId]){
-                fullPath = serviceEndpointsForResidency[context.insightLocationId];
-            }
-        } else {
-            if ( serviceEndpoints[AlApiClient.defaultEndpointHostId] ) {
-                fullPath = serviceEndpoints[AlApiClient.defaultEndpointHostId] as string;
-            }
-        }
-      }
+      fullPath = await this.prepare( params );
     }
     if ( ! fullPath ) {
       // If specific endpoints are disabled or unavailable, use the environment-level default
@@ -846,32 +741,114 @@ export class AlApiClient implements AlValidationSchemaProvider
    *    a) most basic services will be retrieved in a single call
    *    b) the initial call is guaranteed to included the service a request is being formed for
    *    c) only one outstanding call to the endpoints service will be issued, per account, at a given time
+   *
+   * @returns The resolved base URL of the given endpoint.
    */
-  protected async prepare( requestParams:APIRequestParams, resolveEndpointsByResidency: boolean ): Promise<AlEndpointsResidencyServiceCollection> {
-    const environment = AlLocatorService.getCurrentEnvironment();
-    const accountId = requestParams.context_account_id || requestParams.account_id || this.defaultAccountId || "0";
-    const serviceEndpointId = requestParams.target_endpoint || requestParams.service_name;
-    const cacheKey = `/endpoints/${environment}/${accountId}`;
+  protected async prepare( requestParams:APIRequestParams ): Promise<string> {
+    let result = await this.endpointsGuard.run<string>( async () => {
+      const environment         =   AlLocatorService.getCurrentEnvironment();
+      const accountId           =   requestParams.context_account_id || requestParams.account_id || this.defaultAccountId || "0";
+      const serviceEndpointId   =   requestParams.target_endpoint || requestParams.service_name;
+      const residencyAware      =   AlApiClient.resolveByResidencyServiceList.includes( serviceEndpointId );
+      const residency           =   residencyAware ? AlLocatorService.getCurrentResidency() : "default";
 
-    if (!this.endpointResolution.hasOwnProperty(environment)) {
-        this.endpointResolution[environment] = {};
-    }
+      let baseURL = getJsonPath<string>( this.endpointCache,
+                                         [ environment, accountId, serviceEndpointId, residency ],
+                                         null );
+      if ( baseURL ) {
+        return baseURL;
+      }
 
-    if (!this.endpointResolution[environment].hasOwnProperty(accountId)) {
-        let serviceList = resolveEndpointsByResidency ? [] : AlApiClient.defaultServiceList;
-        if (!serviceList.includes(serviceEndpointId)) {
-            serviceList.push(serviceEndpointId);
-        }
-        this.endpointResolution[environment][accountId] = this.getServiceEndpoints(accountId, serviceList, resolveEndpointsByResidency);
-    }
+      let serviceList = residencyAware ? AlApiClient.resolveByResidencyServiceList : AlApiClient.defaultServiceList;
+      if ( ! serviceList.includes(serviceEndpointId)) {
+          serviceList.push(serviceEndpointId);
+      }
 
-    const collection = await this.endpointResolution[environment][accountId];
-    if (serviceEndpointId in collection) {
-        return collection;
+      if ( residencyAware ) {
+        await this.resolveResidencyAwareEndpoints( accountId, serviceList );
+      } else {
+        await this.resolveDefaultEndpoints( accountId, serviceList );
+      }
+      baseURL = getJsonPath<string>( this.endpointCache,
+                                         [ environment, accountId, serviceEndpointId, residency ],
+                                         null );
+      if ( baseURL ) {
+        return baseURL;
+      }
+      console.log(`WARNING: unable to resolve location of endpoint '${serviceEndpointId}' for account ${accountId} (${residencyAware ? "residency-aware" : "default mode"})` );
+      return null;
+    } );
+    return result;
+  }
+
+  /**
+   * Resolves accumulated endpoints data for the given account.
+   *
+   * Update Feb 2021
+   * ---------------
+   * This has been overhauled to deal with services whose endpoints now must be determined for the current context residency (selected datacenter location in UI).
+   * The reason for this is to cater for scenarios where a parent account manages children that are located across different geographical locations to one another and therefore
+   * any data retrieval for views in the UI where child account roll-ups exist must be fetched from the appropriate location.
+   * The previous implementation ALWAYS calculated service endpoints for the default location of the primary account for the logged in user and so any roll ups for views for child accounts never worked eva!!!
+   *
+   */
+  protected async resolveDefaultEndpoints( accountId:string, serviceList:string[] ) {
+    try {
+      const context = AlLocatorService.getContext();
+      const endpointsRequest:APIRequestParams = {
+        method: "POST",
+        url: AlLocatorService.resolveURL( AlLocation.GlobalAPI, `/endpoints/v1/${accountId}/residency/default/endpoints` ),
+        data: serviceList,
+        aimsAuthHeader: true
+      };
+      let response = await this.axiosRequest( endpointsRequest );
+      Object.entries( response.data ).forEach( ( [ serviceName, endpointHost ] ) => {
+          let host = endpointHost as string;
+          host = host.startsWith("http") ? host : `https://${host}`;      //  ensuring domains are prefixed with protocol
+          setJsonPath( this.endpointCache,
+                       [ context.environment, accountId, serviceName, AlApiClient.defaultResidency ],
+                       host );
+      } );
+    } catch ( e ) {
+      this.fallbackResolveEndpoints( accountId, serviceList, AlApiClient.defaultResidency );
     }
-    this.deleteCachedValue(cacheKey);
-    this.endpointResolution[environment][accountId] = this.getServiceEndpoints(accountId, Object.keys(collection).concat(serviceEndpointId), resolveEndpointsByResidency);
-    return this.endpointResolution[environment][accountId];
+  }
+
+  protected async resolveResidencyAwareEndpoints( accountId:string, serviceList:string[] ) {
+    try {
+      const context = AlLocatorService.getContext();
+      const endpointsRequest:APIRequestParams = {
+        method: "POST",
+        url: AlLocatorService.resolveURL( AlLocation.GlobalAPI, `/endpoints/v1/${accountId}/endpoints` ),
+        data: serviceList,
+        aimsAuthHeader: true
+      };
+      let response = await this.axiosRequest( endpointsRequest );
+      Object.entries( response.data ).forEach( ( [ serviceName, residencyLocations ] ) => {
+          Object.entries(residencyLocations).forEach(([residencyName, residencyHost]) => {
+              Object.entries(residencyHost).forEach(([datacenterId, endpointHost]) => {
+                let host = endpointHost as string;
+                host = host.startsWith("http") ? host : `https://${host}`;      //  ensuring domains are prefixed with protocol
+                setJsonPath( this.endpointCache,
+                             [ context.environment, accountId, serviceName, context.residency ],
+                             host );
+              } );
+          } );
+      } );
+    } catch( e ) {
+      this.fallbackResolveEndpoints( accountId, serviceList, AlLocatorService.getCurrentResidency() );
+    }
+  }
+
+  protected fallbackResolveEndpoints( accountId:string, serviceList:string[], residency:string ) {
+    let context = AlLocatorService.getContext();
+    console.warn(`Could not retrieve data for endpoints for [${serviceList.join(",")}]; using defaults for environment '${context.environment}'` );
+    let insightHost = AlLocatorService.resolveURL( AlLocation.InsightAPI );
+    serviceList.forEach( serviceName => {
+        setJsonPath( this.endpointCache,
+                     [ context.environment, accountId, serviceName, residency ],
+                     insightHost );
+    } );
   }
 
   /**

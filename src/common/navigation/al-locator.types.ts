@@ -263,6 +263,13 @@ export class AlLocatorMatrix
     }
 
     /**
+     * Retrieves the current residency (US or EMEA)
+     */
+    public getCurrentResidency():string {
+        return this.context.residency || "US";
+    }
+
+    /**
      * Arguably the only important general-purpose functionality of this service.
      * Calculates a URL from a location identifier, an optional path fragment, and an optional context.
      *
