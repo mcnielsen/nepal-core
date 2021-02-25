@@ -97,7 +97,20 @@ export class AlSessionInstance
       AlLocation.EndpointsAPI,
       AlLocation.AETunerAPI,
       AlLocation.ResponderAPI,
-      AlLocation.DistributorAPI
+      AlLocation.DistributorAPI,
+      AlLocation.MDRAPI
+
+      /**
+       * STOP!  Please read this note in its entirety before you add items to this list of authenticated stacks.
+       *
+       * If you are authoring an API client for an API based on a subdomain of .mdr.global.alertlogic.com (or its integration equivalent),
+       * please don't create a new AlLocation entry for it.  Instead, use the generic AlLocation.MDRAPI -- this will inject
+       * service_name into the domain (e.g., aetuner.mdr.global.alertlogic.com or kevinwashere.mdr.global.alertlogic.com).
+       * It will also keep our AlLocatorService from becoming really, really slow like an old person with bad knees.
+       * So go back, refactor your client, and do it the right way.
+       *
+       * Failure to comply may result in surprise tickling or water balloon accidents.
+       */
     ];
 
 
