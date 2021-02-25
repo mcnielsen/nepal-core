@@ -716,6 +716,9 @@ export class AlApiClient implements AlValidationSchemaProvider
       // If specific endpoints are disabled or unavailable, use the environment-level default
       fullPath = AlLocatorService.resolveURL( params.service_stack );
     }
+    if ( params.service_prefix ) {
+      fullPath += `/${params.service_prefix}`;
+    }
     if ( params.service_name ) {
         if ( fullPath.includes( "{service}" ) ) {
             fullPath = fullPath.replace( "{service}", params.service_name );
