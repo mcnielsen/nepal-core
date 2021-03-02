@@ -25,7 +25,7 @@ export interface AlDynamicFormControlElement {
     secret?: string;
     description?: string;
     descriptionOnUpdate?: string;
-    defaultValue?: string | string[] | boolean | object;
+    defaultValue?: string | string[] | boolean | object | number ;
     validationPattern?: string;
     optional?: boolean;
     options?: AlDynamicFormControlElementOptions[];
