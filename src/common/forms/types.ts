@@ -9,6 +9,7 @@ export interface AlDynamicFormControlInputResponderOptions {
     buttonLabel?: string;
     options?: {
         group: string;
+        description?: string;
         options: {
             label: string;
             description?: string;
