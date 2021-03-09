@@ -28,6 +28,7 @@ describe('AlSessionDetector', () => {
         warnStub = sinon.stub( console, 'warn' ).callThrough();
         errorStub = sinon.stub( console, 'error' ).callThrough();
         getTokenInfoStub = sinon.stub( AIMSClient, 'getTokenInfo' ).returns( Promise.resolve( exampleSession.authentication ) );
+        sinon.stub( AlSession, "ready" ).returns( Promise.resolve() );
     } );
 
     afterEach( () => {

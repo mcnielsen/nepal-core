@@ -81,6 +81,8 @@ export class AlSessionDetector
 
     async innerDetectSession( resolve:any, reject:any ) {
 
+        await AlSession.ready();        //  always wait for stable session state before detection starts
+
         AlSession.startDetection();
 
         /**
