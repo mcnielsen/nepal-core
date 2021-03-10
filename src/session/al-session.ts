@@ -83,7 +83,7 @@ export class AlSessionInstance
     protected managedAccounts:AIMSAccount[]       =   [];
     protected resolutionGuard                     =   new AlBehaviorPromise<boolean>();         //  This functions as a mutex so that access to resolvedAccount is only available at appropriate times.
     protected detectionGuard                      =   new AlBehaviorPromise<boolean>();         //  resolved after first session detection cycle with no outstanding session detection or account resolution processes in flight.
-    protected detectionProcesses                  =   0;
+    protected activeDetectionCycles               =   0;
     protected storage                             =   AlCabinet.persistent( "al_session" );
 
     /**
@@ -529,7 +529,9 @@ export class AlSessionInstance
      * cycles AND ( user is unauthenticated OR acting account is resolved ).
      */
     public async ready(): Promise<void> {
-        await this.detectionGuard;          //  resolves when first detection process is complete and no other detection cycles are in progress
+        if ( this.activeDetectionCycles > 0 ) {
+            await this.detectionGuard;      //  resolves when first detection process is complete and no other detection cycles are in progress
+        }
         if ( this.isActive() ) {
             await this.resolved();          //  resolves when acting account information has been loaded and processed
         }
@@ -617,7 +619,7 @@ export class AlSessionInstance
      * Allows an external mechanism to indicate that it is detecting a session.
      */
     public startDetection() {
-        this.detectionProcesses += 1;
+        this.activeDetectionCycles += 1;
         this.detectionGuard.rescind();
     }
 
@@ -625,8 +627,8 @@ export class AlSessionInstance
      * Allows an external mechanism to indicate that it is done detecting a session.
      */
     public endDetection() {
-        this.detectionProcesses -= 1;
-        if ( this.detectionProcesses === 0 ) {
+        this.activeDetectionCycles -= 1;
+        if ( this.activeDetectionCycles === 0 ) {
             this.detectionGuard.resolve( true );
         }
     }
