@@ -16,6 +16,7 @@ import {
 import { AlStopwatch } from "../../common/utility";
 
 import { AlSession } from '../al-session';
+import { AlActingAccountResolvedEvent } from '../events';
 import { AlConduitClient } from './al-conduit-client';
 import { AlRuntimeConfiguration, ConfigOption } from '../../configuration';
 
@@ -37,6 +38,11 @@ export class AlSessionDetector
      */
     protected static cachedA0UserInfo:{[accessKey:string]:any} = {};
 
+    /**
+     * Indicates whether a listener to acting account changes has been attached to AlSession yet
+     */
+    protected static listening = false;
+
     /*----- Public Instance Properties -----------------------
     /**
      *  Indicates whether or not this authentication provider is currently authenticated.
@@ -48,6 +54,12 @@ export class AlSessionDetector
      */
     constructor( public conduit:AlConduitClient,
                  public useAuth0:boolean = true ) {
+        if ( ! AlSessionDetector.listening ) {
+            AlSessionDetector.listening = true;
+            AlSession.notifyStream.attach( AlActingAccountResolvedEvent, ( event:AlActingAccountResolvedEvent ) => {
+                this.conduit.setSession( AlSession.getSession() );
+            } );
+        }
     }
 
     /**

@@ -124,15 +124,7 @@ export class AlSessionInstance
        */
       const persistedSession = this.storage.get("session") as AIMSSessionDescriptor;
       if ( persistedSession && persistedSession.hasOwnProperty( "authentication" ) && persistedSession.authentication.token_expiration >= this.getCurrentTimestamp() ) {
-        setTimeout( async () => {
-                        try {
-                            await this.setAuthentication(persistedSession);
-                        } catch( e ) {
-                            this.deactivateSession();
-                            console.warn(`Failed to reinstate session from localStorage: ${e.message}`, e );
-                        }
-                    },
-                    0 );
+        this.restoreSession( persistedSession );
       } else {
         this.storage.destroy();
       }
@@ -211,32 +203,39 @@ export class AlSessionInstance
      * the change of state.
      */
     public async setAuthentication( proposal: AIMSSessionDescriptor ):Promise<AlActingAccountResolvedEvent> {
-      let authenticationSchemaId = "https://alertlogic.com/schematics/aims#definitions/authentication";
-      let validator = new AlJsonValidator( AIMSClient );
-      let test = await validator.test( proposal.authentication, authenticationSchemaId );
-      if ( ! test.valid ) {
-        throw new AlDataValidationError( `The provided data is not a valid session descriptor.`, proposal, authenticationSchemaId, [ test.error ] );
-      }
+      try {
+        this.startDetection();
+        let authenticationSchemaId = "https://alertlogic.com/schematics/aims#definitions/authentication";
+        let validator = new AlJsonValidator( AIMSClient );
+        let test = await validator.test( proposal.authentication, authenticationSchemaId );
+        if ( ! test.valid ) {
+          throw new AlDataValidationError( `The provided data is not a valid session descriptor.`, proposal, authenticationSchemaId, [ test.error ] );
+        }
 
-      if ( proposal.authentication.token_expiration <= this.getCurrentTimestamp()) {
-        throw new Error( "AIMS authentication response contains unexpected expiration timestamp in the past" );
-      }
+        if ( proposal.authentication.token_expiration <= this.getCurrentTimestamp()) {
+          throw new Error( "AIMS authentication response contains unexpected expiration timestamp in the past" );
+        }
 
-      // Now that the content of the authentication session descriptor has been validated, let's make it effective
-      deepMerge( this.sessionData.authentication.user, proposal.authentication.user );
-      deepMerge( this.sessionData.authentication.account, proposal.authentication.account );
-      this.sessionData.authentication.token = proposal.authentication.token;
-      this.sessionData.authentication.token_expiration = proposal.authentication.token_expiration;
-      if ( proposal.boundLocationId ) {
-          this.sessionData.boundLocationId = proposal.boundLocationId;
-      }
-      this.activateSession();
-      let result:AlActingAccountResolvedEvent = proposal.acting
-                                                ? await this.setActingAccount( proposal.acting, proposal.profileId )
-                                                : await this.setActingAccount( proposal.authentication.account, proposal.profileId );
+        // Now that the content of the authentication session descriptor has been validated, let's make it effective
+        deepMerge( this.sessionData.authentication.user, proposal.authentication.user );
+        deepMerge( this.sessionData.authentication.account, proposal.authentication.account );
+        this.sessionData.authentication.token = proposal.authentication.token;
+        this.sessionData.authentication.token_expiration = proposal.authentication.token_expiration;
+        if ( proposal.boundLocationId ) {
+            this.sessionData.boundLocationId = proposal.boundLocationId;
+        }
+        this.activateSession();
+        let result:AlActingAccountResolvedEvent = proposal.acting
+                                                  ? await this.setActingAccount( proposal.acting, proposal.profileId )
+                                                  : await this.setActingAccount( proposal.authentication.account, proposal.profileId );
 
-      this.storage.set("session", this.sessionData );
-      return result;
+        this.storage.set("session", this.sessionData );
+        return result;
+      } catch( e ) {
+        throw e;
+      } finally {
+        this.endDetection();
+      }
     }
 
     /**
@@ -637,6 +636,19 @@ export class AlSessionInstance
      * Private Internal/Utility Methods
      */
 
+    protected async restoreSession( session:AIMSSessionDescriptor ) {
+      try {
+          this.startDetection();
+          await this.setAuthentication(session);
+      } catch( e ) {
+          this.deactivateSession();
+          console.warn(`Failed to reinstate session from localStorage: ${e.message}`, e );
+      } finally {
+          this.endDetection();
+      }
+    }
+
+
     protected async getSessionProfile( profileId?:string ):Promise<AlSessionProfile> {
       if ( ! profileId ) {
         return {};
@@ -754,9 +766,7 @@ export class AlSessionInstance
         service_stack: AlLocation.GestaltAPI,
         service_name: undefined,
         version: undefined,
-        path: `/account/v1/${account.id}/metadata`,
-        retry_count: 3,
-        retry_interval: 1000
+        path: `/account/v1/${account.id}/metadata`
       };
       try {
         let [ metadata, profile ] = await Promise.all( [

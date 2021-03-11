@@ -79,7 +79,7 @@ export class AlApiClient implements AlValidationSchemaProvider
   private storage = AlCabinet.local( 'apiclient.cache' );
   private endpointResolution: {[environment:string]:{[accountId:string]:Promise<AlEndpointsServiceCollection>}} = {};
   private instance:AxiosInstance = null;
-  private lastError:{ status:number, statusText:string, url:string, data:string, headers:{[header:string]:any} } = null;
+  private lastError:AxiosResponse = null;
 
   /* Default request parameters */
   private globalServiceParams: APIRequestParams;
@@ -394,7 +394,7 @@ export class AlApiClient implements AlValidationSchemaProvider
   /**
    * Retrieve a reference to the last HTTP error response received.
    */
-  public getLastError():{ status:number, statusText:string, url:string, data:string }|null {
+  public getLastError():AxiosResponse {
     return this.lastError;
   }
 
@@ -817,13 +817,7 @@ export class AlApiClient implements AlValidationSchemaProvider
   }
 
   protected onRequestError = ( errorResponse:AxiosResponse ):Promise<any> => {
-    this.lastError = {
-      status: errorResponse.status,
-      statusText: errorResponse.statusText,
-      url: errorResponse.config.url,
-      headers: errorResponse.config.headers,
-      data: errorResponse.data as any
-    };
+    this.lastError = errorResponse;
     if ( errorResponse.status >= 500 ) {
         //  TODO: dispatch service error event
         console.error(`APIClient Warning: received response ${errorResponse.status} from API request [${errorResponse.config.method} ${errorResponse.config.url}]`);
@@ -834,7 +828,14 @@ export class AlApiClient implements AlValidationSchemaProvider
         //  TODO: not quite sure...
         console.error(`APIClient Warning: received ${errorResponse.status} from API request [${errorResponse.config.method} ${errorResponse.config.url}]`);
     }
-    this.log( `APIClient Failed Request Snapshot: ${JSON.stringify( this.lastError, null, 4 )}` );
+    let snapshot:any = {
+      status: errorResponse.status,
+      statusText: errorResponse.statusText,
+      url: errorResponse.config.url,
+      headers: errorResponse.config.headers,
+      data: errorResponse.data
+    };
+    this.log( `APIClient Failed Request Snapshot: ${JSON.stringify( snapshot, null, 4 )}` );
     return Promise.reject( errorResponse );
   }
 

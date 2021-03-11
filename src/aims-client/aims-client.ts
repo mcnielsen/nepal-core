@@ -120,7 +120,6 @@ export class AIMSClientInstance implements AlValidationSchemaProvider {
       version: this.serviceVersion,
       account_id: accountId,
       path: `/users/${userId}`,
-      retry_count: 5,
       ttl: 2 * 60 * 1000
     });
     return userDetails as AIMSUser;
@@ -167,7 +166,6 @@ export class AIMSClientInstance implements AlValidationSchemaProvider {
       version: this.serviceVersion,
       account_id: accountId,
       path: '/account',
-      retry_count: 5,
       ttl: 2 * 60 * 1000
     });
     return accountDetails as AIMSAccount;
@@ -211,7 +209,6 @@ export class AIMSClientInstance implements AlValidationSchemaProvider {
       account_id: accountId,
       path: `/account_ids/${relationship}`,
       params: queryParams,
-      retry_count: 5,
       ttl: 2 * 60 * 1000
     });
     return accountIds.account_ids as string[];
@@ -233,7 +230,6 @@ export class AIMSClientInstance implements AlValidationSchemaProvider {
       account_id: accountId,
       path: `/accounts/${relationship}`,
       params: queryParams,
-      retry_count: 5,
       ttl: 2 * 60 * 1000
     });
     return managedAccounts.accounts as AIMSAccount[];

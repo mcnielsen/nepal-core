@@ -162,6 +162,15 @@ export class AlEntitlementCollection
     }
 
     /**
+     * Converts an entitlement collection to an array of entitlement keys
+     */
+    public toArray():string[] {
+        return Object.entries( this.collection )
+                    .filter( ( [ entitlementKey, record ] ) => record.active )
+                    .map( ( [ entitlementKey, record ] ) => entitlementKey );
+    }
+
+    /**
      *  Merges a set of entitlement records into the collection, using the following rules:
      *      -   Active entitlements for a given product supersede inactive entitlements
      *      -   Latest active expiration supercedes earlier expirations
