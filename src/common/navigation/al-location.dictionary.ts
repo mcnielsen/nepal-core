@@ -424,7 +424,8 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
         locTypeId: AlLocation.Auth0,
         uri: 'alertlogic-integration.auth0.com',
         data: {
-          clientID: '8eMblSx2Ead6nT7SeXffXbHT1I4JyAI4'
+          clientID: '6T6zEBgX0WMqksT8mC20c1OvvGqH7Jbj'
+            /* clientID: '8eMblSx2Ead6nT7SeXffXbHT1I4JyAI4' */
         },
         environment: 'development'
     },
