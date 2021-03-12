@@ -120,7 +120,7 @@ export class AlSessionDetector
         /**
          * Check conduit to see if it has a session available
          */
-        let session = await this.conduit.getSession();
+        let session:AIMSSessionDescriptor = await this.conduit.getSession();
         if ( session && typeof( session ) === 'object' && this.sessionIsValid( session ) ) {
             try {
                 await this.ingestExistingSession( session );
@@ -137,11 +137,21 @@ export class AlSessionDetector
                 let accessToken     =   await this.getAuth0SessionToken( authenticator, config, 5000 );
                 let tokenInfo       =   await AIMSClient.getTokenInfo( accessToken );
 
-                this.ingestExistingSession( session ).then( () => this.onDetectionSuccess( resolve ),
-                                                            error => this.onDetectionFail( resolve, `Failed to detect auth0 session` ) );
+                /**
+                 * The following rather obscure assignment is necessary because aims' token_info endpoint responds with the complete token information *except* the token itself
+                 */
+                session = {
+                    authentication: {
+                        token: accessToken,
+                        ...tokenInfo
+                    }
+                };
+
+                await this.ingestExistingSession( session );
+                this.onDetectionSuccess( resolve );
             } catch( e ) {
                 let error = AlErrorHandler.normalize( e );
-                return this.onDetectionFail( resolve, `Failed to detect auth0 session: ${e.message}` );
+                return this.onDetectionFail( resolve, `Failed to detect/ingest auth0 session: ${error.message}` );
             }
         }
     }
