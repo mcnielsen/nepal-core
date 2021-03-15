@@ -141,10 +141,7 @@ export class AlSessionDetector
                  * The following rather obscure assignment is necessary because aims' token_info endpoint responds with the complete token information *except* the token itself
                  */
                 session = {
-                    authentication: {
-                        token: accessToken,
-                        ...tokenInfo
-                    }
+                    authentication: Object.assign({}, tokenInfo, {token: accessToken})
                 };
 
                 await this.ingestExistingSession( session );
