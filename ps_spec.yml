@@ -59,7 +59,7 @@ stages:
     -
         name: Master Push - Publish
         when:
-            - push: ['master', 'beforeAngularV9']
+            - push: ['master']
         image: node:13
         compute_size: small
         commands:
@@ -101,7 +101,7 @@ stages:
                  echo "PUBLISHING $PKGNAME $PKGVERSION"
                  npm run build
                 # git push origin $V_VERSION
-                 npm publish --access public --tag=ng7
+                 npm publish --access public
                  
                  echo "Continuous Delivery release for ${PKGNAME}@${PKGVERSION}" > release_notes.txt
 
