@@ -404,7 +404,7 @@ export class AlSessionDetector
                            } ) ] )
                       .then( ( accessToken:string|any ) => {
                           if ( accessToken && typeof( accessToken ) === 'string' ) {
-                              return accessToken;
+                              return Promise.resolve( accessToken );
                           }
                           return Promise.reject("checkSession returned false or could not complete execution before timeout." );
                       } );

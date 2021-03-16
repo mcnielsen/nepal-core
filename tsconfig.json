@@ -12,7 +12,8 @@
     "inlineSources"                   : true,
     "lib"                             : [
       "dom",
-      "es2019"
+      "es2018",
+      "esnext.array"
     ],
     "module"                          : "es2015",
     "moduleResolution"                : "node",
