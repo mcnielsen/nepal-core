@@ -58,7 +58,7 @@ export interface AlSearchGetV2 {
 export interface AlSearchDetailsV2 {
     query: string;
     search_type: string;
-    start_ts: number;
+    submit_ts: number;
     update_ts: number;
     stats: AlSearchStatsV2;
 }
