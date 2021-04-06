@@ -418,10 +418,10 @@ export class AlLocatorMatrix
                 }
             } );
         } );
-        this.setActingUrl( true );
+        this.setActingUrl( true, true );
     }
 
-    public setActingUrl( actingUri:string|boolean|undefined ) {
+    public setActingUrl( actingUri:string|boolean|undefined, forceRefresh:boolean = false ) {
         if ( actingUri === undefined ) {
             this.actingUri = undefined;
             this.actor = undefined;
@@ -441,7 +441,7 @@ export class AlLocatorMatrix
          *  and updating the ambient context to match its environment and data residency attributes.  It is
          *  opaque for a reason :)
          */
-        if ( actingUri !== this.actingUri ) {
+        if ( actingUri !== this.actingUri || forceRefresh ) {
             this.actingUri = actingUri;
             this.actor = this.getNodeByURI( actingUri );
             if ( this.actor ) {

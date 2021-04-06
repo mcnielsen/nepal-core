@@ -69,3 +69,24 @@ export interface AlExperienceMapping
         trigger:string;
     }[];
 }
+
+/**
+ * Describes a set of paths where specific query parameters should be preserved across navigation events, or removed when
+ * navigation outside of the application area occurs.
+ */
+export interface AlParamPreservationRule {
+    /**
+     * One or more regexes describing logical paths to which these particular rules should be applied
+     */
+    applyTo:RegExp[];
+
+    /**
+     * Query parameters that should be preserved across requests
+     */
+    whitelist?:string[];
+
+    /**
+     * Query parameters that should be destroyed when navigating to a non-matching path
+     */
+    volatile?:string[];
+}

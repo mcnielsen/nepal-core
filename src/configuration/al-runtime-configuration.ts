@@ -1,4 +1,4 @@
-import { AlLocatorService, AlLocationContext } from '../common/navigation/index';
+import { AlLocatorService, AlLocationContext, AlParamPreservationRule } from '../common/navigation/index';
 
 /**
  * AlRuntimeConfiguration provides a single interface to control different behaviors across Alert Logic's UI surface area.
@@ -66,6 +66,7 @@ export class AlRuntimeConfiguration {
     };
 
     protected static options:{[optionKey:string]:string|number|boolean|unknown} = Object.assign( {}, AlRuntimeConfiguration.defaultOptions );
+    protected static paramPreservationZones:{[zoneKey:string]:AlParamPreservationRule} = {};
 
     public static setContext( environment:string, residency:"US"|"EMEA" = "US", locationId?:string ) {
         let context:AlLocationContext = { environment, residency };
@@ -92,5 +93,27 @@ export class AlRuntimeConfiguration {
 
     public static remapLocation( locationTypeId:string, baseURL:string, environment?:string, residency?:string ) {
         AlLocatorService.remapLocationToURI( locationTypeId, baseURL, environment, residency );
+    }
+
+    /**
+     * Saves a parameter preservation rule for consumption by the navigation layer.
+     */
+    public static addParamPreservationRule( zoneKey:string, rule:AlParamPreservationRule ) {
+        AlRuntimeConfiguration.paramPreservationZones[zoneKey] = rule;
+    }
+
+    /**
+     * Removes a parameter preservation rule
+     */
+    public static removeParamPreservationRule( zoneKey:string ) {
+        delete AlRuntimeConfiguration.paramPreservationZones[zoneKey];
+    }
+
+    /**
+     * Finds the parameter preservation rule that should apply to a given path (used by navigation layer)
+     */
+    public static findParamPreservationRule( path:string ):AlParamPreservationRule|null {
+        return Object.values( AlRuntimeConfiguration.paramPreservationZones )
+                    .find( zone => zone.applyTo.some( pathMatcher => pathMatcher.test( path ) ) );
     }
 }
