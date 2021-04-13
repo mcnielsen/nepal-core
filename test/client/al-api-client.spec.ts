@@ -51,20 +51,38 @@ const defaultAuthResponse = {
 
 beforeEach(() => {
     xhrMock.setup();
-    AlLocatorService.setContext( { environment: "integration" } );      //  for unit tests, assume integration environment
-    ALClient['endpointResolution']["integration"] = {};
-    ALClient['endpointResolution']["integration"]["0"] = Promise.resolve( {
-      "cargo": "https://api.global-integration.product.dev.alertlogic.com",
-      "kevin": "https://kevin.product.dev.alertlogic.com",
-      'search': "https://api.global-fake-integration.product.dev.alertlogic.com",
-      "aims": "https://api.global-integration.product.dev.alertlogic.com"
-    } );
-    ALClient['endpointResolution']["integration"]["2"] = ALClient['endpointResolution']["integration"][0];
-    ALClient['endpointResolution']["integration"]["3"] = Promise.resolve( {
-      "cargo": "https://api.global-integration.product.dev.alertlogic.com",
-      "kevin": "https://kevin.product.dev.alertlogic.co.uk"
-    } );
-    ALClient['endpointResolution']["integration"]["67108880"] = ALClient['endpointResolution']["integration"][0];
+    AlLocatorService.setContext( { environment: "integration", residency: 'EMEA', insightLocationId: 'defender-uk-newport' } );      //  for unit tests, assume integration environment
+    ALClient['endpointCache'] = {
+        'integration': {
+            "0": {
+                "cargo": { "default": "https://api.global-integration.product.dev.alertlogic.com" },
+                "kevin": { "default" : "https://kevin.product.dev.alertlogic.com" },
+                "search": { "default" : "https://api.global-fake-integration.product.dev.alertlogic.com" },
+                "aims": { "default" : "https://api.global-integration.product.dev.alertlogic.com" }
+            },
+            "2": {
+                "cargo": { "default": "https://api.global-integration.product.dev.alertlogic.com" },
+                "kevin": { "default" : "https://kevin.product.dev.alertlogic.com" },
+                "search": { "default" : "https://api.global-fake-integration.product.dev.alertlogic.com" },
+                "aims": { "default" : "https://api.global-integration.product.dev.alertlogic.com" }
+            },
+            "3": {
+              "cargo": { "default" : "https://api.global-integration.product.dev.alertlogic.com" },
+              "kevin": { "default" : "https://kevin.product.dev.alertlogic.co.uk" }
+            },
+            "67108880": {
+                "cargo": { "default": "https://api.global-integration.product.dev.alertlogic.com" },
+                "kevin": { "default" : "https://kevin.product.dev.alertlogic.com" },
+                "search": { "default" : "https://api.global-fake-integration.product.dev.alertlogic.com" },
+                "aims": { "default" : "https://api.global-integration.product.dev.alertlogic.com" }
+            },
+            "1234567": {
+                "iris": {
+                    "EMEA": "https://rob.product.dev.alertlogic.co.uk"
+                }
+            }
+        }
+    };
 } );
 afterEach(() => {
   xhrMock.teardown();
@@ -146,6 +164,10 @@ describe('when calculating request URLs', () => {
       endpointURL = await ALClient['calculateRequestURL']( { service_name: 'cargo', target_endpoint: 'kevin', path: '/some/endpoint' } );
       //  expect target endpoint ID to be honored
       expect( endpointURL ).to.equal( `https://kevin.product.dev.alertlogic.com/cargo/some/endpoint` );
+
+      endpointURL = await ALClient['calculateRequestURL']( { service_name: 'iris', version: 1, account_id: '1234567', path: '/some/endpoint', service_stack: AlLocation.InsightAPI  } );
+      //  expect target endpoint to be referenced from residency based lookup
+      expect( endpointURL ).to.equal( `https://rob.product.dev.alertlogic.co.uk/iris/v1/1234567/some/endpoint` );
 
       ALClient.defaultAccountId = "67108880";
       endpointURL = await ALClient['calculateRequestURL']( { service_name: 'kevin', version: 16, path: 'some/arbitrary/endpoint', service_stack: AlLocation.InsightAPI } );
