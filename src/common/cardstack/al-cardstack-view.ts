@@ -104,8 +104,9 @@ export abstract class AlCardstackView< EntityType=any,
             this.filteredCards = this.rawCards;
 
             if ( this.characteristics.localPagination && !sortByApplied) {
-                let initialCards = this.filteredCards.slice(this.cards.length,  this.cards.length + this.itemsPerPage);
-                this.addNextSection( initialCards );
+                this.visibleCards = this.filteredCards.length;
+                this.startPagination(this.filteredCards);
+                this.resetPagination(this.filteredCards.length);
             } else {
                 this.applyFiltersAndSearch();
             }
