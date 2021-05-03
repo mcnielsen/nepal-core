@@ -57,6 +57,10 @@ export class AlConduitClient
         return fragment;
     }
 
+    public async ready() {
+        await AlConduitClient.ready;
+    }
+
     public stop() {
         if ( AlConduitClient.refCount > 0 ) {
             AlConduitClient.refCount--;

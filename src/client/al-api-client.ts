@@ -544,7 +544,7 @@ export class AlApiClient implements AlValidationSchemaProvider
       url: this.getGestaltAuthenticationURL(),
       data: {
         sessionToken: sessionToken,
-        mfa_code: mfaCode
+        mfaCode: mfaCode
       }
     } );
   }
