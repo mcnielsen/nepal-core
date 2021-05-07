@@ -43,6 +43,7 @@ export class AlEntitlementCollection
         "beta_navigation",
         "cloud_defender",
         "cloud_insight",
+        "connection_targets",
         "detect",
         "endpoints_enabled",
         "exposures_enabled",
