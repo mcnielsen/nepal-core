@@ -51,6 +51,7 @@ export class AlLocation
      * Modern UI Nodes
      */
     public static LegacyUI          = "cd14:ui";
+    public static EmbeddedLegacyUI  = "cd14:embedded";
     public static OverviewUI        = "cd17:overview";
     public static IntelligenceUI    = "cd17:intelligence";
     public static ConfigurationUI   = "cd17:config";

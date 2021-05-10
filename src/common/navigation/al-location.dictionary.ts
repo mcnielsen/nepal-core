@@ -143,6 +143,31 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
         }
     },
 
+    /**
+     * Embedded legacy UI
+     */
+    {
+        locTypeId: AlLocation.EmbeddedLegacyUI,
+        insightLocationId: 'defender-us-denver',
+        uri: 'https://console.account.product.dev.alertlogic.com/defender/us-west-1',
+        environment: 'integration|development',
+        residency: "US"
+    },
+    {
+        locTypeId: AlLocation.EmbeddedLegacyUI,
+        insightLocationId: 'defender-us-ashburn',
+        uri: 'https://console.account.product.dev.alertlogic.com/defender/us-east-1',
+        environment: 'integration|development',
+        residency: "US"
+    },
+    {
+        locTypeId: AlLocation.EmbeddedLegacyUI,
+        insightLocationId: 'defender-uk-newport',
+        uri: 'https://console.account.product.dev.alertlogic.com/defender/uk-west-1',
+        environment: 'integration|development',
+        residency: "UK"
+    },
+
     ...AlLocation.uiNode(AlLocation.AccountsUI, 'account', 8002),
     ...AlLocation.uiNode(AlLocation.OverviewUI, 'overview', 4213),
     ...AlLocation.uiNode(AlLocation.IncidentsUI, 'incidents', 8001),

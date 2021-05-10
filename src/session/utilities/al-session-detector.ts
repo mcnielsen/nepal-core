@@ -110,8 +110,10 @@ export class AlSessionDetector
         if ( AlRuntimeConfiguration.getOption( ConfigOption.GestaltAuthenticate, false ) ) {
             try {
                 let session = await this.getGestaltSession();
-                await this.ingestExistingSession( session );
-                return this.onDetectionSuccess( resolve );
+                if ( session ) {
+                    await this.ingestExistingSession( session );
+                    return this.onDetectionSuccess( resolve );
+                }
             } catch( e ) {
                 console.error( 'Unexpected error encountered while attempting to get session status from Gestalt; falling through.', e );
             }
@@ -153,7 +155,7 @@ export class AlSessionDetector
         }
     }
 
-    async getGestaltSession():Promise<AIMSSessionDescriptor> {
+    async getGestaltSession():Promise<AIMSSessionDescriptor|null> {
         let residency = 'US';
         let environment = AlLocatorService.getCurrentEnvironment();
         if ( environment === 'development' ) {
@@ -164,13 +166,16 @@ export class AlSessionDetector
             url: sessionStatusURL,
             withCredentials: true
         } );
+        if ( ! ( 'session' in sessionStatus ) || sessionStatus.session === null ) {
+            return null;
+        }
         let sessionDescriptor = {
             authentication: sessionStatus.session || {}
         };
         if ( this.sessionIsValid( sessionDescriptor ) ) {
             return sessionDescriptor;
         }
-        throw new Error("No session found." );
+        throw new Error("Gestalt session is invalid." );
     }
 
     /**
