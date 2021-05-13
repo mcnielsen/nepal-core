@@ -607,11 +607,15 @@ export class AlSessionInstance
     }
 
     /**
-     * Convenience method to retrieve the array of accounts managed by the current acting account.
+     * Convenience method to retrieve the array of accounts managed by the current acting account (or a specific
+     * other account, if specified)..
      * See caveats for `AlSession.authenticated` method, which also apply to this method.
      */
-    public async getManagedAccounts():Promise<AIMSAccount[]> {
-      return this.resolutionGuard.then( () => AIMSClient.getManagedAccounts( this.getActingAccountId(), { active: true } ) );
+    public async getManagedAccounts( accountId?:string ):Promise<AIMSAccount[]> {
+      if ( ! accountId ) {
+        accountId = this.getActingAccountId();
+      }
+      return this.resolutionGuard.then( () => AIMSClient.getManagedAccounts( accountId, { active: true } ) );
     }
 
     /**

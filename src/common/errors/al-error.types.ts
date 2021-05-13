@@ -28,6 +28,7 @@ export class AlBaseError extends Error
     constructor( message?:string, derivedFrom?:any ) {
         const trueProto = new.target.prototype;
         super(message);
+        this.origin = derivedFrom;
 
         this.__proto__ = trueProto;
     }
@@ -202,3 +203,23 @@ export class AlNotFoundError extends AlBaseError
         super( message );
     }
 }
+
+/**
+ * @public
+ *
+ * Used to wrap an underlying error with a human-friendly message and a reference to the original exception
+ *
+ * @param message - The human-friendly message
+ * @param inner - the underly error
+ */
+export class AlWrappedError extends AlBaseError {
+    constructor( message:string, inner:any ) {
+        /* istanbul ignore next */
+        super( message, inner );
+    }
+
+    public getInnerError():any {
+        return this.origin;
+    }
+}
+

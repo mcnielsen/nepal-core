@@ -1,5 +1,5 @@
 import { AxiosResponse } from 'axios';
-import { AlBaseError, AlAPIServerError } from '../common/errors';
+import { AlBaseError, AlAPIServerError, AlWrappedError } from '../common/errors';
 import { AlDefaultClient, APIRequestParams } from '../client';
 
 /**
@@ -42,5 +42,9 @@ export class AlErrorHandler
             console.log("Not sure how to convert this to an error: ", error );
             return new AlBaseError( `An unexpected internal error occurred.`, error );
         }
+    }
+
+    public static wrap( error:AxiosResponse|AlBaseError|Error|string|any, message:string ):AlWrappedError {
+        return new AlWrappedError( message, error );
     }
 }
