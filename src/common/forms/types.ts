@@ -7,6 +7,7 @@ export interface AlDynamicFormControlElementOptions {
 export interface AlDynamicFormControlInputResponderOptions {
     type?: 'input' | 'textarea';
     buttonLabel?: string;
+    buttonTooltip?: string;
     options?: {
         group: string;
         description?: string;
