@@ -135,19 +135,23 @@ export class AlSessionDetector
         if ( this.useAuth0 ) {
             try {
                 let authenticator   =   this.getAuth0Authenticator();
-                let config          =   this.getAuth0Config( { usePostMessage: true, prompt: 'none' } );
-                let accessToken     =   await this.getAuth0SessionToken( authenticator, config, 5000 );
-                let tokenInfo       =   await AIMSClient.getTokenInfo( accessToken );
+                if ( authenticator ) {
+                    let config          =   this.getAuth0Config( { usePostMessage: true, prompt: 'none' } );
+                    let accessToken     =   await this.getAuth0SessionToken( authenticator, config, 5000 );
+                    let tokenInfo       =   await AIMSClient.getTokenInfo( accessToken );
 
-                /**
-                 * The following rather obscure assignment is necessary because aims' token_info endpoint responds with the complete token information *except* the token itself
-                 */
-                session = {
-                    authentication: Object.assign({}, tokenInfo, {token: accessToken})
-                };
+                    /**
+                     * The following rather obscure assignment is necessary because aims' token_info endpoint responds with the complete token information *except* the token itself
+                     */
+                    session = {
+                        authentication: Object.assign({}, tokenInfo, {token: accessToken})
+                    };
 
-                await this.ingestExistingSession( session );
-                this.onDetectionSuccess( resolve );
+                    await this.ingestExistingSession( session );
+                    this.onDetectionSuccess( resolve );
+                } else {
+                    return this.onDetectionFail( resolve, `auth0 is not installed` );
+                }
             } catch( e ) {
                 let error = AlErrorHandler.normalize( e );
                 return this.onDetectionFail( resolve, `Failed to detect/ingest auth0 session: ${error.message}` );

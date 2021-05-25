@@ -278,6 +278,25 @@ export class AIMSClientInstance implements AlValidationSchemaProvider {
   }
 
   /**
+   * Update account session idle expiration
+   * POST
+   * This updates a single property of an AIMS account record, affecting how long users of that account
+   * can be idle before their sessions will be terminated due to inactivity.
+   */
+  async setAccountIdleThreshold( accountId:string, seconds:number ) {
+    await this.client.post( {
+      service_stack: AlLocation.GlobalAPI,
+      service_name: this.serviceName,
+      version: this.serviceVersion,
+      account_id: accountId,
+      path: '/account',
+      data: {
+        idle_session_timeout: seconds
+      }
+    } );
+  }
+
+  /**
    * Authenticate a user's identity
    * POST
    * /aims/v1/authenticate
