@@ -5,7 +5,7 @@ export interface AlDynamicFormControlElementOptions {
 }
 
 export interface AlDynamicFormControlInputResponderOptions {
-    type?: 'input' | 'textarea';
+    type?: 'input' | 'textarea' | 'dropdown';
     buttonLabel?: string;
     buttonTooltip?: string;
     options?: {
