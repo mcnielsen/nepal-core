@@ -497,16 +497,6 @@ export class AlApiClient implements AlValidationSchemaProvider
       },
       responseType: "json"
     } );
-    /*
-    return this.post( {
-      service_stack: AlLocation.AccountsUI,
-      service_name: 'session',
-      version: 'v1',
-      path: 'authenticate',
-      data: {
-        authorization: `Basic ${this.base64Encode(`${user}:${pass}`)}`
-      }
-    } ); */
   }
 
   /**
@@ -521,7 +511,7 @@ export class AlApiClient implements AlValidationSchemaProvider
    * `authenticateWithMFASessionToken` method on @al/session's ALSession instance.
    */
   /* tslint:disable:variable-name */
-  async authenticateWithMFASessionToken(token: string, mfa_code: string, ignoreWarning?:boolean):Promise<AIMSSessionDescriptor> {
+  async authenticateWithMFASessionToken(sessionToken: string, mfa_code: string, ignoreWarning?:boolean):Promise<AIMSSessionDescriptor> {
     if ( ! ignoreWarning ) {
       console.warn("Warning: this low level authentication method is intended only for use by other services, and will not create a reusable session.  Are you sure you intended to use it?" );
     }
@@ -531,7 +521,7 @@ export class AlApiClient implements AlValidationSchemaProvider
       path: 'authenticate',
       version: 'v1',
       headers: {
-        'X-AIMS-Session-Token': token
+        'X-AIMS-Session-Token': sessionToken
       },
       data: {
         mfa_code: mfa_code
@@ -545,6 +535,34 @@ export class AlApiClient implements AlValidationSchemaProvider
       data: {
         sessionToken: sessionToken,
         mfaCode: mfaCode
+      }
+    } );
+  }
+
+  async acceptTermsOfService( sessionToken:string, ignoreWarning?:boolean ):Promise<AIMSSessionDescriptor> {
+    if ( ! ignoreWarning ) {
+      console.warn("Warning: this low level authentication method is intended only for use by other services, and will not create a reusable session.  Are you sure you intended to use it?" );
+    }
+    return this.post( {
+      service_stack: AlLocation.GlobalAPI,
+      service_name: 'aims',
+      path: 'authenticate',
+      version: 'v1',
+      headers: {
+        'X-AIMS-Session-Token': sessionToken
+      },
+      data: {
+        accept_tos: true
+      }
+    } );
+  }
+
+  async acceptTermsOfServiceViaGestalt( sessionToken:string ):Promise<AIMSSessionDescriptor> {
+    return this.post( {
+      url: this.getGestaltAuthenticationURL(),
+      data: {
+        sessionToken: sessionToken,
+        acceptTOS: true
       }
     } );
   }
