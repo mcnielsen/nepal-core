@@ -49,17 +49,27 @@ export class AlSessionDetector
      */
     public authenticated:boolean = false;
 
-    /**
-     *
-     */
     constructor( public conduit:AlConduitClient,
                  public useAuth0:boolean = true ) {
         if ( ! AlSessionDetector.listening ) {
             AlSessionDetector.listening = true;
             AlSession.notifyStream.attach( AlActingAccountResolvedEvent, ( event:AlActingAccountResolvedEvent ) => {
-                this.conduit.setSession( AlSession.getSession() );
+                this.onActingAccountResolved( event );
             } );
         }
+    }
+
+    public async onActingAccountResolved( event:AlActingAccountResolvedEvent ) {
+        let response = await this.conduit.setSession( AlSession.getSession() );
+        if ( response && response.authentication && response.authentication.token_expiration > AlSession.getTokenExpiry() ) {
+            try {
+                let resolved = await AlSession.setAuthentication( response );
+                console.log("Notice: newer session token acquired from conduit; replacing existing authentication.");
+            } catch( e ) {
+                AlErrorHandler.log( e, `Conduit provided a newer session, but it could not be applied locally` );
+            }
+        }
+        return true;
     }
 
     /**
@@ -105,6 +115,20 @@ export class AlSessionDetector
         }
 
         /**
+         * Check conduit to see if it has a session available
+         */
+        let session:AIMSSessionDescriptor = await this.conduit.getSession();
+        if ( session && typeof( session ) === 'object' && this.sessionIsValid( session ) ) {
+            try {
+                await this.ingestExistingSession( session );
+                return this.onDetectionSuccess( resolve );
+            } catch ( e ) {
+                await this.conduit.deleteSession();
+                return this.onDetectionFail( resolve, "Conduit session could not be ingested; destroying it and triggering unauthenticated access handling.");
+            }
+        }
+
+        /**
          * Can Gestalt's session status endpoint confirm we have a session?
          */
         if ( AlRuntimeConfiguration.getOption( ConfigOption.GestaltAuthenticate, false ) ) {
@@ -120,18 +144,8 @@ export class AlSessionDetector
         }
 
         /**
-         * Check conduit to see if it has a session available
+         * Can Auth0 give us a session?
          */
-        let session:AIMSSessionDescriptor = await this.conduit.getSession();
-        if ( session && typeof( session ) === 'object' && this.sessionIsValid( session ) ) {
-            try {
-                await this.ingestExistingSession( session );
-                return this.onDetectionSuccess( resolve );
-            } catch ( e ) {
-                await this.conduit.deleteSession();
-                return this.onDetectionFail( resolve, "Conduit session could not be ingested; destroying it and triggering unauthenticated access handling.");
-            }
-        }
         if ( this.useAuth0 ) {
             try {
                 let authenticator   =   this.getAuth0Authenticator();

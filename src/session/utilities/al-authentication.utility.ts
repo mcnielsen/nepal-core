@@ -112,6 +112,7 @@ export class AlAuthenticationUtility {
                 return this.state.result;
             }
         }
+        this.state.result = AlAuthenticationResult.InvalidCredentials;
         return this.state.result;
     }
 

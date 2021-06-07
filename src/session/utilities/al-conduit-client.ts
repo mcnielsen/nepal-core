@@ -124,11 +124,14 @@ export class AlConduitClient
     }
 
     /**
-     * Sets session information TO the conduit.  Should always resolve with a copy of the session information.
+     * Sets session information TO the conduit.  Should always resolve with a copy of the session (including acting
+     * account and active datacenter) that conduit considers most fresh.  Note that in rare cases this may
+     * deviate from the session provided to this method, in which case the caller should update its data to reflect
+     * conduit's.
      */
-    public setSession(sessionData: AIMSSessionDescriptor): Promise<AIMSSessionDescriptor> {
-        return this.request('conduit.setSession', { session: sessionData })
-                    .then( rawResponse => rawResponse.session as AIMSSessionDescriptor );
+    public async setSession(sessionData: AIMSSessionDescriptor): Promise<AIMSSessionDescriptor> {
+        let result = await this.request( 'conduit.setSession', { session: sessionData } );
+        return result.session;
     }
 
     /**

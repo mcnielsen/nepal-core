@@ -211,6 +211,7 @@ describe('AlSessionDetector', () => {
             it( "should resolve true", async () => {
                 AlRuntimeConfiguration.setOption( ConfigOption.GestaltAuthenticate, true );
                 AlSession.deactivateSession();
+                sinon.stub( conduit, 'getSession' ).returns( Promise.resolve( null ) );
                 sinon.stub( sessionDetector, 'getGestaltSession' ).returns( Promise.resolve( exampleSession ) );
                 sinon.stub( sessionDetector, 'ingestExistingSession' ).returns( Promise.resolve( true ) );
                 let result = await sessionDetector.detectSession();
