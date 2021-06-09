@@ -21,6 +21,7 @@ import {
     AlDefaultClient,
 } from "../client";
 import { AlDataValidationError } from "../common/errors";
+import { AlErrorHandler } from '../error-handler';
 import {
     AlInsightLocations,
     AlLocation,
@@ -225,6 +226,7 @@ export class AlSessionInstance
             this.sessionData.boundLocationId = proposal.boundLocationId;
         }
         this.activateSession();
+
         let result:AlActingAccountResolvedEvent = proposal.acting
                                                   ? await this.setActingAccount( proposal.acting, proposal.profileId )
                                                   : await this.setActingAccount( proposal.authentication.account, proposal.profileId );
@@ -232,6 +234,8 @@ export class AlSessionInstance
         this.storage.set("session", this.sessionData );
         return result;
       } catch( e ) {
+        AlErrorHandler.log( e, `AlSession.setAuthentication() failed` );
+        this.deactivateSession();
         throw e;
       } finally {
         this.endDetection();

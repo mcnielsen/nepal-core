@@ -13,6 +13,7 @@ export enum AlAuthenticationResult {
     Unauthenticated         = 'unauthenticated',
     Authenticated           = 'authenticated',
     AccountLocked           = 'account_locked',
+    AccountUnavailable      = 'account_unavailable',
     PasswordResetRequired   = 'password_expired',
     MFAEnrollmentRequired   = 'mfa_enrollment_required',
     MFAVerificationRequired = 'mfa_verification_required',
@@ -198,11 +199,14 @@ export class AlAuthenticationUtility {
             } else if ( this.requiresTOSAcceptance( error ) ) {
                 this.state.result = AlAuthenticationResult.TOSAcceptanceRequired;
                 this.state.termsOfServiceURL = getJsonPath<string>( error, 'data.tos_url', null );
+            } else if( error.status === 400) {
+                this.state.result = AlAuthenticationResult.AccountLocked;
+                return true;
             } else if ( error.status === 401 ) {
                 this.state.result = AlAuthenticationResult.InvalidCredentials;
                 return true;
-            } else if( error.status === 400) {
-                this.state.result = AlAuthenticationResult.AccountLocked;
+            } else if ( error.status === 403 ) {
+                this.state.result = AlAuthenticationResult.AccountUnavailable;
                 return true;
             }
             /**
