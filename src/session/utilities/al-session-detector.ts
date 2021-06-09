@@ -92,6 +92,19 @@ export class AlSessionDetector
     }
 
     /**
+     * Returns a promise that either resolves immediately (if no session detection is in process) or resolves after
+     * an in-progress detection cycle has completed.  This allows the caller to wait for detection to finish without
+     * starting an unwanted detection cycle.
+     */
+
+    public async detectionComplete():Promise<boolean> {
+        if ( AlSessionDetector.detectionPromise ) {
+            await AlSessionDetector.detectionPromise;
+        }
+        return AlSession.isActive();
+    }
+
+    /**
      *  Imperatively forces the user to authenticate.
      */
 
