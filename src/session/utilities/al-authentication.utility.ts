@@ -190,7 +190,7 @@ export class AlAuthenticationUtility {
                 this.state.sessionToken = error.headers['x-aims-session-token'];
                 return true;
             } else if ( this.requiresMfaEnrollment( error ) ) {
-                this.state.result = AlAuthenticationResult.MFAVerificationRequired;
+                this.state.result = AlAuthenticationResult.MFAEnrollmentRequired;
                 this.state.sessionToken = error.headers['x-aims-session-token'];
                 return true;
             } else if ( this.requiresPasswordReset( error ) ) {
@@ -199,6 +199,8 @@ export class AlAuthenticationUtility {
             } else if ( this.requiresTOSAcceptance( error ) ) {
                 this.state.result = AlAuthenticationResult.TOSAcceptanceRequired;
                 this.state.termsOfServiceURL = getJsonPath<string>( error, 'data.tos_url', null );
+                this.state.sessionToken = error.headers['x-aims-session-token'];
+                return true;
             } else if( error.status === 400) {
                 this.state.result = AlAuthenticationResult.AccountLocked;
                 return true;

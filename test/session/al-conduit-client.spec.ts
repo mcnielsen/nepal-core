@@ -32,6 +32,11 @@ describe('AlConduitClient', () => {
         return event;
     };
 
+    before( () => {
+        let client = new AlConduitClient();
+        client.destroy();       //  make sure we start from a zero state
+    } );
+
     beforeEach( () => {
         AlLocatorService.setContext( { environment: "production" } );
         conduitClient = new AlConduitClient();

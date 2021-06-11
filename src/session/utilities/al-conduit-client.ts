@@ -73,6 +73,23 @@ export class AlConduitClient
         }
     }
 
+    public destroy() {
+        if ( AlConduitClient.document ) {
+            let container = AlConduitClient.document.getElementById( "conduitClient" );
+            if ( container ) {
+                AlConduitClient.document.body.removeChild( container );
+            }
+        }
+        AlConduitClient.document = undefined;
+        AlConduitClient.conduitUri = undefined;
+        AlConduitClient.conduitWindow = undefined;
+        AlConduitClient.conduitOrigin = undefined;
+        AlConduitClient.refCount = 0;
+        AlConduitClient.requestIndex = 0;
+        AlConduitClient.requests = {};
+        AlConduitClient.externalSessions = {};
+    }
+
     /**
      * Checks to see if a session with an external resource has been established.
      *

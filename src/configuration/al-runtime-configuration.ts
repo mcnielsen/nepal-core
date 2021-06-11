@@ -87,6 +87,10 @@ export class AlRuntimeConfiguration {
         return defaultValue;
     }
 
+    public static getOptions() {
+        return this.options;
+    }
+
     public static reset() {
         this.options = Object.assign( {}, AlRuntimeConfiguration.defaultOptions );
     }
