@@ -774,7 +774,8 @@ export class AlSessionInstance
         service_stack: AlLocation.GestaltAPI,
         service_name: undefined,
         version: undefined,
-        path: `/account/v1/${account.id}/metadata`
+        path: `/account/v1/${account.id}/metadata`,
+        withCredentials: false
       };
       try {
         let [ metadata, profile ] = await Promise.all( [

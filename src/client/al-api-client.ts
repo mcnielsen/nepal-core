@@ -485,7 +485,8 @@ export class AlApiClient implements AlValidationSchemaProvider
       headers: {
         Authorization: `Basic ${this.base64Encode(`${user}:${pass}`)}`
       },
-      data: payload
+      data: payload,
+      withCredentials: true
     });
   }
 
@@ -525,7 +526,8 @@ export class AlApiClient implements AlValidationSchemaProvider
       },
       data: {
         mfa_code: mfa_code
-      }
+      },
+      withCredentials: true
     } );
   }
 
@@ -553,7 +555,8 @@ export class AlApiClient implements AlValidationSchemaProvider
       },
       data: {
         accept_tos: true
-      }
+      },
+      withCredentials: true
     } );
   }
 
@@ -876,7 +879,7 @@ export class AlApiClient implements AlValidationSchemaProvider
 
     this.instance = axios.create({
       timeout: 0,
-      withCredentials: true,
+      withCredentials: false,
       headers: headers,
       paramsSerializer: params => this.normalizeQueryParams(params).replace('?','')
     });
