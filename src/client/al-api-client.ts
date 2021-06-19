@@ -493,6 +493,7 @@ export class AlApiClient implements AlValidationSchemaProvider
   async authenticateViaGestalt( user:string, pass:string, ignoreWarning?:boolean ):Promise<AIMSSessionDescriptor> {
     return this.post( {
       url: this.getGestaltAuthenticationURL(),
+      withCredentials: true,
       data: {
         authorization: `Basic ${this.base64Encode(`${user}:${pass}`)}`
       },
@@ -534,6 +535,7 @@ export class AlApiClient implements AlValidationSchemaProvider
   async authenticateWithMFAViaGestalt( sessionToken:string, mfaCode:string ):Promise<AIMSSessionDescriptor> {
     return this.post( {
       url: this.getGestaltAuthenticationURL(),
+      withCredentials: true,
       data: {
         sessionToken: sessionToken,
         mfaCode: mfaCode
@@ -563,6 +565,7 @@ export class AlApiClient implements AlValidationSchemaProvider
   async acceptTermsOfServiceViaGestalt( sessionToken:string ):Promise<AIMSSessionDescriptor> {
     return this.post( {
       url: this.getGestaltAuthenticationURL(),
+      withCredentials: true,
       data: {
         sessionToken: sessionToken,
         acceptTOS: true
@@ -885,7 +888,10 @@ export class AlApiClient implements AlValidationSchemaProvider
     });
 
     this.instance.interceptors.request.use(
-      config => {
+      ( config:APIRequestParams ) => {
+        if ( config.service_stack === AlLocation.LegacyUI ) {
+          config.withCredentials = true;
+        }
         this.events.trigger( new AlClientBeforeRequestEvent( config ) );        //    Allow event subscribers to modify the request (e.g., add a session token header) if they want
         if ( ! this.isBrowserBased() ) {
             config.headers['Origin'] = AlLocatorService.resolveURL( AlLocation.AccountsUI );
