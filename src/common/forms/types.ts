@@ -42,6 +42,7 @@ export interface AlDynamicFormControlElement {
     joinExpresion?: string;
     splitExpresion?: RegExp | string;
     multiSelectOptions?: unknown;
+    treeSelectOptions?: unknown;
     title?: string;
     minLength?: number;
     maxLength?: number;
