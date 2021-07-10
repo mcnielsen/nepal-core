@@ -191,6 +191,36 @@ export class AlBadGatewayError extends AlBaseError
 /**
  * @public
  *
+ * Used to indicate that an upstream service is unavailable.
+ */
+export class AlServiceUnavailableError extends AlBaseError
+{
+    public httpResponseCode:number = 503;
+    /* tslint:disable:no-unused-variable */
+    constructor( message:string, public upstreamService:string, public requestDescription:unknown ) {
+        /* istanbul ignore next */
+        super(message);
+    }
+}
+
+/**
+ * @public
+ *
+ * Used to indicate that an upstream service has failed to complete a request in a timely fashion.
+ */
+export class AlGatewayTimeoutError extends AlBaseError
+{
+    public httpResponseCode:number = 504;
+    /* tslint:disable:no-unused-variable */
+    constructor( message:string, public upstreamService:string, public requestDescription:unknown ) {
+        /* istanbul ignore next */
+        super(message);
+    }
+}
+
+/**
+ * @public
+ *
  * Used to indicate that a resource does not exist.
  *
  * @param message - A general description of the error and error context.

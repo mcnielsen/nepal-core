@@ -28,7 +28,7 @@ import axios, {
     Method,
 } from 'axios';
 import * as base64JS from 'base64-js';
-import { AlDataValidationError } from '../common/errors';
+import { AlDataValidationError, AlGatewayTimeoutError } from '../common/errors';
 import {
     AlLocation,
     AlLocationContext,
@@ -962,7 +962,9 @@ export class AlApiClient implements AlValidationSchemaProvider
                                 return response;
                               },
                               error => {
-                                if ( this.isRetryableError( error, config, attemptIndex ) ) {
+                                if ( this.isRequestTimeout( error, config ) ) {
+                                  return Promise.reject( new AlGatewayTimeoutError( error.message, config.service_name || 'unknown', config ) );
+                                } else if ( this.isRetryableError( error, config, attemptIndex ) ) {
                                   attemptIndex++;
                                   const delay = Math.floor( ( config.retry_interval ? config.retry_interval : 1000 ) * attemptIndex );
                                   return new Promise<AxiosResponse>( ( resolve, reject ) => {
@@ -977,7 +979,9 @@ export class AlApiClient implements AlValidationSchemaProvider
                                 return Promise.reject( error );
                               } )
                         .catch( exception => {
-                          if ( this.isRetryableError( null, config, attemptIndex ) ) {
+                          if ( this.isRequestTimeout( exception, config ) ) {
+                            return Promise.reject( new AlGatewayTimeoutError( exception.message, config.service_name || 'unknown', config ) );
+                          } else if ( this.isRetryableError( null, config, attemptIndex ) ) {
                             attemptIndex++;
                             const delay = Math.floor( ( config.retry_interval ? config.retry_interval : 1000 ) * attemptIndex );
                             return new Promise<AxiosResponse>( ( resolve, reject ) => {
@@ -1032,6 +1036,10 @@ export class AlApiClient implements AlValidationSchemaProvider
       return true;
     }
     return false;
+  }
+
+  protected isRequestTimeout( error:any, config:APIRequestParams ) {
+    return 'code' in error && error.code === 'ECONNABORTED' && config.timeout;
   }
 
   /**
