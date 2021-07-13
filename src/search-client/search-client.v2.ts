@@ -53,6 +53,7 @@ export interface AlSearchGetV2 {
     next_token?: string;
     offset: number;
     total_found: number;
+    external_details: string;
 }
 
 export interface AlSearchDetailsV2 {
