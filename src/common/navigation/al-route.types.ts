@@ -105,7 +105,7 @@ export interface AlRouteCondition
     //  An array of entitlement expressions to evaluate against the primary account's entitlements
     primaryEntitlements?:string[];
 
-    //  An array of environments to match against (e.g., "integration", "development", "production", etc.
+    //  An array of environments to match against (e.g., "integration", "development", "production", etc.)
     environments?:string[];
 
     //  An array of account IDs that fulfill the condition
@@ -113,6 +113,12 @@ export interface AlRouteCondition
 
     //  An array of primary account IDs that fulfill the condition
     primaryAccounts?:string[];
+
+    //  An array of locations to match against (e.g., "defender-us-denver", "insight-us-virginia", etc), measured against the acting account.
+    locations?:string[];
+
+    //  An array of locations to match against, measured against the primary account
+    primaryLocations?:string[];
 
     //  An array of navigation experiences to match against (e.g., "beta", "default", "delta", "omega-123").  Please note that this matches
     //  both the "global" experience and any experience mappings that may be true (e.g., log#siemless or search#universal).
