@@ -49,4 +49,5 @@ export interface AlDynamicFormControlElement {
     minValue?: number;
     maxValue?: number;
     onNodeSelected?: (event: any) => void;
+    onNodeUnselected?: (event: any) => void;
 }
