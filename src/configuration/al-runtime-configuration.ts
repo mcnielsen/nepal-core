@@ -100,6 +100,15 @@ export class AlRuntimeConfiguration {
     }
 
     /**
+     * Sets the map of parameter preservation rules for consumption by the navigation layer.
+     */
+    public static setParamPreservationRules( rulesMap: { [zoneKey: string]: AlParamPreservationRule } ) {
+        for (const [zoneKey, rule] of Object.entries(rulesMap)) {
+            AlRuntimeConfiguration.paramPreservationZones[zoneKey] = rule;
+        }
+    }
+
+    /**
      * Saves a parameter preservation rule for consumption by the navigation layer.
      */
     public static addParamPreservationRule( zoneKey:string, rule:AlParamPreservationRule ) {
