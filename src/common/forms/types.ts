@@ -38,6 +38,8 @@ export interface AlDynamicFormControlElement {
     belowDescription?: string;
     patternError?: string;
     requiredError?: string;
+    minLengthError?: string;
+    maxLengthError?: string;
     dataType?: string;
     joinExpresion?: string;
     splitExpresion?: RegExp | string;
