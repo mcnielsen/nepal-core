@@ -213,12 +213,34 @@ export interface AlRouteDefinition {
 }
 
 /**
+ * @private
+ *
+ * Utility class for menu tree refreshes and activation checks; mostly intended to avoid repetitive string manipulation :)
+ */
+class AlRouteIterationState {
+    public depth: number = 0;
+    public currentUrlNoParams:string;
+    public host:AlRoutingHost;
+
+    constructor( public rootNode:AlRoute ) {
+        this.host = rootNode.host;
+        this.currentUrlNoParams = rootNode.host.currentUrl.includes("?")
+                                ? rootNode.host.currentUrl.substring( 0, rootNode.host.currentUrl.indexOf("?") )
+                                : this.host.currentUrl;
+    }
+}
+
+/**
  *  @public
  *
  *  An AlRoute is an instantiated route definition, attached to a routing host, and capable of actually calculating target URLs based on context
  *  and handling navigation events.
  */
 export class AlRoute {
+    public static debug:boolean = false;
+
+    /* A global cache of compiled regexes for match checking */
+    public static reCache:{[pattern:string]:RegExp|null} = {};
 
     /* The route's caption, echoed from its definition but possibly translated */
     caption:string;
@@ -237,8 +259,6 @@ export class AlRoute {
 
     /* Child menu items */
     children:AlRoute[] = [];
-
-    // host?:AlRoutingHost;
 
     /* Arbitrary properties */
     properties: {[property:string]:any} = {};
@@ -331,18 +351,30 @@ export class AlRoute {
     }
 
     /**
-     * Refreshes the state of a given route.
+     * Refreshes the state of a given route.  Internal refresh should be considered an extension of this method; the outer function
+     * simply wraps the tree iteration process in exception handling.
      *
      * @param resolve - If true, forces the calculated href and visibility properties to be recalculated.
      *
      * @returns Returns true if the route (or one of its children) is activated, false otherwise.
      */
-    refresh( resolve:boolean = false ):boolean|undefined {
+    refresh( resolve:boolean = false ) {
+        try {
+            let state = new AlRouteIterationState( this );
+            this.internalRefresh( resolve, state );
+        } catch( e ) {
+            console.error(`Navigation Error: could not refresh menu: `, e );
+        }
+    }
+
+    internalRefresh( resolve:boolean = false, state:AlRouteIterationState ):boolean|undefined {
         if ( this.locked ) {
             //  If this menu item has been locked, then we won't reevaluate its URL, its visibility, or its activated status.
             //  This lets outside software take "manual" control of the state of a given menu.
             return;
         }
+
+        state.depth++;
 
         /* Evaluate visibility */
         this.visible = true;        //  true until proven otherwise
@@ -372,13 +404,14 @@ export class AlRoute {
         }
 
         /* Evaluate children recursively, and deduce activation state from them. */
-        let childActivated = this.children.reduce( ( activated, child ) => child.refresh( resolve ) || activated, false );
+        let childActivated = this.children.reduce( ( activated, child ) => child.internalRefresh( resolve, state ) || activated, false );
 
         /* Evaluate fully qualified href, if visible/relevant */
         let action:AlRouteAction|null = this.getRouteAction();
         if ( action ) {
             if ( this.visible && ( resolve || this.href === null ) && action.type === 'link' ) {
                 if ( ! this.evaluateHref( action ) ) {
+                    state.depth--;
                     return this.disable();
                 }
             }
@@ -388,7 +421,7 @@ export class AlRoute {
 
         //  activation test for path match
         if ( ! this.activated ) {
-            this.evaluateActivation();
+            this.evaluateActivation( state );
         }
 
         //  bubble route?  if so, push calculated activation/visibility/route state to parent.
@@ -400,6 +433,7 @@ export class AlRoute {
             this.parent.href = this.href;
         }
 
+        state.depth--;
         return this.activated;
     }
 
@@ -520,25 +554,39 @@ export class AlRoute {
     /**
      * Evaluates the activation state of the route
      */
-    evaluateActivation():boolean {
+    evaluateActivation( state:AlRouteIterationState ):boolean {
         if ( this.definition.activationRule === 'inert' || ! this.href ) {
             //  Not a candidate for activation
             return false;
         }
         if ( this.baseHREF && this.host.currentUrl.startsWith( this.baseHREF ) ) {
             const noParamsHref = this.href.includes('?') ? this.href.substring(0, this.href.indexOf('?')) : this.href;
-            const noParamsCurrentHref = this.host.currentUrl.includes("?") ? this.host.currentUrl.substring( 0, this.host.currentUrl.indexOf("?") ) : this.host.currentUrl;
-            if ( noParamsCurrentHref === noParamsHref ) {
+            if ( state.currentUrlNoParams === noParamsHref ) {
                 //  If our full URL *contains* the current URL, we are activated
+                if ( AlRoute.debug ) {
+                    console.log("Navigation: activating route [%s] based on exact path match", this.definition.caption, state.currentUrlNoParams, this.definition );
+                }
                 this.activated = true;
             } else if ( this.definition.matches ) {
                 //  If we match any other match patterns, we are activated
-                for ( let m = 0; m < this.definition.matches.length; m++ ) {
-                    const regexp = ( "^" + this.baseHREF + this.definition.matches[m] + "$" ).replace("/", "\\/" );
-                    const comparison = new RegExp( regexp );
-                    if ( comparison.test( this.host.currentUrl ) ) {
-                        this.activated = true;
+                let matchedPattern = this.definition.matches.find( matchPattern => {
+                    if ( ! ( matchPattern in AlRoute.reCache ) ) {
+                        try {
+                            const normalized = `^${this.baseHREF}${matchPattern}$`.replace("/", "\\/" );
+                            AlRoute.reCache[matchPattern] = new RegExp( normalized );
+                        } catch( e ) {
+                            console.warn( `Warning: invalid navigation match pattern '${matchPattern}' cannot be compiled as a regular expression; ignoring.` );
+                            AlRoute.reCache[matchPattern] = null;
+                        }
                     }
+                    let regexp = AlRoute.reCache[matchPattern];
+                    return regexp ? regexp.test( state.currentUrlNoParams ) : false;
+                } );
+                if ( matchedPattern ) {
+                    if ( AlRoute.debug ) {
+                        console.log(`Navigation: activating route [%s] based on regular expression match [%s]`, this.definition.caption, matchedPattern, this.definition );
+                    }
+                    this.activated = true;
                 }
             }
         }

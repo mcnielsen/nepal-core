@@ -1,4 +1,4 @@
-import { AlLocatorService, AlLocationContext, AlParamPreservationRule } from '../common/navigation/index';
+import { AlLocatorService, AlLocationContext, AlParamPreservationRule, AlRoute } from '../common/navigation/index';
 
 /**
  * AlRuntimeConfiguration provides a single interface to control different behaviors across Alert Logic's UI surface area.
@@ -31,6 +31,8 @@ import { AlLocatorService, AlLocationContext, AlParamPreservationRule } from '..
  *   - ConfigOption.NavigationDefaultAuthState - tristate option indicates whether the default navigation state of the app is
  *      true (user must be authenticated to access), false (no session is required to access), or `null`, in which case the authentication property
  *      of navigational structures is used to determine which navigational options are available.  Defaults to 'null.'
+ *
+ *   - ConfigOption.NavigationDiagnostics - when enabled, causes the navigation layer to emit "helpful" commentary.
  */
 
 export enum ConfigOption {
@@ -44,7 +46,8 @@ export enum ConfigOption {
     NavigationViaGestalt        = "navigation_use_gestalt",
     NavigationAssetPath         = "navigation_asset_path",
     NavigationDefaultAuthState  = "navigation_default_authentication",
-    NavigationIntegratedAuth    = "navigation_use_integrated_auth"
+    NavigationIntegratedAuth    = "navigation_use_integrated_auth",
+    NavigationDiagnostics       = "navigation_debug"
 }
 
 /**
@@ -62,7 +65,8 @@ export class AlRuntimeConfiguration {
         'navigation_use_conduit': false,
         'navigation_use_gestalt': true,
         'navigation_asset_path': 'assets/navigation',
-        'navigation_default_authentication': null
+        'navigation_default_authentication': null,
+        'navigation_debug': false
     };
 
     protected static options:{[optionKey:string]:string|number|boolean|unknown} = Object.assign( {}, AlRuntimeConfiguration.defaultOptions );
@@ -74,29 +78,44 @@ export class AlRuntimeConfiguration {
             context.insightLocationId = locationId;
         }
         AlLocatorService.setContext( context );
+        AlRoute.reCache = {};
     }
 
     public static setOption<ValueType=any>( option:ConfigOption, value:ValueType ) {
-        this.options[option] = value;
+        AlRuntimeConfiguration.options[option] = value;
+        AlRoute.debug = AlRuntimeConfiguration.getOption( ConfigOption.NavigationDiagnostics, false );
     }
 
     public static getOption<ValueType=any>( option:ConfigOption, defaultValue?:ValueType ):ValueType|undefined {
-        if ( ( option as string ) in this.options ) {
-            return this.options[option] as ValueType;
+        if ( ( option as string ) in AlRuntimeConfiguration.options ) {
+            return AlRuntimeConfiguration.options[option] as ValueType;
         }
         return defaultValue;
     }
 
     public static getOptions() {
-        return this.options;
+        return AlRuntimeConfiguration.options;
     }
 
     public static reset() {
-        this.options = Object.assign( {}, AlRuntimeConfiguration.defaultOptions );
+        AlRuntimeConfiguration.options = Object.assign( {}, AlRuntimeConfiguration.defaultOptions );
+        AlRoute.reCache = {};
     }
 
     public static remapLocation( locationTypeId:string, baseURL:string, environment?:string, residency?:string ) {
         AlLocatorService.remapLocationToURI( locationTypeId, baseURL, environment, residency );
+        AlRoute.reCache = {};
+    }
+
+    /**
+     *  To run an application with local static content, run ui-static-content's build script, copy the entire `dist` folder into your application's
+     *  src/assets/external, and then invoke this function.  The path can be overridden, of course!
+     */
+    public static useLocalContent( assetBasePath:string = 'assets/external' ) {
+        AlRuntimeConfiguration.setOption( ConfigOption.NavigationViaGestalt, false );
+        AlRuntimeConfiguration.setOption( ConfigOption.NavigationViaConduit, false );
+        AlRuntimeConfiguration.setOption( ConfigOption.ManagedContentAssetPath, assetBasePath );
+        AlRuntimeConfiguration.setOption( ConfigOption.NavigationAssetPath, `${assetBasePath}/navigation` );
     }
 
     /**
