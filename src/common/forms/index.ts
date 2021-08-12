@@ -25,7 +25,7 @@ export interface AlDynamicFormControlElement<Type=any> {
      * Deprecation alert!  These properties will go away in the future, so try not to use them :)
      */
     title?:string;
-    disabled?:boolean|string;
+    disabled?:boolean;
     dataType?:string;
     updateNotAllowed?:boolean;
     validationPattern?:string;
