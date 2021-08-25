@@ -1,6 +1,7 @@
 /**
  * A client for interacting with the Alert Logic Search Public API.
  */
+import { AlLocation } from 'src/common/navigation/al-locator.types';
 import {
     AlDefaultClient,
     APIRequestParams,
@@ -185,6 +186,25 @@ class SearchClient {
       params: queryParams,
     });
     return messages as ReadLogMessageResponse[];
+  }
+
+  /**
+   * Read Messages POST
+   * Read a set of messages from storage by ID. Proxy for daccess service messages API. Only addition is logmsgs data type messages are also parsed and tokenised
+   */
+  async readMessagesPost(accountId: string, dataType: string = 'logmsgs', params: { ids: string[], fields?: string }): Promise<ReadLogMessageResponse[]> {
+      // Let's set the fields default value
+      // which is to get all of them
+      if (!params?.fields) {
+        params.fields = '__all';
+      }
+      return AlDefaultClient.post({
+          service_stack: AlLocation.InsightAPI,
+          service_name: this.serviceName,
+          account_id: accountId,
+          path: `/messages/${dataType}`,
+          data: params
+      });
   }
 }
 
