@@ -289,6 +289,19 @@ class AlSearchClientV2 {
             path: `/searches/${uuid}/complete`,
         });
     }
+
+    /**
+     * Convert a SIEMless (search/v1) search into an Expert Mode SQL query (search/v2).
+     */
+    async convertQueryToEMS( queryJSON:any ):Promise<string> {
+        return AlDefaultClient.post<string>( {
+            service_stack: AlLocation.InsightAPI,
+            service_name: this.serviceName,
+            version: 2,
+            path: `/convert-from-v1`,
+            data: queryJSON
+        } );
+    }
 }
 
 export const alSearchClientV2 = new AlSearchClientV2();
