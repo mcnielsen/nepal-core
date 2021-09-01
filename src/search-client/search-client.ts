@@ -3,8 +3,8 @@
  */
 import { AlLocation } from 'src/common/navigation/al-locator.types';
 import {
-    AlDefaultClient,
-    APIRequestParams,
+  AlDefaultClient,
+  APIRequestParams,
 } from "../client";
 
 export interface LogMessageSearchResult {
@@ -61,37 +61,156 @@ export interface SearchResultsQueryParams {
   starting_token?: string;
 }
 
+export interface LogMessageFields {
+  time_recv: number;
+  hostname: string;
+  facility: string;
+  message: string;
+  parsed: {
+    rule_id: string;
+    rule_name: string;
+    pattern_id: string;
+    tokens: { [key: string]: string };
+  };
+  metadata: {
+    uuid: string;
+    create_ts: number;
+    dict: {
+      hostname: string;
+      public_hostname: string;
+      instance_id: string;
+      ip_addr: string;
+      public_ip_addr: string;
+      os: string;
+      os_version: string;
+      os_arch: string;
+      os_machine: string;
+    }
+  };
+  prioriy: number;
+  program: string;
+}
 export interface ReadLogMessageResponse {
   id: LogMessageMetaData;
-  fields: {
-    time_recv: number;
-    hostname: string;
-    facility: string;
-    message: string;
-    parsed: {
-      rule_id: string;
-      rule_name: string;
-      pattern_id: string;
-      tokens: { [key: string]: string };
-    },
-    metadata: {
-      uuid: string;
-      create_ts: number;
-      dict: {
-        hostname: string;
-        public_hostname: string;
-        instance_id: string;
-        ip_addr: string;
-        public_ip_addr: string;
-        os: string;
-        os_version: string;
-        os_arch: string;
-        os_machine: string;
-      }
-    },
-    prioriy: number;
-    program: string;
-  };
+  fields: LogMessageFields|IdsMessageFields|FimMessageFields;
+}
+
+export interface Flags {
+  urg: boolean;
+  syn: boolean;
+  rst: boolean;
+  psh: boolean;
+  ns: boolean;
+  fin: boolean;
+  ece: boolean;
+  cwr: boolean;
+  ack: boolean;
+  mf?: boolean;
+  df?: boolean;
+}
+
+export interface Protocol {
+  winsize: number;
+  urgent: number;
+  srcport: number;
+  seq: number;
+  options: string;
+  offset: number;
+  id: string;
+  flags: Flags;
+  dstport: number;
+  data_off: number;
+  checksum: number;
+  ack: number;
+  ttl?: number;
+  total_length?: number;
+  srcip: string;
+  ident?: number;
+  header_len?: number;
+  frag_offset?: number;
+  ecn?: number;
+  dstip: string;
+  diffserv?: number;
+  srcmac: string;
+  dstmac: string;
+}
+
+export interface Proto {
+  srcport: number;
+  protocols: Protocol[];
+  protocol: number;
+  offset: number;
+  ip_src: string;
+  ip_dst: string;
+  dstport: number;
+}
+
+export interface Payload {
+  ts_us: number;
+  ts: number;
+  rec_idx: number;
+  proto: Proto;
+  data: string;
+}
+
+export interface IdsMessageFields {
+  vlan?: number;
+  ts_us: number;
+  ts: number;
+  srcport: number;
+  sig_rev: number;
+  sig_id: number;
+  sig_gen: number;
+  proto: number;
+  priority: number;
+  payload: Payload[];
+  orig?: boolean;
+  mpls?: number;
+  ip_src: string;
+  ip_proxy_client?: string;
+  ip_proxy?: string;
+  ip_dst: string;
+  ingest_ts: number;
+  ingest_id: string;
+  event_id: number;
+  dstport: number;
+  class: number;
+  asset_id: string;
+}
+
+export interface ReadIdsMessageResponse extends ReadLogMessageResponse {
+  fields: IdsMessageFields;
+}
+
+export interface Asset {
+  dict: object;
+  data: string;
+  asset_id: string;
+}
+
+export interface FimMessageFields {
+  ts: number;
+  sha1_hash: string;
+  path: string;
+  ingest_ts: number;
+  ingest_id: string;
+  host_id: string;
+  file_type: string;
+  file_size: number;
+  file_permissions: number;
+  file_owner: string;
+  file_name: string;
+  file_mtime: number;
+  file_group: string;
+  file_ctime: number;
+  file_attributes: number;
+  file_atime: number;
+  event_type: string;
+  asset: Asset;
+}
+
+export interface ReadFimMessageResponse extends ReadLogMessageResponse {
+  fields: FimMessageFields;
 }
 
 class SearchClient {
@@ -193,18 +312,18 @@ class SearchClient {
    * Read a set of messages from storage by ID. Proxy for daccess service messages API. Only addition is logmsgs data type messages are also parsed and tokenised
    */
   async readMessagesPost(accountId: string, dataType: string = 'logmsgs', params: { ids: string[], fields?: string }): Promise<ReadLogMessageResponse[]> {
-      // Let's set the fields default value
-      // which is to get all of them
-      if (!params?.fields) {
-        params.fields = '__all';
-      }
-      return AlDefaultClient.post({
-          service_stack: AlLocation.InsightAPI,
-          service_name: this.serviceName,
-          account_id: accountId,
-          path: `/messages/${dataType}`,
-          data: params
-      });
+    // Let's set the fields default value
+    // which is to get all of them
+    if (!params?.fields) {
+      params.fields = '__all';
+    }
+    return AlDefaultClient.post({
+      service_stack: AlLocation.InsightAPI,
+      service_name: this.serviceName,
+      account_id: accountId,
+      path: `/messages/${dataType}`,
+      data: params
+    });
   }
 }
 
