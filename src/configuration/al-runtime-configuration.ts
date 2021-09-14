@@ -33,6 +33,9 @@ import { AlLocatorService, AlLocationContext, AlParamPreservationRule, AlRoute }
  *      of navigational structures is used to determine which navigational options are available.  Defaults to 'null.'
  *
  *   - ConfigOption.NavigationDiagnostics - when enabled, causes the navigation layer to emit "helpful" commentary.
+ *
+ *   - ConfigOption.Headless and ConfigOption.ActingURI are provided to support angular universal pre-rendering, where there is no DOM
+ *      and no browser context, but the libraries need to be marshalled as though there were.
  */
 
 export enum ConfigOption {
@@ -47,7 +50,9 @@ export enum ConfigOption {
     NavigationAssetPath         = "navigation_asset_path",
     NavigationDefaultAuthState  = "navigation_default_authentication",
     NavigationIntegratedAuth    = "navigation_use_integrated_auth",
-    NavigationDiagnostics       = "navigation_debug"
+    NavigationDiagnostics       = "navigation_debug",
+    Headless                    = "headless",
+    HeadlessActingURI           = "headless_uri"
 }
 
 /**
@@ -66,7 +71,9 @@ export class AlRuntimeConfiguration {
         'navigation_use_gestalt': true,
         'navigation_asset_path': 'assets/navigation',
         'navigation_default_authentication': null,
-        'navigation_debug': false
+        'navigation_debug': false,
+        'headless': false,
+        'headless_uri': ''
     };
 
     protected static options:{[optionKey:string]:string|number|boolean|unknown} = Object.assign( {}, AlRuntimeConfiguration.defaultOptions );
@@ -105,6 +112,14 @@ export class AlRuntimeConfiguration {
     public static remapLocation( locationTypeId:string, baseURL:string, environment?:string, residency?:string ) {
         AlLocatorService.remapLocationToURI( locationTypeId, baseURL, environment, residency );
         AlRoute.reCache = {};
+    }
+
+    /**
+     * Enables headless mode, optionally assuming a specific "acting" uri
+     */
+    public static useHeadlessMode( actingUri:string = 'https://console.account.alertlogic.com' ) {
+        AlRuntimeConfiguration.setOption( ConfigOption.Headless, true );
+        AlRuntimeConfiguration.setOption( ConfigOption.HeadlessActingURI, actingUri );
     }
 
     /**

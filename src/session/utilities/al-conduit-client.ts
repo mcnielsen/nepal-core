@@ -29,7 +29,14 @@ export class AlConduitClient
 
     protected static requestIndex = 0;
 
-    public start( targetDocument:Document = document ) {
+    public start( targetDocument?:Document ) {
+        if ( ! targetDocument ) {
+            if ( typeof( document ) === 'undefined' ) {
+                console.log("AlConduitClient: cannot start in headless mode." );
+                return;
+            }
+            targetDocument = document;
+        }
         if ( AlConduitClient.refCount < 1 ) {
             AlConduitClient.document = targetDocument;
             if ( targetDocument && targetDocument.body && typeof( targetDocument.body.appendChild ) === 'function' ) {
@@ -47,8 +54,8 @@ export class AlConduitClient
             environment = 'integration';
         }
         AlConduitClient.conduitUri = AlLocatorService.resolveURL( AlLocation.AccountsUI, '/conduit.html', { residency, environment } );
-        const fragment = document.createDocumentFragment();
-        const container = document.createElement( "div" );
+        const fragment = AlConduitClient.document.createDocumentFragment();
+        const container = AlConduitClient.document.createElement( "div" );
         container.setAttribute("id", "conduitClient" );
         container.setAttribute("class", "conduit-container" );
         window.addEventListener( "message", this.onReceiveMessage, false );
