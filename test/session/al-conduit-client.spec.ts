@@ -63,6 +63,8 @@ describe('AlConduitClient', () => {
 
     describe(".render()", () => {
         it( "should generate a valid document fragment", () => {
+            let d = document.implementation.createHTMLDocument("Fake Document" );
+            AlConduitClient['document'] = d;
             let fragment = conduitClient.render();
             expect( true ).to.equal( true );        //  I have no fucking idea how to evaluate the fragment.  If it compiles without errors, does that count for anything?
         } );
