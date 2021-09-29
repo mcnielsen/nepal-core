@@ -180,6 +180,7 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
     ...AlLocation.uiNode(AlLocation.HealthUI, 'health', 8003),
     ...AlLocation.uiNode(AlLocation.ExposuresUI, 'exposures', 8006),
     ...AlLocation.uiNode(AlLocation.LandscapeUI, 'landscape', 4230),
+    ...AlLocation.uiNode(AlLocation.MagmaUI, 'magma', 8888 ),
 
     {
         locTypeId: AlLocation.DashboardsUI,

@@ -34,7 +34,10 @@ export interface AlLocationContext {
 export class AlLocation
 {
     /**
-     * API Stacks
+     * API Stacks.  A note for "MDR" APIs: please do not create new locations
+     * for each individual API.  Instead, please use AlLocation.MDRAPI: this will use
+     * a generic MDR base URL and inject the service name into the target domain instead of its
+     * path, as with the IWS services.
      */
     public static GlobalAPI         = "global:api";
     public static InsightAPI        = "insight:api";
@@ -46,9 +49,10 @@ export class AlLocation
     public static ResponderWS       = "responder:ws";
     public static DistributorAPI    = "distributor:api";
     public static MDRAPI            = "mdr:api";
+    /* Read above: no new locations for *.mdr.alertlogic.com targets. */
 
     /**
-     * Modern UI Nodes
+     * UI Nodes
      */
     public static LegacyUI          = "cd14:ui";
     public static EmbeddedLegacyUI  = "cd14:embedded";
@@ -69,6 +73,7 @@ export class AlLocation
     public static DisputesUI        = "cd17:disputes";
     public static DashboardsUI      = "cd19:dashboards";
     public static ExposuresUI       = "cd17:exposures";
+    public static MagmaUI           = "cd21:magma";
 
     /**
      * Miscellaneous/External Resources
