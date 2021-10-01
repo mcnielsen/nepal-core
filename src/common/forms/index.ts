@@ -51,4 +51,5 @@ export interface AlDynamicFormControlElement<Type=any> {
     onNodeSelected?:any;
     onNodeUnselected?:any;
     columns?:any;
+    cssClass?:string;
 }
