@@ -92,7 +92,7 @@ export interface LogMessageFields {
 }
 export interface ReadLogMessageResponse {
   id: LogMessageMetaData;
-  fields: LogMessageFields|IdsMessageFields|FimMessageFields;
+  fields: LogMessageFields|IdsMessageFields|FimDataFields|ObservationFields;
 }
 
 export interface Flags {
@@ -188,7 +188,7 @@ export interface Asset {
   asset_id: string;
 }
 
-export interface FimMessageFields {
+export interface FimDataFields {
   ts: number;
   sha1_hash: string;
   path: string;
@@ -209,8 +209,45 @@ export interface FimMessageFields {
   asset: Asset;
 }
 
-export interface ReadFimMessageResponse extends ReadLogMessageResponse {
-  fields: FimMessageFields;
+export interface ReadFimDataResponse extends ReadLogMessageResponse {
+  fields: FimDataFields;
+}
+
+export interface ObservationFields {
+    visibility: string;
+    ts: number;
+    technique?: string;
+    tactic?: string;
+    summary: string;
+    subclass: string;
+    sub_technique?: string;
+    start_ts: number;
+    severity: string;
+    scope_type: string;
+    scope: string[];
+    recommendations: string;
+    properties_data: string;
+    properties: { [key: string]: any };
+    path: string;
+    parents: string[];
+    keys_data: string;
+    keys: { [key: string]: any };
+    internal_data: string;
+    internal: { [key: string]: any };
+    ingest_ts: number;
+    ingest_id: string;
+    id: string;
+    handling: string[];
+    evolved_to?: string;
+    end_ts: number;
+    desc: string;
+    confidence?: number;
+    class: string;
+    authority: string;
+}
+
+export interface ReadObservationResponse extends ReadLogMessageResponse {
+  fields: ObservationFields;
 }
 
 class SearchClient {
