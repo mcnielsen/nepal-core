@@ -134,4 +134,55 @@ describe('AlAuthenticationUtility', () => {
         } );
     } );
 
+    describe( ".filterReturnURL()", () => {
+        beforeEach( () => {
+            AlSession.deactivateSession();
+            authenticator = new AlAuthenticationUtility( { sessionToken: "MySessionToken" } );
+        } );
+
+        it( "should allow legit internal URLs", () => {
+            let internalURLs = [
+                `https://console.dashboards.alertlogic.com/#/some/silly/path`,
+                `http://console.overview.alertlogic.com`,
+                `https://ng-common-components.ui-dev.product.dev.alertlogic.com`,
+                `https://console.exposures.alertlogic.co.uk/#/blah/2?aaid=2&locid=thppppt`,
+                `https://console.alertlogic.net/events.php`
+            ];
+
+            internalURLs.forEach( url => {
+                let value = authenticator.filterReturnURL( url );
+                expect( value ).to.equal( url );
+            } );
+        } );
+
+        it( "should allow localhost URLs", () => {
+            let localURLs = [
+                `https://localhost:99999/#/dashboards`,
+                `http://localhost:4220/#/search/expert/2?aaid=2&locid=defender-us-denver`
+            ];
+            localURLs.forEach( url => {
+                let value = authenticator.filterReturnURL( url );
+                expect( value ).to.equal( url );
+            } );
+        } );
+
+        it( "should reject external URLs", () => {
+            let externalURLs = [
+                `https://google.com`,
+                `https://console.dashboards.alertlogic.hackery.com/#/some/silly/path`,
+                `https://console.alertlogic-not.com`
+            ];
+
+            externalURLs.forEach( url => {
+                let value = authenticator.filterReturnURL( url );
+                expect( value ).to.equal( `https://console.account.alertlogic.com/#/` );
+            } );
+        } );
+
+        it( "should allow the caller to override the default URL", () => {
+            let result = authenticator.filterReturnURL( `https://google.com`, `https://console.alertlogic.com/#/path` );
+            expect( result ).to.equal( `https://console.alertlogic.com/#/path` );
+        } );
+    } );
+
 } );

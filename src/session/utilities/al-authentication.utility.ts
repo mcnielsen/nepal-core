@@ -1,5 +1,6 @@
 import { AlDefaultClient } from '../../client';
 import { AlSession } from '../al-session';
+import { AlLocatorService, AlLocation } from '../../common/navigation';
 import { AIMSSessionDescriptor } from '../../aims-client/types';
 import { AlRuntimeConfiguration, ConfigOption } from '../../configuration';
 import { AlConduitClient } from './al-conduit-client';
@@ -169,6 +170,20 @@ export class AlAuthenticationUtility {
             throw new Error("Invalid usage: no terms of service URL is available." );
         }
         return this.state.termsOfServiceURL;
+    }
+
+    /**
+     * "Normalizes" a return URL -- internally, this merely checks the URL against a whitelist of target domains.
+     */
+    public filterReturnURL( returnURL:string, defaultReturnURL?:string ):string {
+        let validPatterns = [
+            /https?:\/\/[\w\-\.]*alertlogic\.(net|com|co\.uk).*/,
+            /https?:\/\/localhost:.*/
+        ];
+        if ( validPatterns.find( pattern => pattern.test( returnURL ) ) ) {
+            return returnURL;
+        }
+        return defaultReturnURL || AlLocatorService.resolveURL( AlLocation.AccountsUI, `/#/` );
     }
 
     /**
