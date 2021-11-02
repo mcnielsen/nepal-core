@@ -39,7 +39,7 @@ export abstract class AlCardstackView< EntityType=any,
     public groupingBy:      AlCardstackPropertyDescriptor|null                  =   null;       //  Grouping property
     public sortingBy:       AlCardstackPropertyDescriptor|null                  =   null;       //  Sortation property
     public sortOrder:       'asc'|'desc'                                        =   "asc";      //  Sortation direction, either "asc" or "desc".  Yes, "sortation" is a real word ;-)
-    public dateRange:       Date[]                                              =   [];
+    public dateRange:       Date[] | number[]                                   =   [];
     public checked: boolean = false;
     //  Defines which filters are currently "active"
     public activeFilters: AlCardstackActiveFilter<EntityType,PropertyType>[]    =   [];
