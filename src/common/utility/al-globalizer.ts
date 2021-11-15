@@ -3,6 +3,8 @@
  * Copyright 2019 Alert Logic, Inc.
  */
 
+import { AlRuntimeConfiguration, ConfigOption } from '../../configuration/al-runtime-configuration';
+
 /**
  * @public
  *
@@ -47,7 +49,11 @@ export class AlGlobalizer
             if ( collisionHandling === true ) {
                 console.warn(`Warning: the global service ${name} has already been instantiated.  This probably indicates a packaging or bundling problem of some sort.` );
             } else if ( typeof( collisionHandling ) === 'string' ) {
-                throw new Error( collisionHandling );
+                if ( AlRuntimeConfiguration.getOption<boolean>(ConfigOption.StrictCollisionHandling) ) {
+                    throw new Error( collisionHandling );
+                } else {
+                    console.warn(`Warning: the global service ${name} has already been instantiated; ignoring duplicates because of permissive collision handling.` );
+                }
             } else {
                 return storage[name];
             }

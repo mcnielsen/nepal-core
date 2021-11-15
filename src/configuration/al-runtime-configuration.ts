@@ -1,4 +1,25 @@
-import { AlLocatorService, AlLocationContext, AlParamPreservationRule, AlRoute } from '../common/navigation/index';
+import { AlLocatorService, AlLocationContext, AlRoute } from '../common/navigation/index';
+
+/**
+ * Describes a set of paths where specific query parameters should be preserved across navigation events, or removed when
+ * navigation outside of the application area occurs.
+ */
+export interface AlParamPreservationRule {
+    /**
+     * One or more regexes describing logical paths to which these particular rules should be applied
+     */
+    applyTo:RegExp[];
+
+    /**
+     * Query parameters that should be preserved across requests
+     */
+    whitelist?:string[];
+
+    /**
+     * Query parameters that should be destroyed when navigating to a non-matching path
+     */
+    volatile?:string[];
+}
 
 /**
  * AlRuntimeConfiguration provides a single interface to control different behaviors across Alert Logic's UI surface area.
@@ -36,6 +57,9 @@ import { AlLocatorService, AlLocationContext, AlParamPreservationRule, AlRoute }
  *
  *   - ConfigOption.Headless and ConfigOption.ActingURI are provided to support angular universal pre-rendering, where there is no DOM
  *      and no browser context, but the libraries need to be marshalled as though there were.
+ *
+ *   - ConfigOption.StrictCollisionHandling allows the user to disable exception throwing when modules (such as AlSession) are required multiple times by
+ *      more permissive frameworks, such as testing environments (Cypress, I'm looking at you)
  */
 
 export enum ConfigOption {
@@ -52,7 +76,8 @@ export enum ConfigOption {
     NavigationIntegratedAuth    = "navigation_use_integrated_auth",
     NavigationDiagnostics       = "navigation_debug",
     Headless                    = "headless",
-    HeadlessActingURI           = "headless_uri"
+    HeadlessActingURI           = "headless_uri",
+    StrictCollisionHandling     = "strict_collision_handling",
 }
 
 /**
@@ -73,7 +98,8 @@ export class AlRuntimeConfiguration {
         'navigation_default_authentication': null,
         'navigation_debug': false,
         'headless': false,
-        'headless_uri': ''
+        'headless_uri': '',
+        'strict_collision_handling': true,
     };
 
     protected static options:{[optionKey:string]:string|number|boolean|unknown} = Object.assign( {}, AlRuntimeConfiguration.defaultOptions );
