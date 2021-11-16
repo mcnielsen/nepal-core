@@ -57,9 +57,6 @@ export interface AlParamPreservationRule {
  *
  *   - ConfigOption.Headless and ConfigOption.ActingURI are provided to support angular universal pre-rendering, where there is no DOM
  *      and no browser context, but the libraries need to be marshalled as though there were.
- *
- *   - ConfigOption.StrictCollisionHandling allows the user to disable exception throwing when modules (such as AlSession) are required multiple times by
- *      more permissive frameworks, such as testing environments (Cypress, I'm looking at you)
  */
 
 export enum ConfigOption {
@@ -77,7 +74,6 @@ export enum ConfigOption {
     NavigationDiagnostics       = "navigation_debug",
     Headless                    = "headless",
     HeadlessActingURI           = "headless_uri",
-    StrictCollisionHandling     = "strict_collision_handling",
 }
 
 /**
