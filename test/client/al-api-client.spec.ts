@@ -177,6 +177,24 @@ describe('when calculating request URLs', () => {
 
     });
   });
+  describe("using `target_endpoint` resolution", () => {
+    it("should resolve correct url", async () => {
+      xhrMock.post( 'https://api.global-integration.product.dev.alertlogic.com/endpoints/v1/10101010/residency/default/endpoints', once({
+        status: 200,
+        body: {"bryan": "api.bryan.alertlogic.com"}
+      }) );
+      let url = await ALClient['calculateRequestURL']( { target_endpoint: 'bryan', path: 'playbooks', version: 1, account_id: "10101010" } );
+      expect( url ).to.equal( 'https://api.bryan.alertlogic.com/v1/10101010/playbooks' );
+    } );
+    it("should set wss protocol for async endpoints", async () => {
+      xhrMock.post( 'https://api.global-integration.product.dev.alertlogic.com/endpoints/v1/10101010/residency/default/endpoints', once({
+        status: 200,
+        body: {"bryan": "async.bryan.alertlogic.com"}
+      }) );
+      let url = await ALClient['calculateRequestURL']( { target_endpoint: 'bryan', path: 'playbooks', version: 1, account_id: "10101010" } );
+      expect( url ).to.equal( 'wss://async.bryan.alertlogic.com/v1/10101010/playbooks' );
+    } );
+  } );
   describe("and an exception is thrown from the `endpoints` service", () => {
     it("should fall back to default values", async () => {
       xhrMock.post( 'https://api.global-integration.product.dev.alertlogic.com/endpoints/v1/10101010/residency/default/endpoints', once({
