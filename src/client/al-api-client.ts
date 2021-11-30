@@ -718,10 +718,10 @@ export class AlApiClient implements AlValidationSchemaProvider
       let response = await this.axiosRequest( endpointsRequest );
       Object.entries( response.data ).forEach( ( [ serviceName, endpointHost ] ) => {
           let host = endpointHost as string;
-          if (host.startsWith("async")) { // naming convention for WebSocket services
+          if ( host.startsWith("async.") ) { // naming convention for WebSocket services
             host = `wss://${host}`; // add prefix for websocket protocol
-          } else {
-            host = host.startsWith("http") ? host : `https://${host}`;      //  ensuring domains are prefixed with protocol
+          } else if ( !host.startsWith("http") ) {
+            host = `https://${host}`;      //  ensuring domains are prefixed with protocol
           }
           setJsonPath( this.endpointCache,
                        [ context.environment, accountId, serviceName, AlApiClient.defaultResidency ],
@@ -848,11 +848,11 @@ export class AlApiClient implements AlValidationSchemaProvider
           Object.entries(residencyLocations).forEach(([residencyName, residencyHost]) => {
               Object.entries(residencyHost).forEach(([datacenterId, endpointHost]) => {
                 let host = endpointHost as string;
-                if (host.startsWith("async")) { // naming convention for WebSocket services
+                if ( host.startsWith("async.") ) { // naming convention for WebSocket services
                   host = `wss://${host}`; // add prefix for websocket protocol
                   console.warn("host", host);
-                } else {
-                  host = host.startsWith("http") ? host : `https://${host}`;      //  ensuring domains are prefixed with protocol
+                } else if ( !host.startsWith("http") ) {
+                  host = `https://${host}`;      //  ensuring domains are prefixed with protocol
                 }
                 setJsonPath( this.endpointCache,
                              [ context.environment, accountId, serviceName, residencyName ],
