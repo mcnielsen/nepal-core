@@ -71,6 +71,8 @@ const dummyCharacteristics:unknown = {
 
     filterableBy: [ "color", "shape", "category" ],
 
+    searchableBy: [ "category" ],
+
     groupableBy: [],
 
     definitions: {
@@ -131,6 +133,7 @@ export interface DummyProperties
     shape:string;
     date_created:number;
     size:number;
+    category:string;
 }
 
 export class DummyCardstack extends AlCardstackView<DummyModel,DummyProperties>
@@ -178,7 +181,8 @@ export class DummyCardstack extends AlCardstackView<DummyModel,DummyProperties>
             color: entity.colorId,
             shape: entity.shapeId,
             date_created: entity.created.at,
-            size: entity.unit_count
+            size: entity.unit_count,
+            category: "sumpin"
         }
     }
 }

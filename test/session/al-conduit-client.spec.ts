@@ -272,6 +272,7 @@ describe('AlConduitClient', () => {
      */
     describe( ".request()", () => {
         it( "should wait for readiness, resolve account app, and post message", (done) => {
+            AlLocatorService.setContext( { 'residency': 'EMEA' } );
             let readyMessage = {
                 source: {
                     postMessage: sinon.stub()

@@ -103,6 +103,12 @@ export class AlApiClient implements AlValidationSchemaProvider
   private endpointsGuard            =   new AlMutex();
   private endpointCache:AlEndpointsDictionary = {};
 
+  /* List of stacks (service_stack property in APIRequestParams) that should have endpoints resolution enabled by default */
+  private endpointsStackWhitelist = [
+      AlLocation.InsightAPI,
+      AlLocation.MDRAPI
+  ];
+
   /* Default request parameters */
   private globalServiceParams: APIRequestParams;
 
@@ -754,7 +760,7 @@ export class AlApiClient implements AlValidationSchemaProvider
     let fullPath:string = null;
     if ( ! params.noEndpointsResolution
            && ! AlRuntimeConfiguration.getOption<boolean>( ConfigOption.DisableEndpointsResolution, false )
-           && ( params.target_endpoint || ( params.service_name && params.service_stack === AlLocation.InsightAPI ) ) ) {
+           && ( params.target_endpoint || ( params.service_name && this.endpointsStackWhitelist.includes( params.service_stack ) ) ) ) {
       // Utilize the endpoints service to determine which location to use for this service/account pair
       fullPath = await this.prepare( params );
     }
@@ -766,9 +772,9 @@ export class AlApiClient implements AlValidationSchemaProvider
       fullPath += `/${params.service_prefix}`;
     }
     if ( params.service_name ) {
-        if ( fullPath.includes( "{service}" ) ) {
+        if ( params.service_stack === AlLocation.MDRAPI && fullPath.includes( "{service}" ) ) {
             fullPath = fullPath.replace( "{service}", params.service_name );
-        } else {
+        } else if ( params.service_stack !== AlLocation.MDRAPI ) {
             fullPath += `/${params.service_name}`;
         }
     }

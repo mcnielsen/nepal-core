@@ -66,7 +66,7 @@ export interface APIRequestParams extends AxiosRequestConfig {
     service_name?: string;            //  Which service are we trying to talk to?
     residency?: string;               //  What residency domain do we prefer?  Defaults to 'default'.
     service_prefix?: string;          //  Does this endpoint need a specific prefix before service, version, and account are integrated?  Most services should not need this, only dumb ones.
-    version?: string|number;          //  What version of the service do we want to talk to?
+    version?: string|number|null;     //  What version of the service do we want to talk to?
     account_id?: string;              //  Which account_id's data are we trying to access/modify through the service?
     context_account_id?:string;       //  If provided, uses the given account's endpoints/residency to determine service URLs _without_ adding the account ID to the request path.
 
