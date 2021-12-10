@@ -20,8 +20,8 @@ export class AlSubscriptionsClient {
    * /subscriptions/v1/:account_id/entitlements
    * "https://api.global-integration.product.dev.alertlogic.com/subscriptions/v1/01000001/entitlements"
    */
-  async getEntitlements( accountId:string ):Promise<AlEntitlementCollection> {
-    const rawEntitlementData = await this.getRawEntitlements( accountId );
+  async getEntitlements( accountId:string, queryParams? ):Promise<AlEntitlementCollection> {
+    const rawEntitlementData = await this.getRawEntitlements( accountId, queryParams );
     return AlEntitlementCollection.import( rawEntitlementData, this.internalUser );
   }
 

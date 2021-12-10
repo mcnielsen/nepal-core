@@ -1,6 +1,6 @@
 {
   "name": "@al/core",
-  "version": "1.0.166",
+  "version": "1.0.167",
   "description": "Node Enterprise Packages for Alert Logic (NEPAL) Core Library",
   "main": "./dist/index.cjs.js",
   "types": "./dist/index.d.ts",
