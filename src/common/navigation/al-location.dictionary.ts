@@ -174,12 +174,12 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
     ...AlLocation.uiNode(AlLocation.IntelligenceUI, 'intelligence', 4211),
     ...AlLocation.uiNode(AlLocation.ConfigurationUI, 'configuration', 4210),
     ...AlLocation.uiNode(AlLocation.RemediationsUI, 'remediations', 4212),
-    ...AlLocation.uiNode(AlLocation.SearchUI, 'search', 4220),
+    ...AlLocation.uiNode(AlLocation.SearchUI, 'search', 4220, '/#/search'),
     ...AlLocation.uiNode(AlLocation.EndpointsUI, 'endpoints', 8004),
-    ...AlLocation.uiNode(AlLocation.DashboardsUI, 'dashboards', 7001),
+    ...AlLocation.uiNode(AlLocation.DashboardsUI, 'dashboards', 7001, '/#/dashboards'),
     ...AlLocation.uiNode(AlLocation.HealthUI, 'health', 8003),
-    ...AlLocation.uiNode(AlLocation.ExposuresUI, 'exposures', 8006),
-    ...AlLocation.uiNode(AlLocation.LandscapeUI, 'landscape', 4230),
+    ...AlLocation.uiNode(AlLocation.ExposuresUI, 'exposures', 8006, '/#/exposures-management'),
+    ...AlLocation.uiNode(AlLocation.LandscapeUI, 'landscape', 4230, '/#/vulnerabilities'),
     ...AlLocation.uiNode(AlLocation.MagmaUI, 'magma', 8888 ),
 
     {

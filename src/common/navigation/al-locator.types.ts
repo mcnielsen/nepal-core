@@ -88,35 +88,39 @@ export class AlLocation
     /**
      * Generates location type definitions for residency-specific prod, integration, and dev versions of a UI
      */
-    public static uiNode( locTypeId:string, appCode:string, devPort:number ):AlLocationDescriptor[] {
+    public static uiNode( locTypeId:string, appCode:string, devPort:number, magmaRedirectPath?: string ):AlLocationDescriptor[] {
         return [
             {
                 locTypeId: locTypeId,
                 environment: 'production',
                 residency: 'US',
                 uri: `https://console.${appCode}.alertlogic.com`,
-                keyword: appCode
+                keyword: appCode,
+                ...(magmaRedirectPath && {magmaRedirectPath: magmaRedirectPath})
             },
             {
                 locTypeId: locTypeId,
                 environment: 'production',
                 residency: 'EMEA',
                 uri: `https://console.${appCode}.alertlogic${locTypeId===AlLocation.MagmaUI ? '.com' : '.co.uk'}`,
-                keyword: appCode
+                keyword: appCode,
+                ...(magmaRedirectPath && {magmaRedirectPath: magmaRedirectPath})
             },
             {
                 locTypeId: locTypeId,
                 environment: 'production-staging',
                 residency: 'US',
                 uri: `https://${appCode}-production-staging-us.ui-dev.product.dev.alertlogic.com`,
-                keyword: appCode
+                keyword: appCode,
+                ...(magmaRedirectPath && {magmaRedirectPath: magmaRedirectPath})
             },
             {
                 locTypeId: locTypeId,
                 environment: 'production-staging',
                 residency: 'EMEA',
                 uri: locTypeId === AlLocation.MagmaUI ? `https://${appCode}-production-staging-us.ui-dev.product.dev.alertlogic.com` : `https://${appCode}-production-staging-uk.ui-dev.product.dev.alertlogic.co.uk`,
-                keyword: appCode
+                keyword: appCode,
+                ...(magmaRedirectPath && {magmaRedirectPath: magmaRedirectPath})
             },
             {
                 locTypeId: locTypeId,
@@ -128,13 +132,15 @@ export class AlLocation
                     `https://${appCode}-pr-*.ui-dev.product.dev.alertlogic.com`,
                     `https://*.o3-${appCode}.product.dev.alertlogic.com`
                 ],
-                keyword: appCode
+                keyword: appCode,
+                ...(magmaRedirectPath && {magmaRedirectPath: magmaRedirectPath})
             },
             {
                 locTypeId: locTypeId,
                 environment: 'development',
                 uri: `http://localhost:${devPort}`,
-                keyword: 'localhost'
+                keyword: 'localhost',
+                ...(magmaRedirectPath && {magmaRedirectPath: magmaRedirectPath})
             }
         ];
     }
@@ -164,6 +170,7 @@ export interface AlLocationDescriptor
     data?:any;                      //  Miscellaneous associated data
     weight?:number;                 //  Relative weight for resolution by URI.  In general, the more significant a node is the lower its weight should be.
     keyword?:string;                //
+    magmaRedirectPath?: string;
 }
 
 /**
