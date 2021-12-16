@@ -28,6 +28,8 @@ export interface AlParamPreservationRule {
  *   - ConfigOption.GestaltAuthenticate - if true, indicates that AlSession should authenticate via gestalt's session proxy; otherwise,
  *      authentication is performed directly against global AIMS.  Defaults to false.
  *
+ *   - ConfigOption.GestaltDomain - If the GestaltAuthenticate option is enabled, this indicates which application will proxy requests to gestalt.
+ *
  *   - ConfigOption.ResolveAccountMetadata - if true, AlSession's `setActingAccount` method will retrieve metadata (entitlements and account details)
  *      for the primary and acting account before resolving.  Otherwise, `setActingAccount` will resolve immediately.  Defaults to `true`.
  *
@@ -61,6 +63,7 @@ export interface AlParamPreservationRule {
 
 export enum ConfigOption {
     GestaltAuthenticate         = "session_via_gestalt",
+    GestaltDomain               = "session_gestalt_domain",
     ResolveAccountMetadata      = "session_metadata",
     ConsolidatedAccountResolver = "session_consolidated_resolver",
     DisableEndpointsResolution  = "client_disable_endpoints",
@@ -83,6 +86,7 @@ export class AlRuntimeConfiguration {
 
     protected static defaultOptions:{[optionKey:string]:string|number|boolean|unknown} = {
         'session_via_gestalt': false,
+        'session_gestalt_domain': 'cd17:accounts',
         'session_metadata': true,
         'session_consolidated_resolver': false,
         'disable_endpoints_resolution': false,

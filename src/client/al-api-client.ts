@@ -50,7 +50,9 @@ import {
 import {
     APIExecutionLogItem,
     APIExecutionLogSummary,
-    APIRequestParams
+    APIRequestParams,
+    AlInterceptionRule,
+    AlInterceptionRules,
 } from './types';
 import { AlClientBeforeRequestEvent } from './events';
 import { AIMSSessionDescriptor } from '../aims-client/types';
@@ -117,6 +119,8 @@ export class AlApiClient implements AlValidationSchemaProvider
 
   /* Internal execution log */
   private executionRequestLog:APIExecutionLogItem[] = [];
+
+  private interceptionRules?:AlInterceptionRules;
 
   constructor() {
       // temp to debug ie11
@@ -746,13 +750,26 @@ export class AlApiClient implements AlValidationSchemaProvider
             null );
   }
 
+  public setInterceptionRules( rules:AlInterceptionRules|AlInterceptionRule[]|AlInterceptionRule|undefined ) {
+      if ( rules instanceof AlInterceptionRules ) {
+          this.interceptionRules = rules;
+      } else if ( rules === undefined ) {
+          delete this.interceptionRules;
+      } else if ( Array.isArray( rules ) ) {
+          this.interceptionRules = new AlInterceptionRules( rules );
+      } else if ( typeof( rules ) === 'object' ) {
+          this.interceptionRules = new AlInterceptionRules( [ rules ] );
+      }
+  }
+
   protected getGestaltAuthenticationURL():string {
       let residency = 'US';
       let environment = AlLocatorService.getCurrentEnvironment();
       if ( environment === 'development' ) {
           environment = 'integration';
       }
-      return AlLocatorService.resolveURL( AlLocation.AccountsUI, `/session/v1/authenticate`, { residency, environment } );
+      let authLocationId = AlRuntimeConfiguration.getOption( ConfigOption.GestaltDomain, AlLocation.AccountsUI );
+      return AlLocatorService.resolveURL( authLocationId, `/session/v1/authenticate`, { residency, environment } );
   }
 
 
@@ -922,7 +939,13 @@ export class AlApiClient implements AlValidationSchemaProvider
     return this.instance;
   }
 
-  protected onRequestResponse = ( response:AxiosResponse ):Promise<AxiosResponse> => {
+  protected onRequestResponse = async ( response:AxiosResponse ):Promise<AxiosResponse> => {
+    if ( this.interceptionRules ) {
+      let substitution = await this.interceptionRules.apply( response );
+      if ( substitution ) {
+        response = substitution;
+      }
+    }
     if ( response.status < 200 || response.status >= 400 ) {
       return this.onRequestError( response );
     }

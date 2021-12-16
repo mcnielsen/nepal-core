@@ -1,4 +1,4 @@
-export { APIRequestParams } from './types';
+export * from './types';
 export * from './events';
 export {
     AlApiClient,

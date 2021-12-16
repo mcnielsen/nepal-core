@@ -121,3 +121,101 @@ export interface APIRequestParams extends AxiosRequestConfig {
     */
     response_type?: string;
 }
+
+/**
+ * Simple descriptor of how specific request responses should be overridden.
+ */
+export interface AlInterceptionRule {
+    method?:string;
+    test:string|RegExp|{(request:APIRequestParams,response:AxiosResponse<any>):boolean};
+    callback?:{(response:AxiosResponse<any>,rule?:AlInterceptionRule):Promise<AxiosResponse<any>|undefined>};
+    probability?:number;
+    status?:number;
+    data?:any;
+}
+
+/**
+ * Simple class to manage/test an array of interception rules.
+ */
+export class AlInterceptionRules {
+    constructor( public rules:AlInterceptionRule[] = [] ) {
+    }
+
+    public add( rule:AlInterceptionRule ) {
+        this.rules.push( rule );
+    }
+
+    public remove( rule:AlInterceptionRule ) {
+        this.rules = this.rules.filter( r => r !== rule );
+    }
+
+    public match( response:AxiosResponse<any> ):AlInterceptionRule|undefined {
+        let request = response.config as APIRequestParams;
+        return this.rules.find( rule => {
+            if ( rule.method && rule.method !== '*' && request.method !== rule.method ) {
+                return false;
+            }
+            if ( typeof( rule.probability ) === 'number' ) {
+                let dice = Math.random() * 100;
+                if ( dice >= rule.probability ) {
+                    return false;
+                }
+            }
+            if ( typeof( rule.test ) === 'string' && request.url === rule.test ) {
+                return true;
+            } else if ( typeof( rule.test === 'function' ) ) {
+                return ( rule.test as any )( request, response );
+            } else if ( rule.test instanceof RegExp && rule.test.test( request.url ) ) {
+                return true;
+            }
+            return false;
+        } );
+    }
+
+    public async apply( response:AxiosResponse<any> ):Promise<AxiosResponse<any>|undefined> {
+        let match = this.match( response );
+        if ( match ) {
+            if ( typeof( match.status ) === 'number' ) {
+                response.status = match.status;
+                response.data = match.data || response.data;
+                return Promise.reject( response );
+            } else if ( match.callback ) {
+                let substitution = await match.callback( response, match );
+                if ( substitution ) {
+                    return substitution;
+                }
+            }
+        }
+        return undefined;
+    }
+}
+
+/**
+ * Generates an interception rule that will cause random failures {{probability}}% of the time.
+ * If status is 0 (default behavior), a random error code will be generated.
+ */
+export function randomAPIFailure( probability:number, status:number = 0, data?:any ):AlInterceptionRule {
+    const failureStatusCodes = [ 400, 401, 403, 404, 410, 500, 501, 502, 503, 504 ];
+    const excludePatterns = [
+        /\/endpoints\/v1/,
+        /\/aims\/v1/,
+        /\/subscriptions\/v1/
+    ];
+    return {
+        probability,
+        test: ( request:APIRequestParams, response:AxiosResponse<any> ):boolean => {
+            //  Prevent triggering failures for things that we depend on just to run an application -- AIMS, endpoints, subscriptions, etc.
+            let excluded = excludePatterns.find( pattern => pattern.test( request.url ) );
+            return ! excluded;
+        },
+        callback: ( response:AxiosResponse<any>, rule? ) => {
+            if ( status === 0 ) {
+                status = failureStatusCodes[Math.floor( Math.random() * failureStatusCodes.length )];
+            }
+            console.log(`Warning: simulating ${status} error for ${response.config.method} ${response.config.url} (probabiliy: ${probability}%)` );
+            response.status = status;
+            response.data = data || response.data || {};
+            return Promise.reject( response );
+        }
+    };
+}
