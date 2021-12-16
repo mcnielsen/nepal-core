@@ -89,14 +89,13 @@ export class AlLocation
      * Generates location type definitions for residency-specific prod, integration, and dev versions of a UI
      */
     public static uiNode( locTypeId:string, appCode:string, devPort:number, magmaRedirectPath?: string ):AlLocationDescriptor[] {
-        return [
+        let nodes:AlLocationDescriptor[] = [
             {
                 locTypeId: locTypeId,
                 environment: 'production',
                 residency: 'US',
                 uri: `https://console.${appCode}.alertlogic.com`,
                 keyword: appCode,
-                ...(magmaRedirectPath && {magmaRedirectPath: magmaRedirectPath})
             },
             {
                 locTypeId: locTypeId,
@@ -104,7 +103,6 @@ export class AlLocation
                 residency: 'EMEA',
                 uri: `https://console.${appCode}.alertlogic${locTypeId===AlLocation.MagmaUI ? '.com' : '.co.uk'}`,
                 keyword: appCode,
-                ...(magmaRedirectPath && {magmaRedirectPath: magmaRedirectPath})
             },
             {
                 locTypeId: locTypeId,
@@ -112,7 +110,6 @@ export class AlLocation
                 residency: 'US',
                 uri: `https://${appCode}-production-staging-us.ui-dev.product.dev.alertlogic.com`,
                 keyword: appCode,
-                ...(magmaRedirectPath && {magmaRedirectPath: magmaRedirectPath})
             },
             {
                 locTypeId: locTypeId,
@@ -120,7 +117,6 @@ export class AlLocation
                 residency: 'EMEA',
                 uri: locTypeId === AlLocation.MagmaUI ? `https://${appCode}-production-staging-us.ui-dev.product.dev.alertlogic.com` : `https://${appCode}-production-staging-uk.ui-dev.product.dev.alertlogic.co.uk`,
                 keyword: appCode,
-                ...(magmaRedirectPath && {magmaRedirectPath: magmaRedirectPath})
             },
             {
                 locTypeId: locTypeId,
@@ -133,16 +129,18 @@ export class AlLocation
                     `https://*.o3-${appCode}.product.dev.alertlogic.com`
                 ],
                 keyword: appCode,
-                ...(magmaRedirectPath && {magmaRedirectPath: magmaRedirectPath})
             },
             {
                 locTypeId: locTypeId,
                 environment: 'development',
                 uri: `http://localhost:${devPort}`,
                 keyword: 'localhost',
-                ...(magmaRedirectPath && {magmaRedirectPath: magmaRedirectPath})
             }
         ];
+        if ( magmaRedirectPath ) {
+            nodes.forEach( node => node.magmaRedirectPath = magmaRedirectPath );
+        }
+        return nodes;
     }
 }
 
