@@ -1094,19 +1094,29 @@ export class AlApiClient implements AlValidationSchemaProvider
    * Normalize query parameters from config api request.
    */
   private normalizeQueryParams(params: any) {
-    let queryParams = '';
-    if ( params ) {
-      queryParams = Object.entries( params )
-      .map( ( [ p, v ] ) => {
-        if( Array.isArray(v) ) {
-          return v.map( ( arrayValue ) => {
-            return `${p}=${encodeURIComponent( typeof( arrayValue ) === 'string' ? arrayValue : arrayValue.toString() )}`;
-          }).join("&");
+    try {
+        let queryParams = '';
+        if ( params ) {
+          queryParams = Object.entries( params )
+                              .map( ( [ p, v ] ) => {
+                                if ( typeof( v ) === 'undefined' ) {
+                                    return null;
+                                }
+                                if( Array.isArray(v) ) {
+                                  return v.map( ( arrayValue ) => {
+                                    return `${p}=${encodeURIComponent( typeof( arrayValue ) === 'string' ? arrayValue : arrayValue.toString() )}`;
+                                  }).join("&");
+                                }
+                                return `${p}=${encodeURIComponent( typeof( v ) === 'string' ? v : v.toString() )}`;
+                              })
+                              .filter( p => p )
+                              .join("&");
         }
-        return `${p}=${encodeURIComponent( typeof( v ) === 'string' ? v : v.toString() )}`;
-      }).join("&");
+        return `${queryParams.length>0?'?'+queryParams:''}`;
+    } catch( e ) {
+        console.error( e );
+        return '';
     }
-    return `${queryParams.length>0?'?'+queryParams:''}`;
   }
 
   /**
