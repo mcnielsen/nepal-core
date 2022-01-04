@@ -178,7 +178,7 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
     ...AlLocation.uiNode(AlLocation.EndpointsUI, 'endpoints', 8004),
     ...AlLocation.uiNode(AlLocation.DashboardsUI, 'dashboards', 7001, '/#/dashboards'),
     ...AlLocation.uiNode(AlLocation.HealthUI, 'health', 8003),
-    ...AlLocation.uiNode(AlLocation.ExposuresUI, 'exposures', 8006, '/#/exposures-management'),
+    ...AlLocation.uiNode(AlLocation.ExposuresUI, 'exposures', 8006, '/#/exposure-management'),
     ...AlLocation.uiNode(AlLocation.LandscapeUI, 'landscape', 4230, '/#/vulnerabilities'),
     ...AlLocation.uiNode(AlLocation.MagmaUI, 'magma', 8888 ),
 
