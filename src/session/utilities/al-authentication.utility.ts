@@ -19,6 +19,7 @@ export enum AlAuthenticationResult {
     MFAEnrollmentRequired   = 'mfa_enrollment_required',
     MFAVerificationRequired = 'mfa_verification_required',
     TOSAcceptanceRequired   = 'eula_acceptance_required',
+    TOSReacceptanceRequired = 'eula_reacceptance_required',
     InvalidCredentials      = 'failed'
 }
 
@@ -121,11 +122,11 @@ export class AlAuthenticationUtility {
     /**
      * Performs authentication using a session token (which must be separately populated into `this.state.sessionToken`).
      */
-    public async acceptTermsOfService():Promise<AlAuthenticationResult> {
+    public async acceptTermsOfService(acceptTOS:boolean = true):Promise<AlAuthenticationResult> {
         let useGestalt = AlRuntimeConfiguration.getOption( ConfigOption.GestaltAuthenticate, false );
         if ( useGestalt ) {
             try {
-                let session = await AlDefaultClient.acceptTermsOfServiceViaGestalt( this.getSessionToken() );
+                let session = await AlDefaultClient.acceptTermsOfServiceViaGestalt( this.getSessionToken(), acceptTOS );
                 return await this.finalizeSession( session );
             } catch ( e ) {
                 if ( this.handleAuthenticationFailure( e ) ) {
@@ -135,7 +136,7 @@ export class AlAuthenticationUtility {
         }
 
         try {
-            let session = await AlDefaultClient.acceptTermsOfService( this.getSessionToken(), true );
+            let session = await AlDefaultClient.acceptTermsOfService( this.getSessionToken(), true, acceptTOS );
             return await this.finalizeSession( session );
         } catch( e ) {
             if ( this.handleAuthenticationFailure( e ) ) {
@@ -216,6 +217,11 @@ export class AlAuthenticationUtility {
                 this.state.termsOfServiceURL = getJsonPath<string>( error, 'data.tos_url', null );
                 this.state.sessionToken = error.headers['x-aims-session-token'];
                 return true;
+            } else if ( this.requiresTOSReacceptance( error ) ) {
+                this.state.result = AlAuthenticationResult.TOSReacceptanceRequired;
+                this.state.termsOfServiceURL = getJsonPath<string>( error, 'data.tos_url', null );
+                this.state.sessionToken = error.headers['x-aims-session-token'];
+                return true;
             } else if( error.status === 400) {
                 this.state.result = AlAuthenticationResult.AccountLocked;
                 return true;
@@ -264,4 +270,13 @@ export class AlAuthenticationUtility {
             && 'error' in response.data
             && response.data.error === 'accept_tos_required';
     }
+
+    protected requiresTOSReacceptance( response:AxiosResponse<any> ):boolean {
+        return response.status === 401
+            && typeof( response.data ) === 'object'
+            && response.data !== null
+            && 'error' in response.data
+            && response.data.error === 'reaccept_tos_required';
+    }
+
 }

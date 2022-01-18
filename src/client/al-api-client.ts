@@ -553,7 +553,7 @@ export class AlApiClient implements AlValidationSchemaProvider
     } );
   }
 
-  async acceptTermsOfService( sessionToken:string, ignoreWarning?:boolean ):Promise<AIMSSessionDescriptor> {
+  async acceptTermsOfService( sessionToken:string, ignoreWarning?:boolean, acceptTOS:boolean = true ):Promise<AIMSSessionDescriptor> {
     if ( ! ignoreWarning ) {
       console.warn("Warning: this low level authentication method is intended only for use by other services, and will not create a reusable session.  Are you sure you intended to use it?" );
     }
@@ -566,19 +566,19 @@ export class AlApiClient implements AlValidationSchemaProvider
         'X-AIMS-Session-Token': sessionToken
       },
       data: {
-        accept_tos: true
+        accept_tos: acceptTOS
       },
       withCredentials: true
     } );
   }
 
-  async acceptTermsOfServiceViaGestalt( sessionToken:string ):Promise<AIMSSessionDescriptor> {
+  async acceptTermsOfServiceViaGestalt( sessionToken:string, acceptTOS:boolean = true ):Promise<AIMSSessionDescriptor> {
     return this.post( {
       url: this.getGestaltAuthenticationURL(),
       withCredentials: true,
       data: {
         sessionToken: sessionToken,
-        acceptTOS: true
+        acceptTOS: acceptTOS
       }
     } );
   }
