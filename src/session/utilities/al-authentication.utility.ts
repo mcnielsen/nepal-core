@@ -45,6 +45,11 @@ export interface AlAuthenticationState {
      * TOS authentication criteria will provide a URL where the current terms of service can be retrieved.
      */
     termsOfServiceURL?:string;
+
+    /**
+     * TOS api will provide the deferral to accept the terms.
+     */
+    deferralTOSPeriodEnd?:string;
 }
 
 export class AlAuthenticationUtility {
@@ -174,6 +179,16 @@ export class AlAuthenticationUtility {
     }
 
     /**
+     * Retrieves the TOS Deadline provided in response to the last authentication attempt, if any.
+     */
+    public getDeferralTOSPeriodEnd():string {
+        if ( ! this.state.deferralTOSPeriodEnd ) {
+            throw new Error("Invalid usage: no deferral TOS period end is available." );
+        }
+        return this.state.deferralTOSPeriodEnd;
+    }
+
+    /**
      * "Normalizes" a return URL -- internally, this merely checks the URL against a whitelist of target domains.
      */
     public filterReturnURL( returnURL:string, defaultReturnURL?:string ):string {
@@ -221,6 +236,7 @@ export class AlAuthenticationUtility {
                 this.state.result = AlAuthenticationResult.TOSReacceptanceRequired;
                 this.state.termsOfServiceURL = getJsonPath<string>( error, 'data.tos_url', null );
                 this.state.sessionToken = error.headers['x-aims-session-token'];
+                this.state.deferralTOSPeriodEnd = getJsonPath<string>( error, 'data.tos_deferral_period_end', null );
                 return true;
             } else if( error.status === 400) {
                 this.state.result = AlAuthenticationResult.AccountLocked;
