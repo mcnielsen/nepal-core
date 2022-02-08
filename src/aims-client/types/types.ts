@@ -28,6 +28,7 @@ export interface AIMSAccount {
     accessible_locations: string[];
     default_location: string;
     mfa_required?: boolean;
+    federated_login_required?: boolean;
     idle_session_timeout?:number;
     created: AlChangeStamp;
     modified: AlChangeStamp;
