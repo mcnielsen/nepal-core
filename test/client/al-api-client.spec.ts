@@ -149,7 +149,7 @@ describe("AlDefaultClient", () => {
 
           let endpointURL = await AlDefaultClient['calculateRequestURL']({ service_name: 'cargo', service_stack: AlLocation.InsightAPI });
           // path should default to /:service_name/v1, no trailing slash
-          expect(endpointURL).to.equal( "https://api.global-integration.product.dev.alertlogic.com/cargo" );
+          expect(endpointURL).to.equal( "https://api.product.dev.alertlogic.com/cargo" );
 
           endpointURL = await AlDefaultClient['calculateRequestURL']( { service_name: 'aims', version: null, service_stack: AlLocation.InsightAPI } );
           expect(endpointURL).to.equal( "https://api.global-integration.product.dev.alertlogic.com/aims" );
@@ -160,7 +160,7 @@ describe("AlDefaultClient", () => {
 
           endpointURL = await AlDefaultClient['calculateRequestURL']( { service_name: 'cargo', version: 'v2', account_id: '67108880', service_stack: AlLocation.InsightAPI  } );
           //  path should be /:service_name/:version/:accountId, no trailing slash
-          expect( endpointURL ).to.equal( `https://api.global-integration.product.dev.alertlogic.com/cargo/v2/67108880` );
+          expect( endpointURL ).to.equal( `https://api.product.dev.alertlogic.com/cargo/v2/67108880` );
 
           endpointURL = await AlDefaultClient['calculateRequestURL']( { service_name: 'search', version: 'v1', path: 'global-capabilities', service_stack: AlLocation.InsightAPI  } );
           //  domain should be non-default; path should be /:service_name/:version/:path
@@ -519,7 +519,7 @@ describe("AlDefaultClient", () => {
           expect( fullURL ).to.equal( "https://responder.mdr.product.dev.alertlogic.com/v1/12345678/something/wicked?this-way=comes" );
 
           /**
-           * Second test covers URL calculation for MDR APIs WITH endpoints resolution.  MDR APIs should use endpoints data and still not 
+           * Second test covers URL calculation for MDR APIs WITH endpoints resolution.  MDR APIs should use endpoints data and still not
            * introduced the service_name into the path.
            */
           config.noEndpointsResolution = false;
@@ -542,7 +542,7 @@ describe("AlDefaultClient", () => {
         // Testing storage.
         expect(cabinetStorage.get('otherkey')).equal('value3');
         flushSpy = sinon.spy(AlDefaultClient,"flushCacheKeysFromConfig");
-        xhrMock.post('https://api.global-integration.product.dev.alertlogic.com/cargo/v1/2', (req, res) => {
+        xhrMock.post('https://api.product.dev.alertlogic.com/cargo/v1/2', (req, res) => {
           expect(req.method()).to.equal('POST');
           return res.status(200).body({});
         });

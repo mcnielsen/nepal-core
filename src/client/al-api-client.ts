@@ -78,11 +78,11 @@ export class AlApiClient implements AlValidationSchemaProvider
   /**
    * The following list of services are the ones whose endpoints will be resolved by default.  Added globally/commonly used services here for optimized API performance.
    */
-  protected static defaultServiceList = [ "aims", "subscriptions", "search", "sources", "assets_query", "assets_write", "dashboards", "cargo", "suggestions", "connectors", "herald" ];
+  protected static defaultServiceList = [ "aims", "subscriptions", "search", "sources", "assets_query", "assets_write", "dashboards", "suggestions", "connectors", "herald" ];
   /**
    * The following list of services are the ones whose endpoints will need to be determined for the current context active residency location.
    */
-  protected static resolveByResidencyServiceList = [ "iris", "kalm", "ticketmaster", "tacoma", "responder", "responder-async" ];
+  protected static resolveByResidencyServiceList = [ "iris", "kalm", "ticketmaster", "tacoma", "responder", "responder-async", "cargo" ];
 
   protected static defaultServiceParams: APIRequestParams = {
     service_stack:                  AlLocation.InsightAPI,  //  May also be AlLocation.GlobalAPI, AlLocation.EndpointsAPI, or ALLocation.LegacyUI
