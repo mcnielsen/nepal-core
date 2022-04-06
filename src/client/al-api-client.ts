@@ -743,6 +743,38 @@ export class AlApiClient implements AlValidationSchemaProvider
     }
   }
 
+  public async resolveResidencyAwareEndpoints( accountId:string, serviceList:string[] ) {
+    try {
+      const context = AlLocatorService.getContext();
+      const endpointsRequest:APIRequestParams = {
+        method: "POST",
+        url: AlLocatorService.resolveURL( AlLocation.GlobalAPI, `/endpoints/v1/${accountId}/endpoints` ),
+        data: serviceList,
+        aimsAuthHeader: true
+      };
+      let response = await this.axiosRequest( endpointsRequest );
+      Object.entries( response.data ).forEach( ( [ serviceName, residencyLocations ] ) => {
+          Object.entries(residencyLocations).forEach(([residencyName, residencyHost]) => {
+              Object.entries(residencyHost).forEach(([datacenterId, endpointHost]) => {
+                let host = endpointHost as string;
+                if ( host.startsWith("async.") ) { // naming convention for WebSocket services
+                  host = `wss://${host}`; // add prefix for websocket protocol
+                  console.warn("host", host);
+                } else if ( !host.startsWith("http") ) {
+                  host = `https://${host}`;      //  ensuring domains are prefixed with protocol
+                }
+                setJsonPath( this.endpointCache,
+                             [ context.environment, accountId, serviceName, residencyName ],
+                             host );
+              } );
+          } );
+      } );
+    } catch( e ) {
+      this.fallbackResolveEndpoints( accountId, serviceList, AlLocatorService.getCurrentResidency() );
+    }
+  }
+
+
   public lookupDefaultServiceEndpoint(accountId: string, serviceName: string) {
         const context = AlLocatorService.getContext();
         return getJsonPath<string>( this.endpointCache,
@@ -855,37 +887,6 @@ export class AlApiClient implements AlValidationSchemaProvider
       return null;
     } );
     return result;
-  }
-
-  protected async resolveResidencyAwareEndpoints( accountId:string, serviceList:string[] ) {
-    try {
-      const context = AlLocatorService.getContext();
-      const endpointsRequest:APIRequestParams = {
-        method: "POST",
-        url: AlLocatorService.resolveURL( AlLocation.GlobalAPI, `/endpoints/v1/${accountId}/endpoints` ),
-        data: serviceList,
-        aimsAuthHeader: true
-      };
-      let response = await this.axiosRequest( endpointsRequest );
-      Object.entries( response.data ).forEach( ( [ serviceName, residencyLocations ] ) => {
-          Object.entries(residencyLocations).forEach(([residencyName, residencyHost]) => {
-              Object.entries(residencyHost).forEach(([datacenterId, endpointHost]) => {
-                let host = endpointHost as string;
-                if ( host.startsWith("async.") ) { // naming convention for WebSocket services
-                  host = `wss://${host}`; // add prefix for websocket protocol
-                  console.warn("host", host);
-                } else if ( !host.startsWith("http") ) {
-                  host = `https://${host}`;      //  ensuring domains are prefixed with protocol
-                }
-                setJsonPath( this.endpointCache,
-                             [ context.environment, accountId, serviceName, residencyName ],
-                             host );
-              } );
-          } );
-      } );
-    } catch( e ) {
-      this.fallbackResolveEndpoints( accountId, serviceList, AlLocatorService.getCurrentResidency() );
-    }
   }
 
   protected fallbackResolveEndpoints( accountId:string, serviceList:string[], residency:string ) {
