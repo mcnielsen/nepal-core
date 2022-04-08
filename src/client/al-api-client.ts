@@ -726,6 +726,7 @@ export class AlApiClient implements AlValidationSchemaProvider
         aimsAuthHeader: true
       };
       let response = await this.axiosRequest( endpointsRequest );
+      let endpointsLookup: AlEndpointsDictionary = {};
       Object.entries( response.data ).forEach( ( [ serviceName, endpointHost ] ) => {
           let host = endpointHost as string;
           if ( host.startsWith("async.") ) { // naming convention for WebSocket services
@@ -737,7 +738,7 @@ export class AlApiClient implements AlValidationSchemaProvider
                        [ context.environment, accountId, serviceName, AlApiClient.defaultResidency ],
                        host );
       } );
-      this.endpointCache;
+      return this.endpointCache;
     } catch ( e ) {
       this.fallbackResolveEndpoints( accountId, serviceList, AlApiClient.defaultResidency );
     }
@@ -769,6 +770,7 @@ export class AlApiClient implements AlValidationSchemaProvider
               } );
           } );
       } );
+      return this.endpointCache;
     } catch( e ) {
       this.fallbackResolveEndpoints( accountId, serviceList, AlLocatorService.getCurrentResidency() );
     }
