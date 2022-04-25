@@ -68,5 +68,12 @@ describe( 'AlEntitlementCollection', () => {
 
             expect( entitlements.evaluateExpression( "demeter|apollo&!zeus" ) ).to.equal( true );               //  because even though demeter isn't active, apollo but NOT zeus evaluates to true
         } );
+
+        it( 'SHOULD always treat the wildcard entitlement "*" as enabled', () => {
+            expect( entitlements.evaluateExpression( "*" ) ).to.equal( true );                                  //  essentially, "anything"
+            expect( entitlements.evaluateExpression( "!*" ) ).to.equal( false );                                //  essentially, "nothing"
+            expect( entitlements.evaluateExpression( "*&!*" ) ).to.equal( false );                              //  essentially, "anything" and "nothing", which is logically ridiculous
+                                                                                                                //      ...like myself...  and thus evaluates to false.
+        } );
     } );
 } );

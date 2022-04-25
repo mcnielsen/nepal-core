@@ -250,21 +250,25 @@ export class AlEntitlementCollection
                 }
 
                 let productIds = groupExpression.split("|");
-                let entitlement = null;
+                let entitled = false;
                 for ( let p = 0; p < productIds.length; p++ ) {
                     let productId = productIds[p];
-                    let item = this.getProduct( productId );
-                    if ( item.active ) {
-                        entitlement = item;
-                        break;
+                    if ( productId === '*' ) {
+                        entitled = true;
+                    } else {
+                        let item = this.getProduct( productId );
+                        if ( item.active ) {
+                            entitled = true;
+                            break;
+                        }
                     }
                 }
 
                 if ( negatedGroup ) {
-                    entitlement = ! entitlement;
+                    entitled = ! entitled;
                 }
 
-                if ( ! entitlement ) {
+                if ( ! entitled ) {
                     result = false;
                     break;  //  no need to process further if we know this expression evaluates to false
                 }
