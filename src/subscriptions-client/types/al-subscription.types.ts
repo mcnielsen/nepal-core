@@ -94,7 +94,7 @@ export class AlEntitlementCollection
         "web_security_manager",
         "dashboard_authentication",
         "dashboard_firewall",
-        "automated_response"
+        "expert_response"
     ];
     protected collection:{[productId:string]:AlEntitlementRecord} = {};
     protected evaluationCache:{[expression:string]:boolean} = {};
