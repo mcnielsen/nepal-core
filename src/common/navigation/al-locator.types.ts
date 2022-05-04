@@ -94,14 +94,14 @@ export class AlLocation
                 locTypeId: locTypeId,
                 environment: 'production',
                 residency: 'US',
-                uri: `https://console.${appCode}.alertlogic.com`,
+                uri: `${locTypeId===AlLocation.MagmaUI ? `https://console.alertlogic.com` : `https://console.${appCode}.alertlogic.com`}`,
                 keyword: appCode,
             },
             {
                 locTypeId: locTypeId,
                 environment: 'production',
                 residency: 'EMEA',
-                uri: `https://console.${appCode}.alertlogic${locTypeId===AlLocation.MagmaUI ? '.com' : '.co.uk'}`,
+                uri: `${locTypeId===AlLocation.MagmaUI ? 'https://console.alertlogic.com' : `https://console.${appCode}.alertlogic.co.uk`}`,
                 keyword: appCode,
             },
             {
