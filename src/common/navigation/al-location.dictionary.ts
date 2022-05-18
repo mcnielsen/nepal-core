@@ -174,7 +174,7 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
     ...AlLocation.uiNode(AlLocation.IntelligenceUI, 'intelligence', 4211),
     ...AlLocation.uiNode(AlLocation.ConfigurationUI, 'configuration', 4210),
     ...AlLocation.uiNode(AlLocation.RemediationsUI, 'remediations', 4212),
-    ...AlLocation.uiNode(AlLocation.SearchUI, 'search', 4220, '/#/search'),
+    ...AlLocation.uiNode(AlLocation.SearchUI, 'search', 4220 ),
     ...AlLocation.uiNode(AlLocation.EndpointsUI, 'endpoints', 8004),
     ...AlLocation.uiNode(AlLocation.DashboardsUI, 'dashboards', 7001, '/#/dashboards'),
     ...AlLocation.uiNode(AlLocation.HealthUI, 'health', 8003),
