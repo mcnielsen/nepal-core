@@ -182,6 +182,15 @@ describe( 'AlLocatorMatrix', () => {
 
         } );
 
+        it("should infer correct acting node for a magma production URL", () => {
+
+            locator.setActingUri( 'https://console.alertlogic.com/#/exposures/open/2' );
+            let actor = locator.getActingNode();
+            expect( actor.locTypeId ).to.equal( "cd21:magma" );
+            expect( actor.environment ).to.equal( "production" );
+            expect( actor.residency ).to.equal( "US" );
+        } );
+
         it("should infer correct context/sibling nodes for integration aliases", () => {
             //  Context inferred from PR demo bucket alias
             locator.setActingUri( 'https://overview-pr-199.ui-dev.product.dev.alertlogic.com/#/remediations-scan-status/2' );

@@ -95,14 +95,7 @@ export class AlLocation
                 environment: 'production',
                 residency: 'US',
                 uri: `${locTypeId===AlLocation.MagmaUI ? `https://console.alertlogic.com` : `https://console.${appCode}.alertlogic.com`}`,
-                keyword: appCode,
-            },
-            {
-                locTypeId: locTypeId,
-                environment: 'production',
-                residency: 'EMEA',
-                uri: `${locTypeId===AlLocation.MagmaUI ? 'https://console.alertlogic.com' : `https://console.${appCode}.alertlogic.co.uk`}`,
-                keyword: appCode,
+                keyword: `${locTypeId===AlLocation.MagmaUI ? 'console.alertlogic.com': appCode}`
             },
             {
                 locTypeId: locTypeId,
@@ -137,6 +130,16 @@ export class AlLocation
                 keyword: 'localhost',
             }
         ];
+        // Because we only deploy to one stack in prod for Magma now, only add the EMEA based prod nodes for all other non magma UI apps...
+        if(locTypeId!==AlLocation.MagmaUI){
+            nodes.push({
+                locTypeId: locTypeId,
+                environment: 'production',
+                residency: 'EMEA',
+                uri: `https://console.${appCode}.alertlogic.co.uk`,
+                keyword: appCode,
+            });
+        }
         if ( magmaRedirectPath ) {
             nodes.forEach( node => node.magmaRedirectPath = magmaRedirectPath );
         }
