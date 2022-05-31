@@ -108,7 +108,7 @@ export class AlLocation
                 locTypeId: locTypeId,
                 environment: 'production-staging',
                 residency: 'EMEA',
-                uri: locTypeId === AlLocation.MagmaUI ? `https://${appCode}-production-staging-us.ui-dev.product.dev.alertlogic.com` : `https://${appCode}-production-staging-uk.ui-dev.product.dev.alertlogic.co.uk`,
+                uri: locTypeId === AlLocation.MagmaUI ? `https://${appCode}-production-staging-us.ui-dev.product.dev.alertlogic.com` : `https://${appCode}-production-staging-uk.ui-dev.product.dev.alertlogic.com`,
                 keyword: appCode,
             },
             {
