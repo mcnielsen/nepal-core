@@ -50,6 +50,11 @@ export interface AlExperienceMapping
     trigger:AlRouteCondition|AlRouteCondition[]|boolean;
 
     /**
+     * If present and true, indicates the user can opt in or out of this experience, and their opt-in status should be "sticky."
+     */
+    optional?:boolean;
+
+    /**
      * If provided, defines the zero state to provide when an experience isn't available.
      */
     unavailable?: {

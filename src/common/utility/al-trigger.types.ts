@@ -76,7 +76,7 @@ export class AlTriggeredEvent<ResponseType=any>
  *
  * Callback type for triggered events.
  */
-export declare type AlTriggeredEventCallback<EventType> = {(event:EventType):void|boolean};
+export declare type AlTriggeredEventCallback<EventType> = {(event:EventType):void|boolean|Promise<void>};
 
 /**
  * @public

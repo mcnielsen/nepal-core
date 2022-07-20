@@ -171,8 +171,12 @@ export interface AlRouteDefinition {
     /* The caption of the menu item */
     caption:string;
 
-    /* An arbitrary id associated with this menu item.  This is most useful (practically) for retrieving specific menu items by code. */
+    /* An arbitrary identifier associated with this menu item.  This is most useful (practically) for retrieving specific menu items by code. */
     id?:string;
+
+    /* An arbitrary name associated with this menu item.  These augment named routes for conditional schema branches.  And if that sounds vaguely
+    * gibberishy -- (wasntme) */
+    name?:string;
 
     /* An arbitrary bookmark code for this menu item.  This allows a specific submenu to be retrieved and worked with programmatically. */
     bookmarkId?:string;
@@ -183,6 +187,10 @@ export interface AlRouteDefinition {
     /* The action to perform when the menu item is clicked.
      * If the provided value is a string, it will be treated as a reference to a named route in the current schema. */
     action?:AlRouteAction|string;
+
+    /* A condition that can be evaluated to calculated the `enabled` property at any given moment.
+     * This can be a fixed boolean value, a shared condition ID (see AlNavigationSchema.conditions), or a condition literal. */
+    enabled?:AlRouteCondition|string|boolean;
 
     /* A condition that can be evaluated to calculate the `visible` property at any given moment.
      * This can be a fixed boolean value, a shared condition ID (see AlNavigationSchema.conditions), or a condition literal. */
@@ -248,7 +256,7 @@ export class AlRoute {
     /* Is the menu item visible? */
     visible:boolean = true;
 
-    /* Is the menu item enabled?  This is provided for use by custom menu implementations, and no managed by this module. */
+    /* Is the menu item enabled?  Disabled menu items and their children will not be considered for activation. */
     enabled:boolean = true;
 
     /* Is the menu item locked?  This prevents refresh cycles from changing its state. */
@@ -372,6 +380,15 @@ export class AlRoute {
             //  If this menu item has been locked, then we won't reevaluate its URL, its visibility, or its activated status.
             //  This lets outside software take "manual" control of the state of a given menu.
             return;
+        }
+
+        if ( this.definition.enabled ) {
+            this.enabled = this.evaluateCondition( this.definition.enabled );
+            if ( ! this.enabled ) {
+                this.visible = false;
+                //  This item and its family tree are disabled, and thus not considered for visibility or activation.
+                return;
+            }
         }
 
         state.depth++;
@@ -728,7 +745,29 @@ export class AlRoute {
         return child || null;
     }
 
-
+    /**
+     * Generic method for recursing a menu hierarchy, using a callback to match the route.
+     *
+     * @param callback is a method that accepts a route (and optionally its definition) and returns
+     *          `true` if the route is the correct one, in which case it is the result of the search method.
+     *          `false` if the route is incorrect but its children should be iterated.
+     *          `null` if the route is incorrect and its children should be ignored
+     */
+    search( matcher:{(route:AlRoute, definition?:AlRouteDefinition):boolean}, enabledOnly:boolean = true ):AlRoute|undefined {
+        if ( this.enabled !== enabledOnly ) {
+            return;
+        }
+        if ( matcher( this, this.definition ) ) {
+            return this;
+        } else {
+            for ( let i = 0; i < this.children.length; i++ ) {
+                let target = this.children[i].search( matcher, enabledOnly );
+                if ( target ) {
+                    return target;
+                }
+            }
+        }
+    }
 
     /**
      * This method will return the deepest activated, childless route within its first activated child.  If this sounds obtuse,

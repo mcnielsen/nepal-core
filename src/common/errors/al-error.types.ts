@@ -24,11 +24,13 @@ export class AlBaseError extends Error
      * this error.
      */
     public origin?:any;
+    public details?:any;
 
-    constructor( message?:string, derivedFrom?:any ) {
+    constructor( message?:string, derivedFrom?:any, details?:any ) {
         const trueProto = new.target.prototype;
         super(message);
         this.origin = derivedFrom;
+        this.details = details;
 
         this.__proto__ = trueProto;
     }
@@ -243,9 +245,9 @@ export class AlNotFoundError extends AlBaseError
  * @param inner - the underly error
  */
 export class AlWrappedError extends AlBaseError {
-    constructor( message:string, inner:any ) {
+    constructor( message:string, inner:any, details?:any ) {
         /* istanbul ignore next */
-        super( message, inner );
+        super( message, inner, details );
     }
 
     public getInnerError():any {
