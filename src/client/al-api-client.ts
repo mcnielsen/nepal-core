@@ -54,7 +54,7 @@ import {
     AlInterceptionRule,
     AlInterceptionRules,
 } from './types';
-import { AlClientBeforeRequestEvent } from './events';
+import { AlClientBeforeRequestEvent, AlClientAPIErrorEvent } from './events';
 import { AIMSSessionDescriptor } from '../aims-client/types';
 import { AlRuntimeConfiguration, ConfigOption } from '../configuration';
 import { commonTypeSchematics } from './common.schematics';
@@ -975,6 +975,7 @@ export class AlApiClient implements AlValidationSchemaProvider
       data: errorResponse.data
     };
     this.log( `APIClient Failed Request Snapshot: ${JSON.stringify( snapshot, null, 4 )}` );
+    this.events.trigger( new AlClientAPIErrorEvent( errorResponse.config, errorResponse ) );
     return Promise.reject( errorResponse );
   }
 

@@ -1,4 +1,4 @@
-import { AxiosRequestConfig } from 'axios';
+import { AxiosRequestConfig, AxiosResponse } from 'axios';
 import {
     AlTrigger,
     AlTriggeredEvent,
@@ -9,6 +9,14 @@ import { APIRequestParams } from '../types';
 export class AlClientBeforeRequestEvent extends AlTriggeredEvent<void>
 {
     constructor( public request:APIRequestParams ) {
+        super();
+    }
+}
+
+@AlTrigger( 'AlClientAPIError' )
+export class AlClientAPIErrorEvent extends AlTriggeredEvent<void>
+{
+    constructor( public request:APIRequestParams, public errorResponse:AxiosResponse ) {
         super();
     }
 }
