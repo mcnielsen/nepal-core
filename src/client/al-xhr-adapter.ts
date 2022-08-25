@@ -1,7 +1,7 @@
 /**
  *  Alert Logic axios extension - an API Client with automatic service discovery, local caching, and retry functionality baked in.
  *
- *  An instance of the client can be constructed manually, but in general you should just use the global instance `AlDefaultClient`.
+ *  An instance of the client can be constructed manually, but in general you should just use the global instance `AlRootClient`.
  *
  *  Most use cases can be handled by using one of the client's convenience methods, which includes support for local caching and retries:
  *
@@ -17,8 +17,8 @@
  *  Alternatively, a request can be normalized and dispatched without caching or retry logic using this method:
  *
  *  ```
- *  let normalizedRequest = AlDefaultClient.normalizeRequest( config );
- *  let response = await AlDefaultClient.doRequest<Type>( method, normalizedRequest );
+ *  let normalizedRequest = AlRootClient.normalizeRequest( config );
+ *  let response = await AlRootClient.doRequest<Type>( method, normalizedRequest );
  *  ```
  */
 import axios, {
@@ -28,7 +28,7 @@ import axios, {
     Method,
 } from 'axios';
 import * as base64JS from 'base64-js';
-import { AlDataValidationError, AlGatewayTimeoutError } from '../common/errors';
+import { AlErrorHandler, AlDataValidationError, AlGatewayTimeoutError } from '../errors';
 import {
     AlLocation,
     AlLocationContext,
@@ -53,9 +53,11 @@ import {
     APIRequestParams,
     AlInterceptionRule,
     AlInterceptionRules,
+    AlServiceDescriptor,
+    serviceClientBlueprints
 } from './types';
 import { AlClientBeforeRequestEvent, AlClientAPIErrorEvent } from './events';
-import { AIMSSessionDescriptor } from '../aims-client/types';
+import { AIMSSessionDescriptor } from './aims/types';
 import { AlRuntimeConfiguration, ConfigOption } from '../configuration';
 import { commonTypeSchematics } from './common.schematics';
 
@@ -73,7 +75,7 @@ type AlEndpointsDictionary = {
   }
 };
 
-export class AlApiClient implements AlValidationSchemaProvider
+export class AlXHRAdapter implements AlValidationSchemaProvider
 {
   /**
    * The following list of services are the ones whose endpoints will be resolved by default.  Added globally/commonly used services here for optimized API performance.
@@ -82,8 +84,6 @@ export class AlApiClient implements AlValidationSchemaProvider
   /**
    * The following list of services are the ones whose endpoints will need to be determined for the current context active residency location.
    */
-  protected static resolveByResidencyServiceList = [ "iris", "kalm", "ticketmaster", "tacoma", "responder", "responder-async", "cargo" ];
-
   protected static defaultServiceParams: APIRequestParams = {
     service_stack:                  AlLocation.InsightAPI,  //  May also be AlLocation.GlobalAPI, AlLocation.EndpointsAPI, or ALLocation.LegacyUI
     residency:                      'default',              //  "us" or "emea" or "default"
@@ -99,11 +99,13 @@ export class AlApiClient implements AlValidationSchemaProvider
   public mockMode:boolean           =   false;              //  If true, requests will be normalized but not actually dispatched.
   public defaultAccountId:string    =   null;        //  If specified, uses *this* account ID to resolve endpoints if no other account ID is explicitly specified
 
+  private resolveByResidencyServiceList = [ "iris", "kalm", "ticketmaster", "tacoma", "responder", "responder-async", "cargo" ];
   private storage                   =   AlCabinet.local( 'apiclient.cache' );
   private instance:AxiosInstance = null;
   private lastError:AxiosResponse = null;
   private endpointsGuard            =   new AlMutex();
   private endpointCache:AlEndpointsDictionary = {};
+  private clientDictionary:{[clientName:string]:AlBaseServiceClient} = {};
 
   /* List of stacks (service_stack property in APIRequestParams) that should have endpoints resolution enabled by default */
   private endpointsStackWhitelist = [
@@ -124,18 +126,18 @@ export class AlApiClient implements AlValidationSchemaProvider
 
   constructor() {
       // temp to debug ie11
-      this.globalServiceParams = this.merge( {}, AlApiClient.defaultServiceParams );
+      this.globalServiceParams = this.merge( {}, AlXHRAdapter.defaultServiceParams );
   }
 
   /**
    * Resets internal state back to its factory defaults.
    */
-  public reset():AlApiClient {
+  public reset():AlXHRAdapter {
     this.endpointCache = {};
     this.instance = null;
     this.executionRequestLog = [];
     this.storage.destroy();
-    this.globalServiceParams = this.merge( {}, AlApiClient.defaultServiceParams );
+    this.globalServiceParams = this.merge( {}, AlXHRAdapter.defaultServiceParams );
     return this;
   }
 
@@ -173,7 +175,7 @@ export class AlApiClient implements AlValidationSchemaProvider
    * This allows the host to set global parameters that will be used for every request, either for Axios or the @al/client service layer.
    * Most notably, setting `noEndpointsResolution` to true will suppress endpoints resolution for all requests, and cause default endpoint values to be used.
    */
-  public setGlobalParameters( parameters:APIRequestParams ):AlApiClient {
+  public setGlobalParameters( parameters:APIRequestParams ):AlXHRAdapter {
     this.globalServiceParams = this.merge( this.globalServiceParams, parameters );
     return this;
   }
@@ -263,7 +265,7 @@ export class AlApiClient implements AlValidationSchemaProvider
    * Alias for GET utility method
    */
   public async fetch<T = any>(config: APIRequestParams):Promise<T> {
-    console.warn("Deprecation warning: do not use AlApiClient.fetch; use `get` instead." );
+    console.warn("Deprecation warning: do not use AlXHRAdapter.fetch; use `get` instead." );
     return this.get<T>( config );
   }
 
@@ -329,7 +331,7 @@ export class AlApiClient implements AlValidationSchemaProvider
    * Alias for PUT utility method
    */
   public async set<T = any>( config:APIRequestParams ) :Promise<T>{
-    console.warn("Deprecation warning: do not use AlApiClient.set; use `put` instead." );
+    console.warn("Deprecation warning: do not use AlXHRAdapter.set; use `put` instead." );
     return this.put<T>( config );
   }
 
@@ -392,9 +394,15 @@ export class AlApiClient implements AlValidationSchemaProvider
       if (this.collectRequestLog) {
         const completed = Date.now();
         const duration = completed - start;
-        logItem.responseCode = e.status;
         logItem.durationMs = duration;
-        logItem.errorMessage = e["message"];
+        if ( this.isResponse( e ) ) {
+            logItem.responseCode = e.status;
+            logItem.errorMessage = e["message"];
+        } else {
+            logItem.responseCode = 0;
+            logItem.durationMs = duration;
+            logItem.errorMessage = AlErrorHandler.normalize( e ).message;
+        }
       }
       this.log(`APIClient::XHR FAILED ${JSON.stringify(logItem)}`);
       throw e;
@@ -735,12 +743,12 @@ export class AlApiClient implements AlValidationSchemaProvider
             host = `https://${host}`;      //  ensuring domains are prefixed with protocol
           }
           setJsonPath( this.endpointCache,
-                       [ context.environment, accountId, serviceName, AlApiClient.defaultResidency ],
+                       [ context.environment, accountId, serviceName, AlXHRAdapter.defaultResidency ],
                        host );
       } );
       return this.endpointCache;
     } catch ( e ) {
-      this.fallbackResolveEndpoints( accountId, serviceList, AlApiClient.defaultResidency );
+      this.fallbackResolveEndpoints( accountId, serviceList, AlXHRAdapter.defaultResidency );
     }
   }
 
@@ -780,7 +788,7 @@ export class AlApiClient implements AlValidationSchemaProvider
   public lookupDefaultServiceEndpoint(accountId: string, serviceName: string) {
         const context = AlLocatorService.getContext();
         return getJsonPath<string>( this.endpointCache,
-                [ context.environment, accountId, serviceName, AlApiClient.defaultResidency ],
+                [ context.environment, accountId, serviceName, AlXHRAdapter.defaultResidency ],
             null );
   }
 
@@ -794,6 +802,33 @@ export class AlApiClient implements AlValidationSchemaProvider
       } else if ( typeof( rules ) === 'object' ) {
           this.interceptionRules = new AlInterceptionRules( [ rules ] );
       }
+  }
+
+  public getClient<ServiceClass extends AlBaseServiceClient>( clientType:{ new():ServiceClass } ):ServiceClass {
+      if ( ! ( 'clientId' in clientType.prototype ) || ! ( 'definition' in clientType.prototype ) ) {
+          throw new Error( `Could not find client!` );
+      }
+      const clientId = clientType.prototype.clientId;
+      if ( ! ( clientId in serviceClientBlueprints ) ) {
+          throw new Error( `No registered client for service '${clientId}'` );
+      }
+      if ( clientId in this.clientDictionary ) {
+          return this.clientDictionary[clientId] as ServiceClass;
+      }
+      const blueprint = serviceClientBlueprints[clientId];
+      let instance = new clientType;
+      instance.adapter = this;
+      instance.defaultConfig.service_stack = blueprint.definition.service_stack;
+      instance.defaultConfig.service_name = blueprint.definition.service_name;
+      instance.defaultConfig.version = blueprint.definition.version;
+      if ( blueprint.definition.residencyAware ) {
+          if ( ! this.resolveByResidencyServiceList.includes( blueprint.definition.service_name ) ) {
+              this.resolveByResidencyServiceList.push( blueprint.definition.service_name );
+          }
+      }
+      this.clientDictionary[clientId] = instance;
+      console.log("Constructed %s", clientId, instance );
+      return instance;
   }
 
   protected getGestaltAuthenticationURL():string {
@@ -859,7 +894,7 @@ export class AlApiClient implements AlValidationSchemaProvider
       const environment         =   AlLocatorService.getCurrentEnvironment();
       const accountId           =   requestParams.context_account_id || requestParams.account_id || this.defaultAccountId || "0";
       const serviceEndpointId   =   requestParams.target_endpoint || requestParams.service_name;
-      const residencyAware      =   AlApiClient.resolveByResidencyServiceList.includes( serviceEndpointId );
+      const residencyAware      =   this.resolveByResidencyServiceList.includes( serviceEndpointId );
       const residency           =   residencyAware ? AlLocatorService.getCurrentResidency() : "default";
 
       let baseURL = getJsonPath<string>( this.endpointCache,
@@ -869,7 +904,7 @@ export class AlApiClient implements AlValidationSchemaProvider
         return baseURL;
       }
 
-      let serviceList = residencyAware ? AlApiClient.resolveByResidencyServiceList : AlApiClient.defaultServiceList;
+      let serviceList = residencyAware ? this.resolveByResidencyServiceList : AlXHRAdapter.defaultServiceList;
       if ( ! serviceList.includes(serviceEndpointId)) {
           serviceList.push(serviceEndpointId);
       }
@@ -1176,4 +1211,49 @@ export class AlApiClient implements AlValidationSchemaProvider
 }
 
 /* tslint:disable:variable-name */
-export const AlDefaultClient = AlGlobalizer.instantiate( 'AlDefaultClient', () => new AlApiClient() );
+export const AlRootClient = AlGlobalizer.instantiate( 'alsRoot', () => new AlXHRAdapter() );
+export const AlDefaultClient = AlRootClient;        //  @deprecated
+
+export class AlBaseServiceClient {
+    public defaultConfig:APIRequestParams = {};
+    public adapter!:AlXHRAdapter;
+
+    constructor() {
+    }
+
+    public async get<T = any>( config:APIRequestParams):Promise<T> {
+        return this.adapter.get<T>( Object.assign( {}, this.defaultConfig, config ) );
+    }
+
+    public async rawGet<T = any>( config:APIRequestParams ):Promise<AxiosResponse<T>> {
+        return this.adapter.rawGet<T>( Object.assign( {}, this.defaultConfig, config ) );
+    }
+
+    public async post<T = any>( config:APIRequestParams ):Promise<T> {
+        return this.adapter.post<T>( Object.assign( {}, this.defaultConfig, config ) );
+    }
+
+    public async rawPost<T = any>( config:APIRequestParams ):Promise<AxiosResponse<T>> {
+        return this.adapter.rawPost<T>( Object.assign( {}, this.defaultConfig, config ) );
+    }
+
+    public async put<T = any>( config:APIRequestParams ):Promise<T> {
+        return this.adapter.put<T>( Object.assign( {}, this.defaultConfig, config ) );
+    }
+
+    public async rawPut<T = any>( config:APIRequestParams ):Promise<AxiosResponse<T>> {
+        return this.adapter.rawPut<T>( Object.assign( {}, this.defaultConfig, config ) );
+    }
+
+    public async delete<T = any>( config:APIRequestParams ):Promise<T> {
+        return this.adapter.delete<T>( Object.assign( {}, this.defaultConfig, config ) );
+    }
+
+    public async rawDelete<T = any>( config:APIRequestParams ):Promise<AxiosResponse<T>> {
+        return this.adapter.rawDelete<T>( Object.assign( {}, this.defaultConfig, config ) );
+    }
+
+    public async request<T = any>( config:APIRequestParams ):Promise<AxiosResponse<T>> {
+        return this.adapter.executeRequest<T>( Object.assign( {}, this.defaultConfig, config ) );
+    }
+}

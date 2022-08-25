@@ -3,6 +3,8 @@
  *  Copyright 2019 Alert Logic, Inc.
  */
 
+import { AlErrorHandler } from '../../errors';
+
 /**
  *  @public
  *
@@ -183,7 +185,7 @@ export class AlTriggerStream
                                 try {
                                     subscription.trigger( event );
                                 } catch( e ) {
-                                    console.warn(`Trigger callback for event ${event.eventTypeName} threw exception: ${e.message}; ignoring.` );
+                                    AlErrorHandler.log( e, `Trigger callback for event ${event.eventTypeName} threw exception, ignoring` );
                                 }
                             } );
 

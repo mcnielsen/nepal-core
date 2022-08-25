@@ -6,9 +6,9 @@
  */
 
 import { WebAuth } from 'auth0-js';
-import { AIMSClient, AIMSSessionDescriptor } from "../../aims-client";
-import { AlDefaultClient } from "../../client";
-import { AlErrorHandler } from '../../error-handler';
+import { AlsAIMS, AIMSSessionDescriptor } from "../../client/aims";
+import { AlRootClient } from "../../client";
+import { AlErrorHandler } from '../../errors';
 import {
     AlLocation,
     AlLocatorService,
@@ -109,7 +109,7 @@ export class AlSessionDetector
      */
 
     public forceAuthentication() {
-        const loginUri = AlDefaultClient.resolveLocation(AlLocation.AccountsUI, '/#/login');
+        const loginUri = AlRootClient.resolveLocation(AlLocation.AccountsUI, '/#/login');
         const returnUri = window.location.origin + ((window.location.pathname && window.location.pathname.length > 1) ? window.location.pathname : "");
         this.redirect( `${loginUri}?return=${encodeURIComponent(returnUri)}&token=null`, "User is not authenticated; redirecting to login." );
     }
@@ -165,7 +165,7 @@ export class AlSessionDetector
                 if ( authenticator ) {
                     let config          =   this.getAuth0Config( { usePostMessage: true, prompt: 'none' } );
                     let accessToken     =   await this.getAuth0SessionToken( authenticator, config, 5000 );
-                    let tokenInfo       =   await AIMSClient.getTokenInfo( accessToken );
+                    let tokenInfo       =   await AlRootClient.getClient(AlsAIMS).getTokenInfo( accessToken );
 
                     /**
                      * The following rather obscure assignment is necessary because aims' token_info endpoint responds with the complete token information *except* the token itself
@@ -193,7 +193,7 @@ export class AlSessionDetector
             environment = 'integration';
         }
         let sessionStatusURL = AlLocatorService.resolveURL( AlLocation.AccountsUI, `/session/v1/status`, { residency, environment } );
-        let sessionStatus = await AlDefaultClient.get( {
+        let sessionStatus = await AlRootClient.get( {
             url: sessionStatusURL,
             withCredentials: true
         } );
@@ -286,7 +286,7 @@ export class AlSessionDetector
             if ( session.authentication.user && session.authentication.account ) {
                 return resolve( session );
             }
-            AIMSClient.getTokenInfo( session.authentication.token )
+            AlRootClient.getClient(AlsAIMS).getTokenInfo( session.authentication.token )
                 .then(  tokenInfo => {
                             if ( typeof( tokenInfo.user ) === 'object' ) {
                                 session.authentication.user = tokenInfo.user;

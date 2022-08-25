@@ -6,7 +6,7 @@ import {
     AlLocation,
     AlLocatorService,
     AlCabinet,
-    AlDefaultClient,
+    AlRootClient,
     APIRequestParams
 } from "@al/core";
 
@@ -91,16 +91,16 @@ function configureCache( client:any ) {
     };
 }
 
-describe("AlDefaultClient", () => {
+describe("AlRootClient", () => {
 
     beforeEach(() => {
         xhrMock.setup();
         AlLocatorService.setContext( { environment: "integration", residency: 'EMEA', insightLocationId: 'defender-uk-newport' } );      //  for unit tests, assume integration environment
-        configureCache( AlDefaultClient );
+        configureCache( AlRootClient );
     } );
     afterEach(() => {
       xhrMock.teardown();
-      AlDefaultClient.reset();
+      AlRootClient.reset();
     });
 
     describe('merge function', () => {
@@ -120,13 +120,13 @@ describe("AlDefaultClient", () => {
                 c: "miss piggy"
             };
 
-            let target = AlDefaultClient['merge']( {}, source1 );
+            let target = AlRootClient['merge']( {}, source1 );
             expect( target ).to.deep.equal( source1 );
 
-            target = AlDefaultClient['merge']( {}, source1, source2 );
+            target = AlRootClient['merge']( {}, source1, source2 );
             expect( target ).to.deep.equal( source2 );
 
-            target = AlDefaultClient['merge']( {}, source1, source3, source2 );
+            target = AlRootClient['merge']( {}, source1, source3, source2 );
             expect( target.a ).to.equal( false );
             expect( target.b ).to.equal( 4 );
             expect( target.c ).to.equal( "kermit" );
@@ -136,7 +136,7 @@ describe("AlDefaultClient", () => {
     describe('when calculating request URLs', () => {
       describe('with no params supplied', () => {
         it('should throw an error', async () => {
-          let result = await AlDefaultClient['calculateRequestURL']( {} )
+          let result = await AlRootClient['calculateRequestURL']( {} )
               .then( r => {
                 expect( false ).to.equal( true );       //  this should never occur
               } ).catch( e => {
@@ -147,49 +147,49 @@ describe("AlDefaultClient", () => {
       describe('with parameters', () => {
         it('should return targets with correct hosts and paths', async () => {
 
-          let endpointURL = await AlDefaultClient['calculateRequestURL']({ service_name: 'cargo', service_stack: AlLocation.InsightAPI });
+          let endpointURL = await AlRootClient['calculateRequestURL']({ service_name: 'cargo', service_stack: AlLocation.InsightAPI });
           // path should default to /:service_name/v1, no trailing slash
           expect(endpointURL).to.equal( "https://api.product.dev.alertlogic.com/cargo" );
 
-          endpointURL = await AlDefaultClient['calculateRequestURL']( { service_name: 'aims', version: null, service_stack: AlLocation.InsightAPI } );
+          endpointURL = await AlRootClient['calculateRequestURL']( { service_name: 'aims', version: null, service_stack: AlLocation.InsightAPI } );
           expect(endpointURL).to.equal( "https://api.global-integration.product.dev.alertlogic.com/aims" );
 
-          endpointURL = await AlDefaultClient['calculateRequestURL']( { service_name: 'aims', version: 'v4', service_stack: AlLocation.InsightAPI } );
+          endpointURL = await AlRootClient['calculateRequestURL']( { service_name: 'aims', version: 'v4', service_stack: AlLocation.InsightAPI } );
           //  path should be /:service_name/:version, no trailing slash
           expect(endpointURL).to.equal( "https://api.global-integration.product.dev.alertlogic.com/aims/v4" );
 
-          endpointURL = await AlDefaultClient['calculateRequestURL']( { service_name: 'cargo', version: 'v2', account_id: '67108880', service_stack: AlLocation.InsightAPI  } );
+          endpointURL = await AlRootClient['calculateRequestURL']( { service_name: 'cargo', version: 'v2', account_id: '67108880', service_stack: AlLocation.InsightAPI  } );
           //  path should be /:service_name/:version/:accountId, no trailing slash
           expect( endpointURL ).to.equal( `https://api.product.dev.alertlogic.com/cargo/v2/67108880` );
 
-          endpointURL = await AlDefaultClient['calculateRequestURL']( { service_name: 'search', version: 'v1', path: 'global-capabilities', service_stack: AlLocation.InsightAPI  } );
+          endpointURL = await AlRootClient['calculateRequestURL']( { service_name: 'search', version: 'v1', path: 'global-capabilities', service_stack: AlLocation.InsightAPI  } );
           //  domain should be non-default; path should be /:service_name/:version/:path
           expect( endpointURL ).to.equal( `https://api.global-fake-integration.product.dev.alertlogic.com/search/v1/global-capabilities` );
 
-          endpointURL = await AlDefaultClient['calculateRequestURL']( { service_name: 'aims', version: 'v100', account_id: '67108880', path: '/some/arbitrary/path/', service_stack: AlLocation.InsightAPI  } );
+          endpointURL = await AlRootClient['calculateRequestURL']( { service_name: 'aims', version: 'v100', account_id: '67108880', path: '/some/arbitrary/path/', service_stack: AlLocation.InsightAPI  } );
           //  path should be /:service_name/:version/:accountId, trailing slash ONLY because it is included in path, but no double slash from the slash at the beginning of `path`
           expect( endpointURL ).to.equal( "https://api.global-integration.product.dev.alertlogic.com/aims/v100/67108880/some/arbitrary/path/" );
 
-          endpointURL = await AlDefaultClient['calculateRequestURL']( { service_name: 'search', version: 2, account_id: '2', path: '/some/endpoint', params: { a: 1, b: 2, c: 3 }, service_stack: AlLocation.InsightAPI  } );
+          endpointURL = await AlRootClient['calculateRequestURL']( { service_name: 'search', version: 2, account_id: '2', path: '/some/endpoint', params: { a: 1, b: 2, c: 3 }, service_stack: AlLocation.InsightAPI  } );
           //  query params should not be applied by this stage -- axios serializes them and dispatches them during the actual request execution
           expect( endpointURL ).to.equal( "https://api.global-fake-integration.product.dev.alertlogic.com/search/v2/2/some/endpoint" );
 
-          endpointURL = await AlDefaultClient['calculateRequestURL']( { service_name: 'kevin', version: 1, account_id: '67108880', path: '/some/endpoint', context_account_id: '3', service_stack: AlLocation.InsightAPI } );
+          endpointURL = await AlRootClient['calculateRequestURL']( { service_name: 'kevin', version: 1, account_id: '67108880', path: '/some/endpoint', context_account_id: '3', service_stack: AlLocation.InsightAPI } );
           //  expect the endpoints response for the context_account_id to be used instead of the dominant account_id's
           expect( endpointURL ).to.equal( `https://kevin.product.dev.alertlogic.co.uk/kevin/v1/67108880/some/endpoint` );
 
-          endpointURL = await AlDefaultClient['calculateRequestURL']( { service_name: 'cargo', target_endpoint: 'kevin', path: '/some/endpoint' } );
+          endpointURL = await AlRootClient['calculateRequestURL']( { service_name: 'cargo', target_endpoint: 'kevin', path: '/some/endpoint' } );
           //  expect target endpoint ID to be honored
           expect( endpointURL ).to.equal( `https://kevin.product.dev.alertlogic.com/cargo/some/endpoint` );
 
-          endpointURL = await AlDefaultClient['calculateRequestURL']( { service_name: 'iris', version: 1, account_id: '12345678', path: '/some/endpoint', service_stack: AlLocation.InsightAPI  } );
+          endpointURL = await AlRootClient['calculateRequestURL']( { service_name: 'iris', version: 1, account_id: '12345678', path: '/some/endpoint', service_stack: AlLocation.InsightAPI  } );
           //  expect target endpoint to be referenced from residency based lookup
           expect( endpointURL ).to.equal( `https://rob.product.dev.alertlogic.co.uk/iris/v1/12345678/some/endpoint` );
 
-          AlDefaultClient.defaultAccountId = "67108880";
-          endpointURL = await AlDefaultClient['calculateRequestURL']( { service_name: 'kevin', version: 16, path: 'some/arbitrary/endpoint', service_stack: AlLocation.InsightAPI } );
+          AlRootClient.defaultAccountId = "67108880";
+          endpointURL = await AlRootClient['calculateRequestURL']( { service_name: 'kevin', version: 16, path: 'some/arbitrary/endpoint', service_stack: AlLocation.InsightAPI } );
           expect( endpointURL ).to.equal( `https://kevin.product.dev.alertlogic.com/kevin/v16/some/arbitrary/endpoint` );
-          AlDefaultClient.defaultAccountId = null;
+          AlRootClient.defaultAccountId = null;
 
 
         });
@@ -200,7 +200,7 @@ describe("AlDefaultClient", () => {
             status: 200,
             body: {"bryan": "api.bryan.alertlogic.com"}
           }) );
-          let url = await AlDefaultClient['calculateRequestURL']( { target_endpoint: 'bryan', path: 'playbooks', version: 1, account_id: "10101010" } );
+          let url = await AlRootClient['calculateRequestURL']( { target_endpoint: 'bryan', path: 'playbooks', version: 1, account_id: "10101010" } );
           expect( url ).to.equal( 'https://api.bryan.alertlogic.com/v1/10101010/playbooks' );
         } );
         it("should set wss protocol for async endpoints", async () => {
@@ -208,7 +208,7 @@ describe("AlDefaultClient", () => {
             status: 200,
             body: {"bryan": "async.bryan.alertlogic.com"}
           }) );
-          let url = await AlDefaultClient['calculateRequestURL']( { target_endpoint: 'bryan', path: 'playbooks', version: 1, account_id: "10101010" } );
+          let url = await AlRootClient['calculateRequestURL']( { target_endpoint: 'bryan', path: 'playbooks', version: 1, account_id: "10101010" } );
           expect( url ).to.equal( 'wss://async.bryan.alertlogic.com/v1/10101010/playbooks' );
         } );
       } );
@@ -219,7 +219,7 @@ describe("AlDefaultClient", () => {
             body: 'Internal Error Or Something'
           }) );
 
-          let url = await AlDefaultClient['calculateRequestURL']( { service_name: 'aims', version: 1, path: '/something', account_id: "10101010", service_stack: AlLocation.InsightAPI } );
+          let url = await AlRootClient['calculateRequestURL']( { service_name: 'aims', version: 1, path: '/something', account_id: "10101010", service_stack: AlLocation.InsightAPI } );
           expect( url ).to.equal( 'https://api.product.dev.alertlogic.com/aims/v1/10101010/something' );
         } );
       } );
@@ -233,12 +233,12 @@ describe("AlDefaultClient", () => {
             status: 200,
             body: 'first response',
           }));
-          await AlDefaultClient.get({ service_name: 'aims', version: 'v1', account_id: '2', path: 'users' });                            //  fetch once
+          await AlRootClient.get({ service_name: 'aims', version: 'v1', account_id: '2', path: 'users' });                            //  fetch once
           xhrMock.get('https://api.global-integration.product.dev.alertlogic.com/aims/v1/2/users', once({
             status: 200,
             body: 'second response',
           }));
-          let response = await AlDefaultClient.get({ service_name: 'aims', version: 'v1', account_id: '2', path: 'users'});     //  fetch again, TTL 0 to disable caching
+          let response = await AlRootClient.get({ service_name: 'aims', version: 'v1', account_id: '2', path: 'users'});     //  fetch again, TTL 0 to disable caching
           expect(response).to.equal('second response');
         });
       });
@@ -248,12 +248,12 @@ describe("AlDefaultClient", () => {
             status: 200,
             body: 'first response',
           }));
-          await AlDefaultClient.get({ service_name: 'aims', version: 'v1', account_id: '2', path: 'users', ttl: true });
+          await AlRootClient.get({ service_name: 'aims', version: 'v1', account_id: '2', path: 'users', ttl: true });
           xhrMock.get('https://api.global-integration.product.dev.alertlogic.com/aims/v1/2/users', once({
             status: 200,
             body: 'second response',
           }));
-          let response = await AlDefaultClient.get({ service_name: 'aims', version: 'v1', account_id: '2', path: 'users', ttl: true });
+          let response = await AlRootClient.get({ service_name: 'aims', version: 'v1', account_id: '2', path: 'users', ttl: true });
           expect(response).to.equal('first response');
         });
       });
@@ -263,12 +263,12 @@ describe("AlDefaultClient", () => {
             status: 200,
             body: 'first response',
           }));
-          await AlDefaultClient.get({ service_name: 'aims', version: 'v1', account_id: '2', path: 'users', params: {foo: 'bar'}, ttl: true });
+          await AlRootClient.get({ service_name: 'aims', version: 'v1', account_id: '2', path: 'users', params: {foo: 'bar'}, ttl: true });
           xhrMock.get('https://api.global-integration.product.dev.alertlogic.com/aims/v1/2/users?foo=bar', once({
             status: 200,
             body: 'second response',
           }));
-          let response = await AlDefaultClient.get({ service_name: 'aims', version: 'v1', account_id: '2', path: 'users' , params: {foo: 'bar'}, ttl: true });
+          let response = await AlRootClient.get({ service_name: 'aims', version: 'v1', account_id: '2', path: 'users' , params: {foo: 'bar'}, ttl: true });
           expect(response).to.equal('first response');
         });
         describe('which contain an array of values', () => {
@@ -277,12 +277,12 @@ describe("AlDefaultClient", () => {
               status: 200,
               body: 'first response',
             }));
-            await AlDefaultClient.get({ service_name: 'aims', version: 'v1', account_id: '2', path: 'users', params: {foo: ['bar', 'meow']}, ttl: true });
+            await AlRootClient.get({ service_name: 'aims', version: 'v1', account_id: '2', path: 'users', params: {foo: ['bar', 'meow']}, ttl: true });
             xhrMock.get('https://api.global-integration.product.dev.alertlogic.com/aims/v1/2/users?foo=bar&foo=meow', once({
               status: 200,
               body: 'second response',
             }));
-            let response = await AlDefaultClient.get({ service_name: 'aims', version: 'v1', account_id: '2', path: 'users' , params: {foo: ['bar', 'meow']}, ttl: true });
+            let response = await AlRootClient.get({ service_name: 'aims', version: 'v1', account_id: '2', path: 'users' , params: {foo: ['bar', 'meow']}, ttl: true });
             expect(response).to.equal('first response');
           });
         });
@@ -293,12 +293,12 @@ describe("AlDefaultClient", () => {
             status: 200,
             body: 'first response',
           }));
-          await AlDefaultClient.get({ service_name: 'aims', version: 'v1', account_id: '2', path: 'users', params: {foo: 'bar'}, ttl: true });
+          await AlRootClient.get({ service_name: 'aims', version: 'v1', account_id: '2', path: 'users', params: {foo: 'bar'}, ttl: true });
           xhrMock.get('https://api.global-integration.product.dev.alertlogic.com/aims/v1/2/users?foo=baz', once({
             status: 200,
             body: 'second response',
           }));
-          let response = await AlDefaultClient.get({ service_name: 'aims', version: 'v1', account_id: '2', path: 'users' , params: {foo: 'baz'}, ttl: true });
+          let response = await AlRootClient.get({ service_name: 'aims', version: 'v1', account_id: '2', path: 'users' , params: {foo: 'baz'}, ttl: true });
           expect(response).to.equal('second response');
         });
       });
@@ -315,7 +315,7 @@ describe("AlDefaultClient", () => {
             expect(req.body()).to.equal('{}');
             return res.status(200).body(defaultAuthResponse);
           });
-          const sessionDescriptor = await AlDefaultClient.authenticate(username, password, undefined, true );
+          const sessionDescriptor = await AlRootClient.authenticate(username, password, undefined, true );
           expect( sessionDescriptor ).to.deep.equals( defaultAuthResponse );
         });
       });
@@ -327,7 +327,7 @@ describe("AlDefaultClient", () => {
             return res.status(200).body(defaultAuthResponse);
           });
           try {
-            const sessionDescriptor = await AlDefaultClient.authenticate(username, password, mfaCode, true );
+            const sessionDescriptor = await AlRootClient.authenticate(username, password, mfaCode, true );
             expect( sessionDescriptor ).to.deep.equals( defaultAuthResponse );
           } catch( e ) {
             console.error("Got error...", e );
@@ -345,7 +345,7 @@ describe("AlDefaultClient", () => {
           expect(JSON.parse(req.body())).to.deep.equals({ mfa_code: mfaCode });
           return res.status(200).body(defaultAuthResponse);
         });
-        await AlDefaultClient.authenticateWithMFASessionToken(sessionToken, mfaCode, true );
+        await AlRootClient.authenticateWithMFASessionToken(sessionToken, mfaCode, true );
       });
     });
 
@@ -353,7 +353,7 @@ describe("AlDefaultClient", () => {
       it( 'should generate random cache breakers for every retry call', () => {
         let previousValues = [];
         for ( let i = 0; i < 100; i++ ) {
-            let breaker = AlDefaultClient['generateCacheBuster']( Math.floor( Math.random() * 5 ) );      //    cache busters should be suitably random to avoid overlaps
+            let breaker = AlRootClient['generateCacheBuster']( Math.floor( Math.random() * 5 ) );      //    cache busters should be suitably random to avoid overlaps
             expect( previousValues.indexOf( breaker ) ).to.equal( -1 );
             previousValues.push( breaker );
         }
@@ -363,14 +363,14 @@ describe("AlDefaultClient", () => {
             retry_count: 10,
             url: "https://some.com/made/up/url"
         };
-        expect( AlDefaultClient['isRetryableError']( { data: {}, status: 500, statusText: "Something", config: {}, headers: {} }, config, 0 ) ).to.equal( true );
-        expect( AlDefaultClient['isRetryableError']( { data: {}, status: 503, statusText: "Something", config: {}, headers: {} }, config, 0  ) ).to.equal( true );
-        expect( AlDefaultClient['isRetryableError']( { data: {}, status: 302, statusText: "Something", config: {}, headers: {} }, config, 0  ) ).to.equal( true );
-        expect( AlDefaultClient['isRetryableError']( { data: {}, status: 0, statusText: "Something", config: {}, headers: {} }, config, 0  ) ).to.equal( true );
-        expect( AlDefaultClient['isRetryableError']( { data: {}, status: 0, statusText: "Something", config: {}, headers: {} }, config, 10  ) ).to.equal( false );
-        expect( AlDefaultClient['isRetryableError']( { data: {}, status: 204, statusText: "Something", config: {}, headers: {} }, config, 0  ) ).to.equal( false );
-        expect( AlDefaultClient['isRetryableError']( { data: {}, status: 404, statusText: "Something", config: {}, headers: {} }, config, 0  ) ).to.equal( false );
-        expect( AlDefaultClient['isRetryableError']( { data: {}, status: 403, statusText: "Something", config: {}, headers: {} }, config, 0  ) ).to.equal( false );
+        expect( AlRootClient['isRetryableError']( { data: {}, status: 500, statusText: "Something", config: {}, headers: {} }, config, 0 ) ).to.equal( true );
+        expect( AlRootClient['isRetryableError']( { data: {}, status: 503, statusText: "Something", config: {}, headers: {} }, config, 0  ) ).to.equal( true );
+        expect( AlRootClient['isRetryableError']( { data: {}, status: 302, statusText: "Something", config: {}, headers: {} }, config, 0  ) ).to.equal( true );
+        expect( AlRootClient['isRetryableError']( { data: {}, status: 0, statusText: "Something", config: {}, headers: {} }, config, 0  ) ).to.equal( true );
+        expect( AlRootClient['isRetryableError']( { data: {}, status: 0, statusText: "Something", config: {}, headers: {} }, config, 10  ) ).to.equal( false );
+        expect( AlRootClient['isRetryableError']( { data: {}, status: 204, statusText: "Something", config: {}, headers: {} }, config, 0  ) ).to.equal( false );
+        expect( AlRootClient['isRetryableError']( { data: {}, status: 404, statusText: "Something", config: {}, headers: {} }, config, 0  ) ).to.equal( false );
+        expect( AlRootClient['isRetryableError']( { data: {}, status: 403, statusText: "Something", config: {}, headers: {} }, config, 0  ) ).to.equal( false );
       } );
       it('should retry if retry_count is specified', async () => {
         xhrMock.reset();
@@ -387,7 +387,7 @@ describe("AlDefaultClient", () => {
           status: 200,
           body: 'Final result',
         }));
-        const result = await AlDefaultClient.get({ service_name: 'aims', version: 'v1', account_id: '2', path: 'users', retry_count: 3, retry_interval: 10 });                            //  fetch once
+        const result = await AlRootClient.get({ service_name: 'aims', version: 'v1', account_id: '2', path: 'users', retry_count: 3, retry_interval: 10 });                            //  fetch once
         expect( result ).to.equal( "Final result" );
       });
     } );
@@ -401,7 +401,7 @@ describe("AlDefaultClient", () => {
             expect(req.method()).to.equal('POST');
             return res.status(200).body({});
           });
-          await AlDefaultClient.form(apiRequestParams).then((r) => {
+          await AlRootClient.form(apiRequestParams).then((r) => {
             expect(apiRequestParams.headers['Content-Type']).to.equal('multipart/form-data');
             expect(apiRequestParams.method).to.equal('POST');
           });
@@ -414,7 +414,7 @@ describe("AlDefaultClient", () => {
             expect(req.method()).to.equal('PUT');
             return res.status(200).body({});
           });
-          await AlDefaultClient.put(apiRequestParams).then((r) => {
+          await AlRootClient.put(apiRequestParams).then((r) => {
             expect(apiRequestParams.method).to.equal('PUT');
           });
         });
@@ -426,7 +426,7 @@ describe("AlDefaultClient", () => {
             expect(req.method()).to.equal('PUT');
             return res.status(200).body({});
           });
-          await AlDefaultClient.put(apiRequestParams).then((r) => {
+          await AlRootClient.put(apiRequestParams).then((r) => {
             expect(apiRequestParams.method).to.equal('PUT');
           });
         });
@@ -438,7 +438,7 @@ describe("AlDefaultClient", () => {
             expect(req.method()).to.equal('DELETE');
             return res.status(200).body({});
           });
-          await AlDefaultClient.delete(apiRequestParams).then((r) => {
+          await AlRootClient.delete(apiRequestParams).then((r) => {
             expect(apiRequestParams.method).to.equal('DELETE');
           });
         });
@@ -448,7 +448,7 @@ describe("AlDefaultClient", () => {
       describe('with an accept_header property', () => {
         it('set a headers object on the config object with an Accept prop set to the value of the original accept_header value', async() => {
           const config: APIRequestParams = { accept_header: 'foo/bar'};
-          await AlDefaultClient.normalizeRequest(config).then((c) => {
+          await AlRootClient.normalizeRequest(config).then((c) => {
             expect(c.headers).to.deep.equals({
               Accept: 'foo/bar'
             });
@@ -458,7 +458,7 @@ describe("AlDefaultClient", () => {
       describe('with a response_type property', () => {
         it('set a responseType prop on the config object set to the original response_type value', async() => {
           const config: APIRequestParams = { response_type: 'something'};
-          await AlDefaultClient.normalizeRequest(config).then((c) => {
+          await AlRootClient.normalizeRequest(config).then((c) => {
             expect(c.responseType).to.equal('something');
           });
         });
@@ -470,7 +470,7 @@ describe("AlDefaultClient", () => {
         it('should return the full url', async() => {
           const config: APIRequestParams = { service_name: 'aims', version: 'v1', account_id: '2', path: 'users', params: {foo: 'bar', bar: 'foo'}, ttl: true };
           config.method = 'GET';
-          let fullURL = await AlDefaultClient.fromConfigToFullUrl(config);
+          let fullURL = await AlRootClient.fromConfigToFullUrl(config);
           expect(fullURL).equals("https://api.global-integration.product.dev.alertlogic.com/aims/v1/2/users?foo=bar&bar=foo");
         });
       });
@@ -478,7 +478,7 @@ describe("AlDefaultClient", () => {
         it('should return the full url', async() => {
           const config: APIRequestParams = { service_name: 'aims', version: 'v1', account_id: '2', path: 'postme', ttl: true };
           config.method = 'POST';
-          let fullURL = await AlDefaultClient.fromConfigToFullUrl(config);
+          let fullURL = await AlRootClient.fromConfigToFullUrl(config);
           expect(fullURL).equals("https://api.global-integration.product.dev.alertlogic.com/aims/v1/2/postme");
         });
       });
@@ -486,7 +486,7 @@ describe("AlDefaultClient", () => {
         it('should return the full url', async() => {
           const config: APIRequestParams = { service_name: 'aims', version: 'v1', account_id: '2', path: 'putme', ttl: true };
           config.method = 'PUT';
-          let fullURL = await AlDefaultClient.fromConfigToFullUrl(config);
+          let fullURL = await AlRootClient.fromConfigToFullUrl(config);
           expect(fullURL).equals("https://api.global-integration.product.dev.alertlogic.com/aims/v1/2/putme");
         });
       });
@@ -494,7 +494,7 @@ describe("AlDefaultClient", () => {
         it('should return the full url', async() => {
           const config: APIRequestParams = { service_name: 'aims', version: 'v1', account_id: '2', path: 'deleteme', ttl: true };
           config.method = 'DELETE';
-          let fullURL = await AlDefaultClient.fromConfigToFullUrl(config);
+          let fullURL = await AlRootClient.fromConfigToFullUrl(config);
           expect(fullURL).equals("https://api.global-integration.product.dev.alertlogic.com/aims/v1/2/deleteme");
         });
       });
@@ -515,7 +515,7 @@ describe("AlDefaultClient", () => {
            * First test covers URL calculation for MDR APIs without endpoints resolution.  Important feature: service_name should be
            * substituted into the domain name, and not the path, and the domain should be well formed.
            */
-          let fullURL = await AlDefaultClient.fromConfigToFullUrl( config );
+          let fullURL = await AlRootClient.fromConfigToFullUrl( config );
           expect( fullURL ).to.equal( "https://responder.mdr.product.dev.alertlogic.com/v1/12345678/something/wicked?this-way=comes" );
 
           /**
@@ -523,7 +523,7 @@ describe("AlDefaultClient", () => {
            * introduced the service_name into the path.
            */
           config.noEndpointsResolution = false;
-          fullURL = await AlDefaultClient.fromConfigToFullUrl( config );
+          fullURL = await AlRootClient.fromConfigToFullUrl( config );
           expect( fullURL ).to.equal( "https://responder.mdr.product.dev.something.alertlogic.com/v1/12345678/something/wicked?this-way=comes" );
 
         } );
@@ -541,7 +541,7 @@ describe("AlDefaultClient", () => {
         cabinetStorage.synchronize();
         // Testing storage.
         expect(cabinetStorage.get('otherkey')).equal('value3');
-        flushSpy = sinon.spy(AlDefaultClient,"flushCacheKeysFromConfig");
+        flushSpy = sinon.spy(AlRootClient,"flushCacheKeysFromConfig");
         xhrMock.post('https://api.product.dev.alertlogic.com/cargo/v1/2', (req, res) => {
           expect(req.method()).to.equal('POST');
           return res.status(200).body({});
@@ -551,7 +551,7 @@ describe("AlDefaultClient", () => {
 
         const config: APIRequestParams = { flushCacheKeys:['key1','/url/with/data','otherkey'], service_name: 'cargo', version: 'v1', account_id: '2', ttl: true };
         config.method = 'POST';
-        await AlDefaultClient.post(config).then(() => {
+        await AlRootClient.post(config).then(() => {
           expect(cabinetStorage.get('key1')).equal(null);
           expect(cabinetStorage.get('/url/with/data')).equal(null);
           expect(cabinetStorage.get('otherkey')).equal(null);
@@ -562,10 +562,10 @@ describe("AlDefaultClient", () => {
 
     describe('when collectRequestLog is set to true',() => {
         beforeEach(() => {
-          AlDefaultClient.collectRequestLog = true;
+          AlRootClient.collectRequestLog = true;
         });
         afterEach(()=>{
-          AlDefaultClient.reset();
+          AlRootClient.reset();
         });
         it('should log the details for a PUT request', async() => {
           const apiRequestParams: APIRequestParams = {service_name: 'aims', version: 'v1', account_id: '2'};
@@ -574,14 +574,14 @@ describe("AlDefaultClient", () => {
             expect(req.method()).to.equal('PUT');
             return res.status(200).body({"hello":"TinyBodyOf44bytes"});
           });
-          await AlDefaultClient.put(apiRequestParams).then((r) => {
+          await AlRootClient.put(apiRequestParams).then((r) => {
             expect(apiRequestParams.method).to.equal('PUT');
           });
-          expect(AlDefaultClient.getExecutionRequestLog().length).equal(1);
-          expect(AlDefaultClient.getExecutionRequestLog()[0].method).equal("PUT");
-          expect(AlDefaultClient.getExecutionRequestLog()[0].responseContentLength).equal(44);
-          expect(AlDefaultClient.getExecutionRequestLog()[0].durationMs).lessThan(100); // This is a mock so should be fast.
-          expect(AlDefaultClient.getExecutionRequestLog()[0].url).equal("https://api.global-integration.product.dev.alertlogic.com/aims/v1/2");
+          expect(AlRootClient.getExecutionRequestLog().length).equal(1);
+          expect(AlRootClient.getExecutionRequestLog()[0].method).equal("PUT");
+          expect(AlRootClient.getExecutionRequestLog()[0].responseContentLength).equal(44);
+          expect(AlRootClient.getExecutionRequestLog()[0].durationMs).lessThan(100); // This is a mock so should be fast.
+          expect(AlRootClient.getExecutionRequestLog()[0].url).equal("https://api.global-integration.product.dev.alertlogic.com/aims/v1/2");
         });
         it('should log the details for a GET request', async () => {
           // Here we mock out a second response from back end...
@@ -590,13 +590,13 @@ describe("AlDefaultClient", () => {
             headers: {'Content-Length':'24'},
             body: "lot of users",
           }));
-          let response = await AlDefaultClient.get({ service_name: 'aims', version: 'v1', account_id: '2', path: 'users'});
+          let response = await AlRootClient.get({ service_name: 'aims', version: 'v1', account_id: '2', path: 'users'});
           expect(response).to.equals("lot of users"); // Response body should not be affected.
-          expect(AlDefaultClient.getExecutionRequestLog().length).equal(1);
-          expect(AlDefaultClient.getExecutionRequestLog()[0].method).equal("GET");
-          expect(AlDefaultClient.getExecutionRequestLog()[0].responseContentLength).equal(24);
-          expect(AlDefaultClient.getExecutionRequestLog()[0].durationMs).lessThan(100); // This is a mock so should be fast.
-          expect(AlDefaultClient.getExecutionRequestLog()[0].url).equal("https://api.global-integration.product.dev.alertlogic.com/aims/v1/2/users");
+          expect(AlRootClient.getExecutionRequestLog().length).equal(1);
+          expect(AlRootClient.getExecutionRequestLog()[0].method).equal("GET");
+          expect(AlRootClient.getExecutionRequestLog()[0].responseContentLength).equal(24);
+          expect(AlRootClient.getExecutionRequestLog()[0].durationMs).lessThan(100); // This is a mock so should be fast.
+          expect(AlRootClient.getExecutionRequestLog()[0].url).equal("https://api.global-integration.product.dev.alertlogic.com/aims/v1/2/users");
         });
         it('should should log the details for a POST request', async() => {
           const apiRequestParams: APIRequestParams = {service_name: 'aims', version: 'v1', account_id: '2'};
@@ -605,15 +605,15 @@ describe("AlDefaultClient", () => {
             expect(req.method()).to.equal('POST');
             return res.status(200).body({"body":"This is the body of the post"});
           });
-          await AlDefaultClient.form(apiRequestParams).then((r) => {
+          await AlRootClient.form(apiRequestParams).then((r) => {
             expect(apiRequestParams.headers['Content-Type']).to.equal('multipart/form-data');
             expect(apiRequestParams.method).to.equal('POST');
           });
-          expect(AlDefaultClient.getExecutionRequestLog().length).equal(1);
-          expect(AlDefaultClient.getExecutionRequestLog()[0].method).equal("POST");
-          expect(AlDefaultClient.getExecutionRequestLog()[0].responseContentLength).equal(64);
-          expect(AlDefaultClient.getExecutionRequestLog()[0].durationMs).lessThan(100); // This is a mock so should be fast.
-          expect(AlDefaultClient.getExecutionRequestLog()[0].url).equal("https://api.global-integration.product.dev.alertlogic.com/aims/v1/2");
+          expect(AlRootClient.getExecutionRequestLog().length).equal(1);
+          expect(AlRootClient.getExecutionRequestLog()[0].method).equal("POST");
+          expect(AlRootClient.getExecutionRequestLog()[0].responseContentLength).equal(64);
+          expect(AlRootClient.getExecutionRequestLog()[0].durationMs).lessThan(100); // This is a mock so should be fast.
+          expect(AlRootClient.getExecutionRequestLog()[0].url).equal("https://api.global-integration.product.dev.alertlogic.com/aims/v1/2");
         });
         it('should log the details for a DELETE request', async () => {
           const apiRequestParams: APIRequestParams = {service_name: 'aims', version: 'v1', account_id: '2'};
@@ -622,26 +622,26 @@ describe("AlDefaultClient", () => {
             expect(req.method()).to.equal('DELETE');
             return res.status(200).body({});
           });
-          await AlDefaultClient.delete(apiRequestParams).then((r) => {
+          await AlRootClient.delete(apiRequestParams).then((r) => {
             expect(apiRequestParams.method).to.equal('DELETE');
           });
-          expect(AlDefaultClient.getExecutionRequestLog().length).equal(1);
-          expect(AlDefaultClient.getExecutionRequestLog()[0].method).equal("DELETE");
-          expect(AlDefaultClient.getExecutionRequestLog()[0].responseContentLength).equal(0);
-          expect(AlDefaultClient.getExecutionRequestLog()[0].durationMs).lessThan(100); // This is a mock so should be fast.
-          expect(AlDefaultClient.getExecutionRequestLog()[0].url).equal("https://api.global-integration.product.dev.alertlogic.com/aims/v1/2");
+          expect(AlRootClient.getExecutionRequestLog().length).equal(1);
+          expect(AlRootClient.getExecutionRequestLog()[0].method).equal("DELETE");
+          expect(AlRootClient.getExecutionRequestLog()[0].responseContentLength).equal(0);
+          expect(AlRootClient.getExecutionRequestLog()[0].durationMs).lessThan(100); // This is a mock so should be fast.
+          expect(AlRootClient.getExecutionRequestLog()[0].url).equal("https://api.global-integration.product.dev.alertlogic.com/aims/v1/2");
         });
         it('should reset() clean execution log array', async () => {
           xhrMock.get('https://api.global-integration.product.dev.alertlogic.com/aims/v1/2/users', once({
             status: 200,
             body: "lot of users",
           }));
-          let response = await AlDefaultClient.get({ service_name: 'aims', version: 'v1', account_id: '2', path: 'users'});
+          let response = await AlRootClient.get({ service_name: 'aims', version: 'v1', account_id: '2', path: 'users'});
           expect(response).to.equals("lot of users"); // Response body should not be affected.
-          expect(AlDefaultClient.getExecutionRequestLog().length).equal(1);
+          expect(AlRootClient.getExecutionRequestLog().length).equal(1);
           // Calling reset.
-          AlDefaultClient.reset();
-          expect(AlDefaultClient.getExecutionRequestLog().length).equal(0);
+          AlRootClient.reset();
+          expect(AlRootClient.getExecutionRequestLog().length).equal(0);
         });
         it('should getExecutionSummary() return a summary of requests in the log', async () => {
           let apiRequestParams: APIRequestParams = {service_name: 'aims', version: 'v1', account_id: '2'};
@@ -652,18 +652,18 @@ describe("AlDefaultClient", () => {
             return res.status(200).body({"body":"This is the body a 256 size post"});
           });
           // First post.
-          await AlDefaultClient.form(apiRequestParams).then((r) => {
+          await AlRootClient.form(apiRequestParams).then((r) => {
             expect(apiRequestParams.headers['Content-Type']).to.equal('multipart/form-data');
             expect(apiRequestParams.method).to.equal('POST');
           });
 
           // Second post.
-          await AlDefaultClient.form(apiRequestParams).then((r) => {
+          await AlRootClient.form(apiRequestParams).then((r) => {
             expect(apiRequestParams.headers['Content-Type']).to.equal('multipart/form-data');
             expect(apiRequestParams.method).to.equal('POST');
           });
 
-          let summaryTest = AlDefaultClient.getExecutionSummary();
+          let summaryTest = AlRootClient.getExecutionSummary();
           // let´s validate the summary.
           expect(summaryTest.numberOfRequests).equal(2);
           expect(summaryTest.totalBytes).equal(512);

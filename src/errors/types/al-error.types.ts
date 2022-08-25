@@ -16,9 +16,6 @@ import { AxiosResponse, AxiosRequestConfig } from 'axios';
  */
 export class AlBaseError extends Error
 {
-    /* tslint:disable:variable-name */
-    __proto__: Error;
-
     /**
      * Optional reference to underlying Error, AxiosResponse, or <any>thing that triggered
      * this error.
@@ -27,12 +24,10 @@ export class AlBaseError extends Error
     public details?:any;
 
     constructor( message?:string, derivedFrom?:any, details?:any ) {
-        const trueProto = new.target.prototype;
         super(message);
         this.origin = derivedFrom;
         this.details = details;
-
-        this.__proto__ = trueProto;
+        Object.setPrototypeOf( this, AlBaseError.prototype );
     }
 }
 
@@ -51,6 +46,7 @@ export class AlAPIServerError extends AlBaseError
                  origin?:AxiosResponse|any ) {
         /* istanbul ignore next */
         super( message, origin );
+        Object.setPrototypeOf( this, AlAPIServerError.prototype );
     }
 }
 
@@ -71,6 +67,7 @@ export class AlResponseValidationError extends AlBaseError
     constructor( message:string, public errors:any[] = [] ) {
         /* istanbul ignore next */
         super( message );
+        Object.setPrototypeOf( this, AlResponseValidationError.prototype );
     }
 }
 
@@ -98,6 +95,7 @@ export class AlDataValidationError extends AlBaseError
                  public request?:AxiosRequestConfig ) {
         /* istanbul ignore next */
         super( message );
+        Object.setPrototypeOf( this, AlDataValidationError.prototype );
     }
 }
 
@@ -120,6 +118,7 @@ export class AlBadRequestError extends AlBaseError
                  public description?:string ) {
         /* istanbul ignore next */
         super( message );
+        Object.setPrototypeOf( this, AlBadRequestError.prototype );
     }
 }
 
@@ -138,6 +137,7 @@ export class AlUnauthenticatedRequestError extends AlBaseError
                  public authority:string ) {
         /* istanbul ignore next */
         super( message );
+        Object.setPrototypeOf( this, AlUnauthenticatedRequestError.prototype );
     }
 }
 
@@ -156,6 +156,7 @@ export class AlUnauthorizedRequestError extends AlBaseError
                  public resource:string ) {
         /* istanbul ignore next */
         super( message );
+        Object.setPrototypeOf( this, AlUnauthorizedRequestError.prototype );
     }
 }
 
@@ -172,6 +173,7 @@ export class AlUnimplementedMethodError extends AlBaseError
     constructor( message:string ) {
         /* istanbul ignore next */
         super( message );
+        Object.setPrototypeOf( this, AlUnimplementedMethodError.prototype );
     }
 }
 
@@ -187,6 +189,7 @@ export class AlBadGatewayError extends AlBaseError
     constructor( message:string, public upstreamService:string, public requestDescriptor:unknown ) {
         /* istanbul ignore next */
         super(message);
+        Object.setPrototypeOf( this, AlBadGatewayError.prototype );
     }
 }
 
@@ -202,6 +205,7 @@ export class AlServiceUnavailableError extends AlBaseError
     constructor( message:string, public upstreamService:string, public requestDescription:unknown ) {
         /* istanbul ignore next */
         super(message);
+        Object.setPrototypeOf( this, AlServiceUnavailableError.prototype );
     }
 }
 
@@ -217,6 +221,7 @@ export class AlGatewayTimeoutError extends AlBaseError
     constructor( message:string, public upstreamService:string, public requestDescription:unknown ) {
         /* istanbul ignore next */
         super(message);
+        Object.setPrototypeOf( this, AlGatewayTimeoutError.prototype );
     }
 }
 
@@ -233,6 +238,7 @@ export class AlNotFoundError extends AlBaseError
     constructor( message:string ) {
         /* istanbul ignore next */
         super( message );
+        Object.setPrototypeOf( this, AlNotFoundError.prototype );
     }
 }
 
@@ -248,6 +254,7 @@ export class AlWrappedError extends AlBaseError {
     constructor( message:string, inner:any, details?:any ) {
         /* istanbul ignore next */
         super( message, inner, details );
+        Object.setPrototypeOf( this, AlWrappedError.prototype );
     }
 
     public getInnerError():any {

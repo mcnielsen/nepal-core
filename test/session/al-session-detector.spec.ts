@@ -8,10 +8,11 @@ import {
     AlConduitClient,
     AlSessionDetector,
     AlLocatorService,
-    AIMSClient,
+    AlRootClient,
     AlSession,
     ConfigOption,
-    AlRuntimeConfiguration
+    AlRuntimeConfiguration,
+    AlsAIMS,
 } from '@al/core';
 
 describe('AlSessionDetector', () => {
@@ -27,7 +28,7 @@ describe('AlSessionDetector', () => {
         sessionDetector = new AlSessionDetector( conduit, true );
         warnStub = sinon.stub( console, 'warn' ).callThrough();
         errorStub = sinon.stub( console, 'error' ).callThrough();
-        getTokenInfoStub = sinon.stub( AIMSClient, 'getTokenInfo' ).returns( Promise.resolve( exampleSession.authentication ) );
+        getTokenInfoStub = sinon.stub( AlRootClient.getClient(AlsAIMS), 'getTokenInfo' ).returns( Promise.resolve( exampleSession.authentication ) );
         sinon.stub( AlSession, "ready" ).returns( Promise.resolve() );
     } );
 

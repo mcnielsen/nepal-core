@@ -1,4 +1,4 @@
-import { AIMSSessionDescriptor } from "../../aims-client/types";
+import { AIMSSessionDescriptor } from "../../client/aims/types";
 import {
     AlLocation,
     AlLocatorService,

@@ -1,7 +1,7 @@
 import { AlDefaultClient } from '../../client';
 import { AlSession } from '../al-session';
 import { AlLocatorService, AlLocation } from '../../common/navigation';
-import { AIMSSessionDescriptor } from '../../aims-client/types';
+import { AIMSSessionDescriptor } from '../../client/aims//types';
 import { AlRuntimeConfiguration, ConfigOption } from '../../configuration';
 import { AlConduitClient } from './al-conduit-client';
 import { getJsonPath } from '../../common/utility';

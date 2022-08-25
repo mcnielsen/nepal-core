@@ -1,5 +1,5 @@
 import { getJsonPath } from './json-utilities';
-import { AlDataValidationError } from '../errors/al-error.types';
+import { AlDataValidationError } from '../../errors';
 import * as tv4 from 'tv4';
 
 /**

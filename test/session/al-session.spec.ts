@@ -5,18 +5,18 @@ import {
 import { describe } from 'mocha';
 import * as sinon from 'sinon';
 import {
-    AIMSClient,
     AIMSAccount,
     AIMSSessionDescriptor,
     AlClientBeforeRequestEvent,
-    AlDefaultClient,
+    AlRootClient,
     AlDataValidationError,
     AlSession,
     AlSessionInstance,
     AlCabinet,
-    SubscriptionsClient,
     AlEntitlementCollection,
     AlRuntimeConfiguration, ConfigOption,
+    AlsAIMS,
+    AlsSubscriptions,
 } from "@al/core";
 import {
     exampleActing,
@@ -87,9 +87,9 @@ describe('AlSession Test Suite:', () => {
   let managedAccountsStub;
   let entitlementsStub;
   beforeEach( async () => {
-    accountDetailsStub = sinon.stub( AIMSClient, 'getAccountDetails' ).returns( Promise.resolve( actingAccount ) );
-    managedAccountsStub = sinon.stub( AIMSClient, 'getManagedAccounts' ).returns( Promise.resolve( [] ) );
-    entitlementsStub = sinon.stub( SubscriptionsClient, 'getEntitlements' );
+    accountDetailsStub = sinon.stub( AlRootClient.getClient(AlsAIMS), 'getAccountDetails' ).returns( Promise.resolve( actingAccount ) );
+    managedAccountsStub = sinon.stub( AlRootClient.getClient(AlsAIMS), 'getManagedAccounts' ).returns( Promise.resolve( [] ) );
+    entitlementsStub = sinon.stub( AlRootClient.getClient(AlsSubscriptions), 'getEntitlements' );
     entitlementsStub.withArgs("2").resolves( AlEntitlementCollection.fromArray( [ 'cloud_defender', 'cloud_insight' ] ) );
     entitlementsStub.withArgs("5").resolves( AlEntitlementCollection.fromArray( [ 'assess', 'detect', 'respond' ] ) );
     await AlSession.setAuthentication(sessionDescriptor);
@@ -209,9 +209,9 @@ describe('AlSession', () => {
   describe("constructor", () => {
     let accountDetailsStub, managedAccountsStub, entitlementsStub;
     beforeEach( () => {
-      accountDetailsStub = sinon.stub( AIMSClient, 'getAccountDetails' ).returns( Promise.resolve( exampleSession.authentication.account ) );
-      managedAccountsStub = sinon.stub( AIMSClient, 'getManagedAccounts' ).returns( Promise.resolve( [] ) );
-      entitlementsStub = sinon.stub( SubscriptionsClient, 'getEntitlements' ).resolves( AlEntitlementCollection.fromArray( [ 'cloud_defender', 'cloud_insight' ] ) );
+      accountDetailsStub = sinon.stub( AlRootClient.getClient(AlsAIMS), 'getAccountDetails' ).returns( Promise.resolve( exampleSession.authentication.account ) );
+      managedAccountsStub = sinon.stub( AlRootClient.getClient(AlsAIMS), 'getManagedAccounts' ).returns( Promise.resolve( [] ) );
+      entitlementsStub = sinon.stub( AlRootClient.getClient(AlsSubscriptions), 'getEntitlements' ).resolves( AlEntitlementCollection.fromArray( [ 'cloud_defender', 'cloud_insight' ] ) );
     } );
     afterEach( () => {
       sinon.restore();
@@ -369,7 +369,7 @@ describe('AlSession', () => {
 
       it( "should authenticate properly given a valid client response", async () => {
         let session = new AlSessionInstance();
-        let clientAuthStub = sinon.stub( AlDefaultClient, 'authenticate' ).returns( Promise.resolve( exampleSession ) );
+        let clientAuthStub = sinon.stub( AlRootClient, 'authenticate' ).returns( Promise.resolve( exampleSession ) );
 
         expect( session.isActive() ).to.equal( false );
         let result = await session.authenticate( "mcnielsen@alertlogic.com", "b1gB1rdL!ves!" );
@@ -382,7 +382,7 @@ describe('AlSession', () => {
 
       it( "should authenticate properly given a valid client response", async () => {
         let session = new AlSessionInstance();
-        let clientAuthStub = sinon.stub( AlDefaultClient, 'authenticateWithMFASessionToken' ).returns( Promise.resolve( exampleSession ) );
+        let clientAuthStub = sinon.stub( AlRootClient, 'authenticateWithMFASessionToken' ).returns( Promise.resolve( exampleSession ) );
 
         expect( session.isActive() ).to.equal( false );
         let result = await session.authenticateWithSessionToken( "SOME_ARBITRARY_SESSION_TOKEN", "123456" );
@@ -396,7 +396,7 @@ describe('AlSession', () => {
 
       it( "should authenticate properly given a valid client response", async () => {
         let session = new AlSessionInstance();
-        let clientAuthStub = sinon.stub( AIMSClient, 'getTokenInfo' ).returns( Promise.resolve( exampleSession.authentication ) );
+        let clientAuthStub = sinon.stub( AlRootClient.getClient(AlsAIMS), 'getTokenInfo' ).returns( Promise.resolve( exampleSession.authentication ) );
 
         expect( session.isActive() ).to.equal( false );
         let result = await session.authenticateWithAccessToken( "SOME_ARBITRARY_ACCESS_TOKEN" );
@@ -409,7 +409,7 @@ describe('AlSession', () => {
     describe( 'with acting account/location override', () => {
       it("should work", async () => {
         let session = new AlSessionInstance();
-        let clientAuthStub = sinon.stub( AlDefaultClient, 'authenticate' ).returns( Promise.resolve( exampleSession ) );
+        let clientAuthStub = sinon.stub( AlRootClient, 'authenticate' ).returns( Promise.resolve( exampleSession ) );
 
         let fakeAccount = {
           id: '6710880',
@@ -439,9 +439,9 @@ describe('AlSession', () => {
 
     beforeEach( () => {
       session = new AlSessionInstance();
-      accountDetailsStub = sinon.stub( AIMSClient, 'getAccountDetails' ).returns( Promise.resolve( accountDetails ) );
-      managedAccountsStub = sinon.stub( AIMSClient, 'getManagedAccounts' ).returns( Promise.resolve( managedAccounts ) );
-      entitlementsStub = sinon.stub( SubscriptionsClient, 'getEntitlements' ).returns( Promise.resolve( entitlements ) );
+      accountDetailsStub = sinon.stub( AlRootClient.getClient(AlsAIMS), 'getAccountDetails' ).returns( Promise.resolve( accountDetails ) );
+      managedAccountsStub = sinon.stub( AlRootClient.getClient(AlsAIMS), 'getManagedAccounts' ).returns( Promise.resolve( managedAccounts ) );
+      entitlementsStub = sinon.stub( AlRootClient.getClient(AlsSubscriptions), 'getEntitlements' ).returns( Promise.resolve( entitlements ) );
     } );
 
     afterEach( () => {

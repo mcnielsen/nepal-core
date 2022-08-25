@@ -1,6 +1,6 @@
 /**
  * Author: Kevin <knielsen@alertlogic.com>
- * Copyright 2021 Alert Logic, Inc.
+ * Copyright 2022 Alert Logic, Inc.
  */
 
 /**
@@ -10,19 +10,21 @@
  * and allows generic methods to be defined as data instead of as a literal method.
  */
 
+export interface AlServiceDescriptor {
+    service_stack?:string;
+    service_name?:string;
+    version?:string|number;
+    residencyAware?:boolean;
+}
+
+export const serviceClientBlueprints:{[clientId:string]:{ctor:Function, definition: AlServiceDescriptor}} = {};
+
 /* tslint:disable:function-name */
-export function  AlAPIClientDef( apiDefinition: {
-    stack:string,
-    name:string,
-    version:string|number,
-    methods:{
-        methodName:string,
-        relativePath:string,
-        parameters?: string[]
-    }[]
-} ) {
+export function ServiceClient<ServiceClass=any>( definition: AlServiceDescriptor ) {
     return function( ctor:Function ) {
-        ctor.prototype.apiDefinition = apiDefinition;
+        ctor.prototype.clientId = definition.service_name;
+        ctor.prototype.definition = definition;
+        serviceClientBlueprints[definition.service_name] = { ctor, definition };
     };
 }
 

@@ -1,8 +1,8 @@
 import { expect } from 'chai';
 import { describe } from 'mocha';
 import * as sinon from 'sinon';
-import { AlBaseError } from "../../src/common";
-import { AlErrorHandler } from '../../src/error-handler';
+import { AlBaseError } from "../../src/errors";
+import { AlErrorHandler } from '../../src/errors';
 import { AxiosResponse, AxiosRequestConfig } from 'axios';
 
 describe('AlErrorHandler', () => {

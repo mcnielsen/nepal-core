@@ -1,4 +1,4 @@
-import { AlChangeStamp } from '../../types/index';
+import { AlChangeStamp } from '../../../types/index';
 
 export interface AIMSAuthentication {
     user: AIMSUser;
@@ -49,6 +49,7 @@ export interface AIMSAuthenticationTokenInfo extends AIMSAuthentication {
 }
 
 export interface AIMSUserDetails {
+    id?:string;
     name?:string;
     password?:string;
     email?:string;

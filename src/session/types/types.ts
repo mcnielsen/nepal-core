@@ -1,8 +1,8 @@
 import {
     AIMSAccount,
     AIMSUser,
-} from '../../aims-client/types';
-import { AlEntitlementRecord } from "../../subscriptions-client/types";
+} from '../../client/aims/types';
+import { AlEntitlementRecord } from "../../client/subscriptions/types";
 
 export interface AlConsolidatedAccountMetadata {
     user:AIMSUser;

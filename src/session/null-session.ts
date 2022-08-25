@@ -3,7 +3,7 @@
  * This session descriptor corresponds to an empty/unauthenticated session state.
  */
 
-import { AIMSSessionDescriptor } from "../aims-client";
+import { AIMSSessionDescriptor } from "../client/aims/types";
 
 /* tslint:disable:variable-name */
 export const AlNullSessionDescriptor: AIMSSessionDescriptor = {

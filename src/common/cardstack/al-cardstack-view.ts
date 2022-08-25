@@ -8,6 +8,7 @@ import {
     AlCardstackActiveFilter
 } from './types';
 import { AlStopwatch } from '../utility/al-stopwatch';
+import { AlErrorHandler } from '../../errors';
 
 /**
  *  Manages a cardstack view state
@@ -117,7 +118,7 @@ export abstract class AlCardstackView< EntityType=any,
             }
         } catch( error ) {
             console.error("A fatal error prevented this view from starting!", error );
-            this.error = error;
+            this.error = error as Error;
             this.loading = false;
         }
     }
@@ -167,7 +168,7 @@ export abstract class AlCardstackView< EntityType=any,
         } catch( e ) {
             console.error("A fatal error prevented this view from continuing!", e );
             this.loading = false;
-            this.error = e;
+            this.error = e as Error;
         }
     }
 
@@ -681,8 +682,7 @@ export abstract class AlCardstackView< EntityType=any,
             } );
 
         } catch( e ) {
-            throw new Error(`Failed to normalize characteristics object: ${e.message}` );
-
+            AlErrorHandler.log( e, `Failed to normalize characteristics object` );
         }
     }
 

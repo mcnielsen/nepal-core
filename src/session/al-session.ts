@@ -9,19 +9,17 @@
  */
 
 import {
-    AIMSClient,
     AIMSUser,
     AIMSAccount,
     AIMSAuthentication,
     AIMSSessionDescriptor,
-} from "../aims-client";
-import {
-    AlApiClient,
     AlClientBeforeRequestEvent,
-    AlDefaultClient,
+    AlRootClient,
+    AlEntitlementCollection,
+    AlsAIMS,
+    AlsSubscriptions,
 } from "../client";
-import { AlDataValidationError } from "../common/errors";
-import { AlErrorHandler } from '../error-handler';
+import { AlErrorHandler, AlDataValidationError } from "../errors";
 import {
     AlInsightLocations,
     AlLocation,
@@ -36,8 +34,6 @@ import {
     AlTriggerStream,
     deepMerge
 } from "../common/utility";
-import { SubscriptionsClient } from "../subscriptions-client";
-import { AlEntitlementCollection } from "../subscriptions-client/types";
 import {
     AlActingAccountChangedEvent,
     AlActingAccountResolvedEvent,
@@ -71,7 +67,6 @@ export class AlSessionInstance
      * Protected state properties
      */
     protected sessionIsActive                     =   false;
-    protected client:AlApiClient                  =   null;
     protected sessionData: AIMSSessionDescriptor  =   JSON.parse(JSON.stringify(AlNullSessionDescriptor));
 
     /**
@@ -115,9 +110,8 @@ export class AlSessionInstance
     ];
 
 
-    constructor( client:AlApiClient = null ) {
-      this.client = client || AlDefaultClient;
-      this.notifyStream.siphon( this.client.events );
+    constructor() {
+      this.notifyStream.siphon( AlRootClient.events );
       this.notifyStream.attach( AlClientBeforeRequestEvent, this.onBeforeRequest );
       /**
        * Attempt to recreate a persisted session.  Note that the timeout below (really just an execution deferral, given the 0ms) prevents any
@@ -170,26 +164,26 @@ export class AlSessionInstance
       }
       AlLocatorService.reset();
       if ( flushClientCache ) {
-        AlDefaultClient.reset();
+        AlRootClient.reset();
       }
     }
 
     public async authenticate(  username:string, passphrase:string, options:AuthenticationOptions = {} ):Promise<boolean> {
-      let session = await this.client.authenticate( username, passphrase, undefined, true );
+      let session = await AlRootClient.authenticate( username, passphrase, undefined, true );
       this.mergeSessionOptions( session, options );
       await this.setAuthentication( session );
       return true;
     }
 
     public async authenticateWithSessionToken( sessionToken:string, mfaCode:string, options:AuthenticationOptions = {} ):Promise<boolean> {
-      let session = await this.client.authenticateWithMFASessionToken( sessionToken, mfaCode, true );
+      let session = await AlRootClient.authenticateWithMFASessionToken( sessionToken, mfaCode, true );
       this.mergeSessionOptions( session, options );
       await this.setAuthentication( session );
       return true;
     }
 
     public async authenticateWithAccessToken( accessToken:string, options:AuthenticationOptions = {} ):Promise<boolean> {
-      let tokenInfo = await AIMSClient.getTokenInfo( accessToken );
+      let tokenInfo = await AlRootClient.getClient(AlsAIMS).getTokenInfo( accessToken );
       tokenInfo.token = accessToken; // Annoyingly, AIMS does not include the `token` property in its response to this call, making the descriptor somewhat irregular
       let session:AIMSSessionDescriptor = { authentication: tokenInfo };
       this.mergeSessionOptions( session, options );
@@ -207,7 +201,7 @@ export class AlSessionInstance
       try {
         this.startDetection();
         let authenticationSchemaId = "https://alertlogic.com/schematics/aims#definitions/authentication";
-        let validator = new AlJsonValidator( AIMSClient );
+        let validator = new AlJsonValidator( AlRootClient.getClient(AlsAIMS) );
         let test = await validator.test( proposal.authentication, authenticationSchemaId );
         if ( ! test.valid ) {
           throw new AlDataValidationError( `The provided data is not a valid session descriptor.`, proposal, authenticationSchemaId, [ test.error ] );
@@ -260,7 +254,7 @@ export class AlSessionInstance
         throw new Error("Usage error: setActingAccount requires an account ID or account descriptor." );
       }
       if ( typeof( account ) === 'string' ) {
-        const accountDetails = await AIMSClient.getAccountDetails( account );
+        const accountDetails = await AlRootClient.getClient(AlsAIMS).getAccountDetails( account );
         return await this.setActingAccount( accountDetails, profileId );
       }
       const previousAccount               = this.sessionData.acting;
@@ -276,7 +270,7 @@ export class AlSessionInstance
                                               : account.default_location;
       this.setActiveDatacenter( targetLocationId );
 
-      AlDefaultClient.defaultAccountId    = account.id;
+      AlRootClient.defaultAccountId    = account.id;
 
       let resolveMetadata                 = AlRuntimeConfiguration.getOption<boolean>( ConfigOption.ResolveAccountMetadata, true );
       let useConsolidatedResolver         = AlRuntimeConfiguration.getOption<boolean>( ConfigOption.ConsolidatedAccountResolver, false );
@@ -361,7 +355,7 @@ export class AlSessionInstance
         this.sessionIsActive = true;
       }
       if ( this.sessionIsActive ) {
-        SubscriptionsClient.setInternalUser( this.getPrimaryAccountId() === "2" );
+        AlRootClient.getClient( AlsSubscriptions ).setInternalUser( this.getPrimaryAccountId() === "2" );
         if ( ! wasActive ) {
           this.notifyStream.tap();        //  *always* get notifyStream flowing at this point, so that we can intercept AlBeforeRequestEvents
           this.notifyStream.trigger( new AlSessionStartedEvent( this.sessionData.authentication.user, this.sessionData.authentication.account ) );
@@ -378,7 +372,7 @@ export class AlSessionInstance
       this.sessionIsActive = false;
       this.storage.destroy();
       this.notifyStream.trigger( new AlSessionEndedEvent( ) );
-      AlDefaultClient.defaultAccountId = null;
+      AlRootClient.defaultAccountId = null;
       return this.isActive();
     }
 
@@ -619,7 +613,7 @@ export class AlSessionInstance
       if ( ! accountId ) {
         accountId = this.getActingAccountId();
       }
-      return this.resolutionGuard.then( () => AIMSClient.getManagedAccounts( accountId, { active: true } ) );
+      return this.resolutionGuard.then( () => AlRootClient.getClient(AlsAIMS).getManagedAccounts( accountId, { active: true } ) );
     }
 
     /**
@@ -650,7 +644,7 @@ export class AlSessionInstance
           await this.setAuthentication(session);
       } catch( e ) {
           this.deactivateSession();
-          console.warn(`Failed to reinstate session from localStorage: ${e.message}`, e );
+          AlErrorHandler.log( e, "Failed to reinstate session from localStorage" );
       } finally {
           this.endDetection();
       }
@@ -663,7 +657,7 @@ export class AlSessionInstance
       }
       try {
         if ( AlRuntimeConfiguration.getOption( ConfigOption.NavigationViaGestalt, true ) ) {
-          let profile = await AlDefaultClient.get<AlSessionProfile>( {
+          let profile = await AlRootClient.get<AlSessionProfile>( {
             service_stack: AlLocation.GestaltAPI,
             service_name: 'content',
             version: 1,
@@ -672,7 +666,7 @@ export class AlSessionInstance
           } );
           return profile;
         } else {
-          let profile = await AlDefaultClient.get<AlSessionProfile>( {
+          let profile = await AlRootClient.get<AlSessionProfile>( {
             url: `/assets/navigation/profiles/${profileId}.json`
           } );
           return profile;
@@ -687,7 +681,7 @@ export class AlSessionInstance
                                          options:AuthenticationOptions ) {
       if ( options.actingAccount ) {
         if ( typeof( options.actingAccount ) === 'string' ) {
-          session.acting = await AIMSClient.getAccountDetails( options.actingAccount );
+          session.acting = await AlRootClient.getClient(AlsAIMS).getAccountDetails( options.actingAccount );
         } else {
           session.acting = options.actingAccount;
         }
@@ -729,13 +723,13 @@ export class AlSessionInstance
     protected async resolveActingAccount( account:AIMSAccount, profileId?:string ) {
       const resolved:AlActingAccountResolvedEvent = new AlActingAccountResolvedEvent( account, null, null );
       let dataSources:Promise<any>[] = [
-          AIMSClient.getAccountDetails( account.id ),
+          AlRootClient.getClient(AlsAIMS).getAccountDetails( account.id ),
           this.getSessionProfile( profileId ),
-          SubscriptionsClient.getEntitlements( this.getPrimaryAccountId() )
+          AlRootClient.getClient(AlsSubscriptions).getEntitlements( this.getPrimaryAccountId() )
       ];
 
       if ( account.id !== this.getPrimaryAccountId() ) {
-        dataSources.push( SubscriptionsClient.getEntitlements( account.id ) );
+        dataSources.push( AlRootClient.getClient(AlsSubscriptions).getEntitlements( account.id ) );
       }
 
       return Promise.all( dataSources )
@@ -779,7 +773,7 @@ export class AlSessionInstance
       };
       try {
         let [ metadata, profile ] = await Promise.all( [
-          AlDefaultClient.get( request ),
+          AlRootClient.get( request ),
           this.getSessionProfile( profileId )
         ] );
         let effectiveEntitlements = profile.entitlements

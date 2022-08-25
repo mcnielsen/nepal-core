@@ -1,12 +1,12 @@
 import {
     AIMSAccount,
     AIMSUser,
-} from "../../aims-client";
+} from "../../client/aims";
 import {
     AlTrigger,
     AlTriggeredEvent,
 } from "../../common/utility";
-import { AlEntitlementCollection } from "../../subscriptions-client/types";
+import { AlEntitlementCollection } from "../../client/subscriptions/types";
 
 /**
  * AlSessionStartedEvent is broadcast by an AlSessionInstance whenever a new session is created by a successful authentication.
