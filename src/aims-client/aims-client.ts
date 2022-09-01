@@ -622,6 +622,7 @@ export class AIMSClientInstance implements AlValidationSchemaProvider {
       service_name: this.serviceName,
       version: this.serviceVersion,
       path: '/user/mfa/enroll',
+      noEndpointsResolution: true,
       data: { mfa_uri: uri, mfa_codes: codes },
       headers: {
           'X-AIMS-Session-Token': sessionToken
@@ -651,6 +652,7 @@ export class AIMSClientInstance implements AlValidationSchemaProvider {
       service_name: this.serviceName,
       version: this.serviceVersion,
       path: '/user/mfa/enroll',
+      noEndpointsResolution: true,
       data: {
         mfa_uri: uri.toString(),
         email: email,
