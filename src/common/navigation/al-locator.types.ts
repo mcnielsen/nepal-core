@@ -84,6 +84,7 @@ export class AlLocation
     public static Segment           = "segment";
     public static Auth0             = "auth0";
     public static GoogleTagManager  = "gtm";
+    public static DatadogRum        = "datadogrum";
 
     /**
      * Generates location type definitions for residency-specific prod, integration, and dev versions of a UI

@@ -427,6 +427,43 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
     },
 
     /**
+    *  Datadog RUM
+    */
+    {
+        locTypeId: AlLocation.DatadogRum,
+        uri: 'https://app.datadoghq.com/',
+        data: {
+            applicationId: '1ee41c9c-6e32-421d-87a1-c164238f2a65',
+            clientToken: 'pub0e15fafbe120f94db5372fa66bb42300',
+            site: 'datadoghq.com',
+            service:'magma-integration'
+        },
+        environment: 'integration'
+    },
+    {
+        locTypeId: AlLocation.DatadogRum,
+        uri: 'https://app.datadoghq.com/',
+        data: {
+            applicationId: '',
+            clientToken: '',
+            site: 'datadoghq.com',
+            service:''
+        },
+        environment: 'production|production-staging'
+    },
+    {
+        locTypeId: AlLocation.DatadogRum,
+        uri: 'https://app.datadoghq.com/',
+        data: {
+            applicationId: '',
+            clientToken: '',
+            site: 'datadoghq.com',
+            service:''
+        },
+        environment: 'development'
+    },
+
+    /**
     *  Auth0 Configuration
     */
     {
