@@ -386,6 +386,9 @@ export class AlSessionInstance
      * Is the Session Active?
      */
     isActive(): boolean {
+      if ( this.sessionIsActive && this.getTokenExpiry() < this.getCurrentTimestamp() ) {
+          this.deactivateSession();
+      }
       return this.sessionIsActive;
     }
 
