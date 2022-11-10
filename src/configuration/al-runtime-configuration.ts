@@ -153,6 +153,7 @@ export class AlRuntimeConfiguration {
      *  src/assets/external, and then invoke this function.  The path can be overridden, of course!
      */
     public static useLocalContent( assetBasePath:string = 'assets/external' ) {
+        AlRuntimeConfiguration.setOption( ConfigOption.LocalManagedContent, true );
         AlRuntimeConfiguration.setOption( ConfigOption.NavigationViaGestalt, false );
         AlRuntimeConfiguration.setOption( ConfigOption.NavigationViaConduit, false );
         AlRuntimeConfiguration.setOption( ConfigOption.ManagedContentAssetPath, assetBasePath );
