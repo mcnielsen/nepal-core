@@ -584,12 +584,9 @@ export class AlApiClient implements AlValidationSchemaProvider
   }
 
   /**
-   * Converts a string input to its base64 encoded equivalent.  Uses browser-provided btoa if available, or 3rd party btoa module as a fallback.
+   * Converts a string input to its base64 encoded equivalent.
    */
   public base64Encode( data:string ):string {
-    if ( this.isBrowserBased() && window.btoa ) {
-        return btoa( data );
-    }
     let utf8Data = unescape( encodeURIComponent( data ) );        //  forces conversion to utf8 from utf16, because...  not sure why
     let bytes = [];
     for ( let i = 0; i < utf8Data.length; i++ ) {
