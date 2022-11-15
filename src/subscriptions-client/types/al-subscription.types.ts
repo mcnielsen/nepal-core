@@ -94,7 +94,8 @@ export class AlEntitlementCollection
         "web_security_manager",
         "dashboard_authentication",
         "dashboard_firewall",
-        "expert_response"
+        "expert_response",
+        "standalone_waf" // This is a temporal entitlement for Standalone WAF testing purposes. NOTE: this will delete after GA
     ];
     protected collection:{[productId:string]:AlEntitlementRecord} = {};
     protected evaluationCache:{[expression:string]:boolean} = {};
