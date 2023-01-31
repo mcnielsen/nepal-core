@@ -799,8 +799,7 @@ export class AlApiClient implements AlValidationSchemaProvider
       if ( environment === 'development' ) {
           environment = 'integration';
       }
-      let authLocationId = AlRuntimeConfiguration.getOption( ConfigOption.GestaltDomain, AlLocation.AccountsUI );
-      return AlLocatorService.resolveURL( authLocationId, `/session/v1/authenticate`, { residency, environment } );
+      return AlLocatorService.resolveURL( AlLocation.MagmaUI, `/session/v1/authenticate`, { residency, environment } );
   }
 
 
