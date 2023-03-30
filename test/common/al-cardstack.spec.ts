@@ -359,7 +359,7 @@ describe( 'AlCardstackView', () => {
         it( 'should show/hide items based on a custom filter', () => {
             let firstCard = stack.cards[0];
             let color = stack.getValue( "color", firstCard.properties.color );
-            stack.applyFilterBy( color, ( e, p, f ) => false );
+            stack.applyFilterBy( color, false, ( e, p, f ) => false );
             for ( let i = 0; i < stack.cards.length; i++ ) {
                 let card = stack.cards[i];
                 expect( card.visible ).to.equal( false );

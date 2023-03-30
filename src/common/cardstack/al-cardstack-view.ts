@@ -299,10 +299,10 @@ export abstract class AlCardstackView< EntityType=any,
     /**
      *  Applies a filter to the current view, optionally specifying a custom filter callback.
      */
-    public applyFilterBy( vDescriptor:AlCardstackValueDescriptor,
+    public applyFilterBy( vDescriptor:AlCardstackValueDescriptor, resetActiveFilters: boolean = false,
                           callback?:{(entity:EntityType,properties:PropertyType,filter:AlCardstackActiveFilter<EntityType,PropertyType>):boolean} ) {
 
-        this.updateActiveFilters(vDescriptor, callback);
+        this.updateActiveFilters(vDescriptor, resetActiveFilters, callback);
         const pDescriptor = this.getProperty( vDescriptor.property );
         if ( pDescriptor.remote ) {
             this.start();       //  restart view
@@ -315,11 +315,11 @@ export abstract class AlCardstackView< EntityType=any,
     /**
      *  Applies multiple filter to the current view, optionally specifying a custom filter callback.
      */
-    public applyMultipleFilterBy( vDescriptors:AlCardstackValueDescriptor[],
+    public applyMultipleFilterBy( vDescriptors:AlCardstackValueDescriptor[], resetActiveFilters: boolean = false,
         callback?:{(entity:EntityType,properties:PropertyType,filter:AlCardstackActiveFilter<EntityType,PropertyType>):boolean} ) {
 
             vDescriptors.forEach(vDescriptor => {
-                this.updateActiveFilters(vDescriptor, callback);
+                this.updateActiveFilters(vDescriptor, resetActiveFilters, callback);
             });
     }
 
@@ -708,13 +708,29 @@ export abstract class AlCardstackView< EntityType=any,
         return this.activeFilters.filter( filter => filter.property.remote );
     }
 
-    protected updateActiveFilters(vDescriptor:AlCardstackValueDescriptor,
+    /**
+     * Updates the list of active filters based on the provided value descriptor.
+     *
+     * @param {AlCardstackValueDescriptor} vDescriptor - The value descriptor to apply as a filter.
+     * @param {boolean} [resetActiveFilters=false] - If true, clears all filters in the same category as the one being applied, leaving only the new filter active.
+     * @param {function} [callback] - An optional callback function to be called when the filter is applied.
+     * @returns {void}
+     */
+    protected updateActiveFilters(vDescriptor:AlCardstackValueDescriptor, resetActiveFilters: boolean = false,
                                   callback?:{(entity:EntityType,properties:PropertyType,filter:AlCardstackActiveFilter<EntityType,PropertyType>):boolean}) {
         const pDescriptor = this.getProperty( vDescriptor.property );
         const existing = this.activeFilters.find( filter => filter.property === pDescriptor );
         if ( existing ) {
             if ( existing.values.includes( vDescriptor ) ) {
                 return;     //  no change
+            }
+            if ( resetActiveFilters ) {
+                existing.values = [];
+                pDescriptor.values.forEach(value => {
+                    if ( vDescriptor.value !== value.value ) {
+                        value.activeFilter = false;
+                    }
+                });
             }
             existing.values.push( vDescriptor );
             existing.rawValues = existing.values.map( vDescr => vDescr.value );
