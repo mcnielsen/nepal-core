@@ -424,6 +424,37 @@ export abstract class AlCardstackView< EntityType=any,
     public decoratePropertyValue?( entity:EntityType, property:AlCardstackPropertyDescriptor, value:AlCardstackValueDescriptor );
 
     /**
+     * Sets the active filters based on the specified query parameters.
+     * This function is useful when using deep links.
+     *
+     * @param {Object} params - The query parameters object.
+     * @throws {Error} If `characteristics` is not configured, an error will be thrown.
+     * @returns {void}
+     */
+    public setDefaultFiltersByParams(params: {[key:string]: string}) {
+        if(!this.characteristics){
+            throw new Error("characteristics must be configured to activate filters via query parameters.");
+        }
+        const filterableBy = this.characteristics.filterableBy;
+        if (filterableBy.length > 0) {
+            for (let i = 0; i < filterableBy.length; i++) {
+                const filterProperty = filterableBy[i] as string;
+                if (filterProperty in params && params[filterProperty] && filterProperty in this.characteristics.definitions) {
+                    const values = params[filterProperty].split(',');
+                    const activeFilters: AlCardstackValueDescriptor[] = [];
+                    values.forEach(value => {
+                        const filter = this.characteristics.definitions[filterProperty].values.find(characteristicValue => characteristicValue.value === value);
+                        if (filter) {
+                            activeFilters.push(filter);
+                        }
+                    });
+                    this.applyMultipleFilterBy(activeFilters);
+                }
+            }
+        }
+    }
+
+    /**
      * Protected Internal Methods
      */
 
@@ -732,6 +763,7 @@ export abstract class AlCardstackView< EntityType=any,
                     }
                 });
             }
+            // debugger;
             existing.values.push( vDescriptor );
             existing.rawValues = existing.values.map( vDescr => vDescr.value );
         } else {
