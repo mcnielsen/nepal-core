@@ -763,7 +763,6 @@ export abstract class AlCardstackView< EntityType=any,
                     }
                 });
             }
-            // debugger;
             existing.values.push( vDescriptor );
             existing.rawValues = existing.values.map( vDescr => vDescr.value );
         } else {
