@@ -275,9 +275,9 @@ export abstract class AlExecutionContext
      * Sets the map of parameter preservation rules for consumption by the navigation layer.
      */
     public setParamPreservationRules( rulesMap: { [zoneKey: string]: AlParamPreservationRule } ):AlExecutionContext {
-        Object.entries( rulesMap ).forEach( ( [ zoneKey, rule ] ) => {
+        for (const [zoneKey, rule] of Object.entries(rulesMap)) {
             this.paramPreservationZones[zoneKey] = rule;
-        } );
+        }
         return this;
     }
 
