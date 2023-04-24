@@ -5,6 +5,7 @@ export class ElaborationLog extends Elaboration {
     public message:string = "";
     public messageId:string = "";
     public messageCategory:string;
+    public sourceType:string; // source_type TODO por ahora source_id
     public sourceHostIp:string = "";
     public sourceName:string = "";
     public rulename:string = "";
