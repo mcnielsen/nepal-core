@@ -1,19 +1,9 @@
 {
-  "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "target": "ES2016",
-    "module": "commonjs",
-    "paths": {
-        "@al/core": [ "./src" ]
-    }
-  },
-  "compileOnSave"  : false,
-  "include"        : [
-    "index.ts",
-    "./src/**/*.ts",
-    "./test/**/*.ts"
-  ],
-  "exclude"        : [
-    "node_modules"
-  ]
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "outDir": "./dist/out-tsc",
+        "types": ["jest", "node"]
+    },
+    "files": ["tests/test-setup.ts"],
+    "include": ["test/**/*.spec.ts", "**/*.d.ts"]
 }
