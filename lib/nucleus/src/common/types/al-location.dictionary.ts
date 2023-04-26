@@ -588,5 +588,30 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
         uri: 'https://distributor.mdr.product.dev.alertlogic.com',
         environment: 'integration|development'
     },
+
+    /**
+     * YARD locations
+     */
+    {
+        locTypeId: AlLocation.YARDAPI,
+        insightLocationId: 'defender-us-denver',
+        uri: 'https://yard.alertlogic.com',
+        environment: 'production|production-staging',
+        residency: "US"
+    },
+    {
+        locTypeId: AlLocation.YARDAPI,
+        insightLocationId: 'defender-us-ashburn',
+        uri: 'https://yard.alertlogic.net',
+        environment: 'production|production-staging',
+        residency: "US"
+    },
+    {
+        locTypeId: AlLocation.YARDAPI,
+        insightLocationId: 'defender-uk-newport',
+        uri: 'https://yard.alertlogic.co.uk',
+        environment: 'production|production-staging',
+        residency: "UK"
+    },
 ];
 
