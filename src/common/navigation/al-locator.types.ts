@@ -49,6 +49,7 @@ export class AlLocation
     public static ResponderWS       = "responder:ws";
     public static DistributorAPI    = "distributor:api";
     public static MDRAPI            = "mdr:api";
+    public static YARDAPI           = "yard:api";
     /* Read above: no new locations for *.mdr.alertlogic.com targets. */
 
     /**
