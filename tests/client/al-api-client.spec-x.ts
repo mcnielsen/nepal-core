@@ -524,8 +524,21 @@ describe("AlDefaultClient", () => {
 
         } );
       } );
+      describe('for a YARD API Endpoint', () => {
+        it('should properly resolve the full URL', async () => {
+          const config: APIRequestParams = {
+            service_stack: AlLocation.YARDAPI,
+            version: 1,
+            account_id: "12345678",
+            path: '/something/wicked',
+            params: { 'this-way': 'comes' },
+            method: 'GET',
+          };
+          let fullURL = await AlDefaultClient.fromConfigToFullUrl(config);
+          expect(fullURL).to.equal("https://yard.alertlogic.co.uk/v1/12345678/something/wicked?this-way=comes");
+        });
+      });
     });
-
     describe('when flushCacheKeys is present',() => {
       let flushSpy;
       let cabinetStorage;
