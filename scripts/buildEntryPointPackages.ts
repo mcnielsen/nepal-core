@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import * as childProcess from 'child_process';
 import { Extractor, ExtractorConfig, ExtractorResult } from '@microsoft/api-extractor';
 
 async function buildPackage( entryPoint:string ) {
@@ -38,6 +39,8 @@ async function buildPackage( entryPoint:string ) {
         }
         fs.writeFileSync( `${entryPoint}/package.json`, JSON.stringify( packageJson, null, 4 ), { encoding: 'utf8' } );
     }
+
+    childProcess.execSync( `rm -rf bundles/${entryPoint}`, { stdio: 'inherit' } );
 }
 
 async function buildPackages() {
