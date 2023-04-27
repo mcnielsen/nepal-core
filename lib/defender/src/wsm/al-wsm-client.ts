@@ -14,9 +14,7 @@ import {
 
 export class AlWSMClientInstance {
 
-    private readonly targetEndpoint = 'yard';
-    private readonly serviceName = 'api';
-    private readonly serviceStack = AlLocation.LegacyUI;
+    private readonly serviceStack = AlLocation.YARDAPI;
 
     /**
      * Get all appliances using an specific accountId
@@ -29,10 +27,9 @@ export class AlWSMClientInstance {
      */
     async getAppliances(accountId: string): Promise<AlWSMAppliance[]> {
         return AlDefaultClient.get({
-            target_endpoint: this.targetEndpoint,
-            service_name: this.serviceName,
+            service_stack: this.serviceStack,
             version: '',
-            path: `/appliance/select`,
+            path: `/api/appliance/select`,
             params: {
                 features: 'wsm_enabled',
                 customer_ids: accountId
@@ -53,10 +50,9 @@ export class AlWSMClientInstance {
      */
     async getApplianceInfo(applianceUuid: string): Promise<AlWSMConfigAppliance> {
         return AlDefaultClient.get({
-            target_endpoint: this.targetEndpoint,
-            service_name: this.serviceName,
+            service_stack: this.serviceStack,
             version: '',
-            path: `/wsm/config/appliance/${applianceUuid}`
+            path: `/api/wsm/config/appliance/${applianceUuid}`
         });
     }
 
@@ -74,7 +70,7 @@ export class AlWSMClientInstance {
         return AlDefaultClient.get({
             service_stack: this.serviceStack,
             version: '',
-            path: `/wsm/manage/appliance/${applianceUuid}/auth.html?mode=login`
+            path: `/api/wsm/manage/appliance/${applianceUuid}/auth.html?mode=login`
         });
     }
 
@@ -93,10 +89,9 @@ export class AlWSMClientInstance {
      */
     async getStats(type:StatType, accountId:string, applianceUuids:string[], fields:StatField[]): Promise<StatsInfo[]> {
         return AlDefaultClient.get({
-            target_endpoint: this.targetEndpoint,
-            service_name: this.serviceName,
+            service_stack: this.serviceStack,
             version: '',
-            path: `/wsm/stats/${type}/select`,
+            path: `/api/wsm/stats/${type}/select`,
             params: {
                 appliance_uuids: applianceUuids.join(','),
                 customer_ids: accountId,

@@ -7,7 +7,6 @@ export class ElaborationEvent extends Elaboration {
     public dst:string = "";
     public event_id:number;
     public payload:string[] = [];
-    public appliance:string;
     public gzipDecode:Array<{
         header:string;
         order?:Array<{
