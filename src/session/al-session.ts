@@ -99,7 +99,8 @@ export class AlSessionInstance
       AlLocation.AETunerAPI,
       AlLocation.ResponderAPI,
       AlLocation.DistributorAPI,
-      AlLocation.MDRAPI
+      AlLocation.MDRAPI,
+      AlLocation.YARDAPI,
 
       /**
        * STOP!  Please read this note in its entirety before you add items to this list of authenticated stacks.
