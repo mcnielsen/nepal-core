@@ -18,6 +18,7 @@
     "moduleResolution"                : "node",
     "noImplicitAny"                   : false,
     "noUnusedLocals"                  : false,
+    "rootDir"                         : "./lib",
     "outDir"                          : "./dist/commonjs",
     "sourceMap"                       : true,
     "strict"                          : true,
@@ -34,12 +35,12 @@
         "@al/core/*": [ "lib/*/src/index.ts" ]
     }
   },
-  "include" : [
-    "index.ts",
-    "./lib/**/*.ts"
+  "include": [
+      "lib/**/*.ts"
   ],
   "exclude" : [
     "node_modules",
-    "**/*.spec.ts"
+    "**/*.spec.ts",
+    "./tests/**"
   ]
 }
