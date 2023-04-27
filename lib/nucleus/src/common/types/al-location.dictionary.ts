@@ -595,7 +595,7 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
     {
         locTypeId: AlLocation.YARDAPI,
         aspect: 'api',
-        insightLocationId: 'defender-us-denver',
+        locationId: 'defender-us-denver',
         uri: 'https://yard.alertlogic.com',
         environment: 'production|production-staging',
         residency: "US"
@@ -603,7 +603,7 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
     {
         locTypeId: AlLocation.YARDAPI,
         aspect: 'api',
-        insightLocationId: 'defender-us-ashburn',
+        locationId: 'defender-us-ashburn',
         uri: 'https://yard.alertlogic.net',
         environment: 'production|production-staging',
         residency: "US"
@@ -611,7 +611,7 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
     {
         locTypeId: AlLocation.YARDAPI,
         aspect: 'api',
-        insightLocationId: 'defender-uk-newport',
+        locationId: 'defender-uk-newport',
         uri: 'https://yard.alertlogic.co.uk',
         environment: 'production|production-staging',
         residency: "EMEA"

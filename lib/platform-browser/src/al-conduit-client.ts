@@ -49,10 +49,9 @@ export class AlConduitClient
     public render():DocumentFragment {
         const residency = "US";
         let environment = this.context.environment;
-        /*
         if ( environment === 'development' ) {
             environment = 'integration';
-        } */
+        } 
         AlConduitClient.conduitUri = this.context.resolveURL( AlLocation.MagmaUI, '/conduit.html', undefined, { residency, environment } );
         const fragment = AlConduitClient.document.createDocumentFragment();
         const container = AlConduitClient.document.createElement( "div" );

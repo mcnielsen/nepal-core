@@ -57,10 +57,15 @@ export class ConvergenceUtilityClientInstance {
     public async listLogSources(
         accountId: string,
         deploymentId: 'all' | 'datacenter' | 'manual' | 'dc-logsources',
-        params?: ConvergenceQueryParams
+        params?: ConvergenceQueryParams,
+        action?: 'massedit' | 'deleted' | null
     ): Promise<CollectionsGenericResponse> {
         if (['datacenter', 'manual'].includes(deploymentId)) {
             deploymentId = 'dc-logsources';
+        }
+        let urlSuffix = 'collection';
+        if (action) {
+            urlSuffix += `_${action}`;
         }
         return this.client.get({
             params,
@@ -68,7 +73,7 @@ export class ConvergenceUtilityClientInstance {
             service_name: this.serviceName,
             version: this.serviceVersion,
             account_id: accountId,
-            path: `/deployments/${deploymentId}/collection`
+            path: `/deployments/${deploymentId}/${urlSuffix}`
         });
 
     }
@@ -76,14 +81,19 @@ export class ConvergenceUtilityClientInstance {
     public async listProtectedHosts(
         accountId: string,
         deploymentId: string,
-        params?: ConvergenceQueryParams): Promise<CollectionsGenericResponse> {
+        params?: ConvergenceQueryParams,
+        action?: 'massedit' | 'deleted' | null): Promise<CollectionsGenericResponse> {
+        let urlSuffix = 'protectedhosts';
+        if (action) {
+            urlSuffix += "_" + action;
+        }
         return this.client.get({
             params,
             service_stack: this.serviceStack,
             service_name: this.serviceName,
             version: this.serviceVersion,
             account_id: accountId,
-            path: `/deployments/${deploymentId}/protectedhosts`
+            path: `/deployments/${deploymentId}/${urlSuffix}`
         });
     }
 
@@ -200,7 +210,7 @@ export class ConvergenceUtilityClientInstance {
         deploymentId: string,
         productType: string,
         params?: ConvergenceQueryParams,
-        action?: 'massedit' | 'deleted'): Promise<CollectionsGenericResponse> {
+        action?: 'massedit' | 'deleted' | null): Promise<CollectionsGenericResponse> {
         if (productType === "lm") {
             productType = "lmhosts";
         } else if (productType === "tm") {
@@ -550,7 +560,11 @@ export class ConvergenceUtilityClientInstance {
         accountId: string,
         deploymentId: string,
         collectionId: string,
-        entityType: string = 'collection'): Promise<void> {
+        entityType: string = 'collection',
+        action?: 'massedit' | 'deleted' | null): Promise<void> {
+        if (action) {
+            entityType += `_${action}`;
+        }
         return this.client.delete({
             service_stack: this.serviceStack,
             service_name: this.serviceName,

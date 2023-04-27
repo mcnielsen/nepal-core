@@ -39,7 +39,7 @@ export class Subscriptions extends AlBaseAPIClient {
    * GET /subscriptions/v1/:account_id/entitlements
    */
     async getRawEntitlements(accountId, queryParams?) {
-        return this.get( { accountId, path: '/entitlements', debug: true }, queryParams );
+        return this.get( { accountId, path: '/entitlements' }, queryParams );
     }
 
   /**
