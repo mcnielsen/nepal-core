@@ -9,5 +9,5 @@
         "types": [],
         "lib": ["dom", "es2020" ]
     },
-    "include": ["**/*.ts"]
+    "include": ["lib/**/*.ts"]
 }
