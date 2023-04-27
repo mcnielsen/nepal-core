@@ -35,9 +35,8 @@
         "@al/core/*": [ "lib/*/src/index.ts" ]
     }
   },
-  "include" : [
-    "index.ts",
-    "./lib/**/*.ts"
+  "include": [
+      "lib/**/*.ts"
   ],
   "exclude" : [
     "node_modules",
