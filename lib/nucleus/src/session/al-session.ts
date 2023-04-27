@@ -81,17 +81,16 @@ export class AlSessionInstance
      * List of base locations ("stacks") that should automatically have X-AIMS-Auth-Token headers added.
      */
     protected authenticatedStacks = [
-      AlLocation.InsightAPI,
-      AlLocation.GlobalAPI,
-      AlLocation.IntegrationsAPI,
-      AlLocation.GestaltAPI,
-      AlLocation.EndpointsAPI,
-      AlLocation.AETunerAPI,
-      AlLocation.ResponderAPI,
-      AlLocation.DistributorAPI,
-      AlLocation.MDRAPI,
-      AlLocation.YARDAPI,
-
+        AlLocation.InsightAPI,
+        AlLocation.GlobalAPI,
+        AlLocation.IntegrationsAPI,
+        AlLocation.GestaltAPI,
+        AlLocation.EndpointsAPI,
+        AlLocation.AETunerAPI,
+        AlLocation.ResponderAPI,
+        AlLocation.DistributorAPI,
+        AlLocation.MDRAPI,
+        AlLocation.YARDAPI,
       /**
        * STOP!  Please read this note in its entirety before you add items to this list of authenticated stacks.
        *
