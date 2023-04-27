@@ -13,7 +13,6 @@ export interface ParsedData {
 /* tslint:disable:variable-name prefer-array-literal */
 export class Elaboration extends Evidence {
     public uuid:string;
-    public time:Date;
     public description:string;
     public messageId:string;
     public elaborationType:string;
