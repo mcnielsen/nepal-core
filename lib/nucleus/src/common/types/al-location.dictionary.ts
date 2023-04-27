@@ -614,7 +614,7 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
         insightLocationId: 'defender-uk-newport',
         uri: 'https://yard.alertlogic.co.uk',
         environment: 'production|production-staging',
-        residency: "UK"
+        residency: "EMEA"
     },
 ];
 
