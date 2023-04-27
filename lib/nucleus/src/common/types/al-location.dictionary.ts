@@ -616,5 +616,12 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
         environment: 'production|production-staging',
         residency: "EMEA"
     },
+    {
+        locTypeId: AlLocation.YARDAPI,
+        aspect: 'api',
+        uri: 'https://yard.dsaops.alertlogic.net',
+        environment: 'integration|development',
+        residency: "US"
+    },
 ];
 
