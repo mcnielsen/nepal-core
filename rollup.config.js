@@ -1,4 +1,3 @@
-import copy from 'rollup-plugin-copy'
 import typescript from 'rollup-plugin-typescript2';
 import pkg from './package.json';
 import multi from '@rollup/plugin-multi-entry';
@@ -10,11 +9,8 @@ const external = [
 ];
 
 const commonPlugins = [
-    typescript({
-        typescript: require('typescript'),
-    }),
+    typescript(),
     multi(),
-    // terser() // minifies generated bundles
 ];
 
 function configureEntryPoint( bundleName, directory ) {
@@ -24,18 +20,20 @@ function configureEntryPoint( bundleName, directory ) {
     return {
         input: [ `lib/${directory}/src/index.ts`,
         ],
-        output: {
-            file: `dist/${bundleName}.esm2015.js`,
-            format: 'esm', // Keep the bundle as an ES module file
-            sourcemap: true,
-        },
+        output: [
+            {
+                file: `bundles/al-core-${bundleName}.esm2015.js`,
+                format: 'esm', // Keep the bundle as an ES module file
+                sourcemap: true,
+            }
+        ],
         external,
         plugins: [ ...commonPlugins ]
     };
 }
 
 export default [
-    configureEntryPoint( 'index', 'nucleus' ),
+    configureEntryPoint( 'nucleus' ),
     configureEntryPoint( 'testing' ),
     configureEntryPoint( 'navigation' ),
     configureEntryPoint( 'platform-browser' ),
@@ -45,4 +43,5 @@ export default [
     configureEntryPoint( 'incidents' ),
     configureEntryPoint( 'search' ),
     configureEntryPoint( 'assets' ),
+    configureEntryPoint( 'reporting' ),
 ];
