@@ -30,7 +30,7 @@ async function buildPackage( entryPoint:string ) {
     if ( entryPoint !== 'nucleus' ) {
         const packageJson = {
             name: `@al/core/${entryPoint}`,
-            main: `../bundles/al-core-${entryPoint}.esm2015.js`,
+            main: `../bundles/al-core-${entryPoint}.es5.js`,
             module: `../bundles/al-core-${entryPoint}.esm2015.js`,
             typings: `../types/al-core-${entryPoint}.d.ts`
         };
