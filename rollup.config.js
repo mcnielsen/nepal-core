@@ -25,6 +25,11 @@ function configureEntryPoint( bundleName, directory ) {
                 file: `bundles/al-core-${bundleName}.esm2015.js`,
                 format: 'esm', // Keep the bundle as an ES module file
                 sourcemap: true,
+            },
+            {
+                file: `bundles/al-core-${bundleName}.es5.js`,
+                format: 'cjs', // Keep the bundle as a common JS module file
+                sourcemap: true,
             }
         ],
         external,
