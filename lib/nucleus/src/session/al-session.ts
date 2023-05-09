@@ -154,6 +154,7 @@ export class AlSessionInstance
         this.storage.set("session", this.session );
         return result;
       } catch( e ) {
+        console.error( e );
         AlErrorHandler.log( e, `AlSession.setAuthentication() failed` );
         this.deactivateSession();
         throw e;
