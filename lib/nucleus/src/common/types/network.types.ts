@@ -81,6 +81,7 @@ export interface APIRequestParams {
     rawResponse?:boolean;             //  If set and truthy, the entire response object (not just its data payload) will be emitted as the result of a successful request.
 
     validation?: any;
+    debug?: boolean;
 }
 
 export type ValidRequestSpecifier = AlEndpointDescriptor | AlNetworkRequestDescriptor | APIRequestParams;

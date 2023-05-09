@@ -90,6 +90,7 @@ export interface AlContextProvider {
     defaultAccountId?:string;
 
     resolveURL: (locationId:string, path?:string, queryParams?:{[paramerId:string]:string|number|boolean|null}, context?:any ) => string;
+    getAIMSToken: () => string | undefined;
     getDataItem<Type>( itemName:string, defaultValue?:any|{():any} ):Type;
     setDataItem<Type>( itemName:string, value:Type, persistFor?:number );
     setOption<Type>( option:ConfigOption, value:Type ):void;
