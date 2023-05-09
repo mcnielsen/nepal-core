@@ -27,10 +27,10 @@ export abstract class AlExecutionContext
 {
     protected static defaultContext?:AlExecutionContext;
 
-    public get environment() { return this.locatorService.environment; }
-    public get residency() { return this.locatorService.residency; }
-    public get locationId() { return this.locatorService.locationId; }
-    public get accessibleLocationIds() { return this.locatorService.accessibleLocationIds; }
+    public get environment() { return this.locatorService?.environment ?? 'production'; }
+    public get residency() { return this.locatorService?.residency ?? 'US' ; }
+    public get locationId() { return this.locatorService?.locationId ?? 'unspecified'; }
+    public get accessibleLocationIds() { return this.locatorService?.accessibleLocationIds ?? []; }
     public defaultAccountId?:string;
 
     protected defaultOptions:{[optionKey:string]:string|number|boolean|unknown} = {
@@ -171,6 +171,13 @@ export abstract class AlExecutionContext
                     .join("&");
         }
         return uri;
+    }
+
+    public getAIMSToken():string|undefined {
+        if ( this.sessionInstance && this.sessionInstance.isActive() ) {
+            return this.sessionInstance.getToken();
+        }
+        return undefined;
     }
 
     public get locator():AlLocatorMatrix {
