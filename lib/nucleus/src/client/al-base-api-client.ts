@@ -112,18 +112,12 @@ export class AlBaseAPIClient extends AlAbstractClient {
      */
     public async resolveDefaultEndpoints( accountId:string, serviceList:string[] ) {
         try {
-            const endpointsRequest:AlNetworkRequestDescriptor = {
-                method: "POST",
-                endpoint: {
-                    stack: AlLocation.GlobalAPI,
-                    noAutoResolution: true,
-                    service: "endpoints",
-                    version: 1, 
-                    accountId: accountId,
-                },
+            let response = await this.context.handleRequest<any>( {
+                method: 'POST',
+                url: this.context.resolveURL( AlLocation.GlobalAPI, `/endpoints/v1/${accountId}/residency/default/endpoints` ),
                 data: serviceList,
-            };
-            let response = await this.context.handleRequest( endpointsRequest );
+                headers: { 'x-aims-auth-token': this.context.getAIMSToken() }
+            } );
             Object.entries( response.data ).forEach( ( [ serviceName, endpointHost ] ) => {
                 let host = endpointHost as string;
                 if ( host.startsWith("async.") ) { // naming convention for WebSocket services
@@ -143,18 +137,12 @@ export class AlBaseAPIClient extends AlAbstractClient {
 
     public async resolveResidencyAwareEndpoints( accountId:string, serviceList:string[] ) {
         try {
-            const endpointsRequest:AlNetworkRequestDescriptor = {
-                method: "POST",
-                endpoint: {
-                    stack: AlLocation.GlobalAPI,
-                    service: "endpoints",
-                    version: 1,
-                    accountId: accountId,
-                    path: `/endpoints`,
-                },
+            let response = await this.context.handleRequest<any>( {
+                method: 'POST',
+                url: this.context.resolveURL( AlLocation.GlobalAPI, `/endpoints/v1/${accountId}/endpoints` ),
                 data: serviceList,
-            };
-            let response = await this.context.handleRequest<any>( endpointsRequest );
+                headers: { 'x-aims-auth-token': this.context.getAIMSToken() }
+            } );
             Object.entries( response.data ).forEach( ( [ serviceName, residencyLocations ] ) => {
                 Object.entries(residencyLocations).forEach(([residencyName, residencyHost]) => {
                     Object.entries(residencyHost).forEach(([datacenterId, endpointHost]) => {
@@ -301,7 +289,7 @@ export class AlBaseAPIClient extends AlAbstractClient {
             // If we are using endpoints resolution to determine our calculated URL, merge globalServiceParams into our descriptoruration
             if ( ! descriptor.noAutoResolution
                    && ! this.context.getOption<boolean>( ConfigOption.DisableEndpointsResolution, false )
-                   && ( descriptor.targetEndpoint || ( descriptor.service && AlBaseAPIClient.endpointsStackWhitelist.includes( descriptor.service ) ) ) ) {
+                   && ( descriptor.targetEndpoint || ( descriptor.service && AlBaseAPIClient.endpointsStackWhitelist.includes( descriptor.stack ) ) ) ) {
                 // Utilize the endpoints service to determine which location to use for this service/account pair
                 request.url = await this.prepare( descriptor );
             }
@@ -336,6 +324,9 @@ export class AlBaseAPIClient extends AlAbstractClient {
             if ( 'path' in descriptor && descriptor.path.length > 0 ) {
               request.url += `${descriptor.path[0] === '/' ? '' : '/'}${descriptor.path}`;
             }
+            if ( 'params' in request ) {
+                request.url += this.normalizeQueryParams( request.params );
+            }
             return request;
         } else {
             console.error(`Invalid endpoint descriptor`, descriptor );
@@ -349,11 +340,12 @@ export class AlBaseAPIClient extends AlAbstractClient {
     protected importLegacyRequestConfig( config:APIRequestParams ):AlNetworkRequestDescriptor {
         return {
             endpoint: {
-                stack: config.service_stack || undefined,
+                stack: 'service_stack' in config ? config.service_stack : AlLocation.InsightAPI,
                 service: config.service_name || undefined,
-                version: config.version || undefined,
+                version: 'version' in config ? config.version : 'v1',
                 path: config.path || undefined,
                 accountId: config.account_id || undefined,
+                residency: 'residency' in config ? config.residency : 'default',
                 noAutoResolution: config.noEndpointsResolution || undefined,
                 aimsAuthHeader: config.aimsAuthHeader || undefined,
                 targetEndpoint: config.target_endpoint || undefined
@@ -362,7 +354,8 @@ export class AlBaseAPIClient extends AlAbstractClient {
             headers: config.headers || undefined,
             params: config.params || undefined,
             credentialed: typeof( config.withCredentials ) === 'boolean' ? config.withCredentials : undefined,
-            responseType: config.responseType 
+            responseType: config.responseType,
+            debug: config.debug || undefined
         };
     }
 
@@ -439,6 +432,35 @@ export class AlBaseAPIClient extends AlAbstractClient {
             }
             caches.delete( url );
         } catch( e ) {}
+    }
+
+    /**
+     * Normalize query parameters from config api request.
+     */
+    private normalizeQueryParams(params: any):string {
+        if ( typeof( params ) !== 'object' || ! params ) {
+            return '';
+        }
+        try {
+            let normalized = Object.entries( params )
+                        .map( ( [ p, v ] ) => {
+                            if ( typeof( v ) === 'undefined' ) {
+                                return null;
+                            }
+                            if( Array.isArray(v) ) {
+                                return v.map( ( arrayValue ) => {
+                                    return `${p}=${encodeURIComponent( typeof( arrayValue ) === 'string' ? arrayValue : arrayValue.toString() )}`;
+                                }).join("&");
+                            }
+                            return `${p}=${encodeURIComponent( typeof( v ) === 'string' ? v : v.toString() )}`;
+                        })
+                        .filter( p => p )
+                        .join("&");
+            return normalized.length > 0 ? `?${normalized}` : '';
+        } catch( e ) {
+            console.error( e );
+            return '';
+        }
     }
 }
 
