@@ -5,7 +5,7 @@ import multi from '@rollup/plugin-multi-entry';
 const external = [
     ...Object.keys(pkg.dependencies || {}),
     "@al/core",
-    "@al/core/*"
+    /@al\/core\/.*/
 ];
 
 const commonPlugins = [
