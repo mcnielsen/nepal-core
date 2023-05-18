@@ -2,7 +2,7 @@ import {
     AlContextProvider, 
     ConfigOption,
     AlTrigger, AlTriggeredEvent,
-    AlBaseError,
+    AlError,
     AlLocation,
     AlEndpointDescriptor, 
     AlNetworkRequestDescriptor, 
@@ -15,6 +15,8 @@ import {
     AlMutex,
     getJsonPath,
     setJsonPath,
+    isEndpointDescriptor,
+    isLegacyRequestConfig,
 } from '../common';
         
 /**
@@ -59,40 +61,12 @@ export class AlBaseAPIClient extends AlAbstractClient {
         super();
     }
 
-    public static isEndpointDescriptor( entity:any ):entity is AlEndpointDescriptor {
-        return typeof( entity ) === 'object' 
-                && ! ( 'url' in entity )
-                && 
-                (
-                    'service' in entity && typeof( entity.service ) === 'string' 
-                    || 'accountId' in entity && typeof( entity.service ) === 'string' 
-                    ||'path' in entity && typeof( entity.path ) === 'string'
-                );
-    }
-
-    public static isResponse<Type=any>( instance:any ):instance is AlNetworkResponse<Type> {
-        if ( instance.hasOwnProperty("status")
-            && instance.hasOwnProperty('statusText')
-            && instance.hasOwnProperty('headers' )
-            && instance.hasOwnProperty( 'data' ) ) {
-            return true;
-        }
-        return false;
-    }
-
-    public static isLegacyRequestConfig( config:any ):config is APIRequestParams {
-        if ( ( 'service_name' in config || 'service_stack' in config ) && 'path' in config ) {
-            return true;
-        }
-        return false;
-    }
-
     get endpointCache():AlEndpointsDictionary {
         return this.context.getDataItem<AlEndpointsDictionary>( "endpointCache", {} );
     }
 
     public async normalize( config:ValidRequestSpecifier, method?:string, data?:any, queryParams?:{[param:string]:string|number|boolean|null} ):Promise<AlNetworkRequestDescriptor> {
-        if ( AlBaseAPIClient.isEndpointDescriptor( config ) ) {
+        if ( isEndpointDescriptor( config ) ) {
             return await this.normalizeRequest( method || "GET", config, data, queryParams );
         } else {
             return await this.normalizeRequest( config.method || "GET", config, data || config.data, queryParams || config.params );
@@ -229,9 +203,9 @@ export class AlBaseAPIClient extends AlAbstractClient {
                                       data?:any,
                                       queryParams?:{[parameterName:string]:string|number|boolean|undefined} ):Promise<AlNetworkRequestDescriptor> {
         let normalized:AlNetworkRequestDescriptor = { method };
-        if ( AlBaseAPIClient.isLegacyRequestConfig( config ) ) {
+        if ( isLegacyRequestConfig( config ) ) {
             normalized = { ...normalized, ...this.importLegacyRequestConfig( config ) };
-        } else if ( AlBaseAPIClient.isEndpointDescriptor( config ) ) {
+        } else if ( isEndpointDescriptor( config ) ) {
             normalized = { ...normalized, endpoint: config };
         } else {
             normalized = { ...normalized, ...config };
@@ -262,7 +236,7 @@ export class AlBaseAPIClient extends AlAbstractClient {
             if ( descriptor.configuration ) {
                 configuration = definition?.configurations[descriptor.configuration];
                 if ( ! configuration ) {
-                    throw new AlBaseError(`Invalid endpoint descriptor references undefined configuration '${descriptor.configuration}'`, undefined, descriptor );
+                    throw new AlError(`Invalid endpoint descriptor references undefined configuration '${descriptor.configuration}'`, undefined, descriptor );
                 }
             }
             if ( configuration ) {
@@ -330,7 +304,7 @@ export class AlBaseAPIClient extends AlAbstractClient {
             return request;
         } else {
             console.error(`Invalid endpoint descriptor`, descriptor );
-            throw new AlBaseError( `Invalid endpoint descriptor cannot be resolved to a URL`, undefined, descriptor );
+            throw new AlError( `Invalid endpoint descriptor cannot be resolved to a URL`, undefined, descriptor );
         }
     }
 

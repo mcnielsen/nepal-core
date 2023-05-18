@@ -22,11 +22,10 @@ import {
     AlBehaviorPromise,
     AlCabinet,
     ConfigOption,
-    AlBaseError
+    AlError,
 } from "../common";
 import { AlExecutionContext } from '../context';
 import { AlBeforeNetworkRequest } from '../client';
-import { AlErrorHandler } from '../errors';
 import { AIMS } from '../aims';
 import { Subscriptions } from "../subscriptions";
 import {
@@ -58,7 +57,7 @@ export class AlSessionInstance
     protected _session: AIMSSessionDescriptor      =   null;
     protected get session():AIMSSessionDescriptor {
         if ( ! this._session ) {
-            throw new AlBaseError("Usage error: this method of AlSessionInstance cannot be invoked in an unauthenticated state." );
+            throw new AlError("Usage error: this method of AlSessionInstance cannot be invoked in an unauthenticated state." );
         }
         return this._session;
     }
@@ -130,7 +129,7 @@ export class AlSessionInstance
         let authenticationSchemaId = "https://alertlogic.com/schematics/aims#definitions/authentication";
 
         if ( proposal.authentication.token_expiration <= this.getCurrentTimestamp()) {
-          throw new AlBaseError( "AIMS authentication response contains unexpected expiration timestamp in the past", proposal.authentication );
+          throw new AlError( "AIMS authentication response contains unexpected expiration timestamp in the past", proposal.authentication );
         }
 
         // Now that the content of the authentication session descriptor has been validated, let's make it effective
@@ -155,7 +154,7 @@ export class AlSessionInstance
         return result;
       } catch( e ) {
         console.error( e );
-        AlErrorHandler.log( e, `AlSession.setAuthentication() failed` );
+        AlError.log( e, `AlSession.setAuthentication() failed` );
         this.deactivateSession();
         throw e;
       } finally {

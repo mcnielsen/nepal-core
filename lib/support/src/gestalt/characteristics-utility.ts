@@ -1,10 +1,12 @@
 import {
-    AlCardstackPropertyDescriptor,
-    AlCardstackValueDescriptor,
     AlEntitlementCollection,
     AlExecutionContext,
     client, Subscriptions,
 } from "@al/core";
+import {
+    AlCardstackPropertyDescriptor,
+    AlCardstackValueDescriptor,
+} from '@al/core/cardstack';
 import sortBy from 'lodash-es/sortBy';
 
 export class CharacteristicsUtility {
