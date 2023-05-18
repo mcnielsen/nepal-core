@@ -1,4 +1,3 @@
-import { AlBaseError } from '../errors';
 import { AlContextProvider } from './context.types';
 import { AlEndpointDescriptor } from './network.types';
 

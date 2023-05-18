@@ -1,3 +1,9 @@
+import axios, {
+    AxiosInstance,
+    AxiosRequestConfig,
+    AxiosResponse,
+    Method,
+} from 'axios';
 import { 
     AlExecutionContext, 
     AIMSSessionDescriptor,
@@ -7,12 +13,11 @@ import {
     AlAfterNetworkRequest,
 } from '@al/core';
 
-import { WrappedAxiosRequest } from './axios.client';
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import { WrappedAxiosRequest, WrappedAxiosRequestConfig } from './axios-wrapper';
 
 export class AlBrowserExecutionContext extends AlExecutionContext {
 
-    protected axiosInstance:AxiosInstance;
+    public axios:AxiosInstance;
 
     constructor() {
         super();
@@ -38,27 +43,43 @@ export class AlBrowserExecutionContext extends AlExecutionContext {
      * Instantiate a properly configured axios client for services
      */
     protected getAxiosInstance(): AxiosInstance {
-        if ( this.axiosInstance ) {
-            return this.axiosInstance;
+        if ( this.axios ) {
+            return this.axios;
         }
 
         let headers = {
             'Accept': 'application/json, text/plain, */*'
         };
 
-        this.axiosInstance = axios.create({
+        this.axios = axios.create({
             timeout: 0,
-            withCredentials: false,
-            headers: headers,
+            withCredentials: false,     //  an essential default value 
+            headers: headers
         });
 
-        this.axiosInstance.interceptors.request.use( ( config:AxiosRequestConfig ) => {
-            config.validateStatus = ( responseStatus:number ) => {
-                //  This forces all responses to run through our response interceptor
-                return true;
-            };
-            return config;
-        } );
-        return this.axiosInstance;
+        this.axios.interceptors.request.use( this.axiosRequestHook );
+        this.axios.interceptors.response.use( this.axiosResponseHook );
+        return this.axios;
+    }
+
+    protected axiosRequestHook( config:AxiosRequestConfig ) {
+        config.validateStatus = ( responseStatus:number ) => {
+            //  This forces all responses to pass through our response interceptor, even error responses
+            return true;
+        };
+        return config;
+    }
+
+    protected axiosResponseHook( response:AxiosResponse<any> ) {
+        const wrappedConfig = response.config as WrappedAxiosRequestConfig;
+        if ( wrappedConfig.wrapper ) {
+            return wrappedConfig.wrapper.complete( response );
+        } else {
+            if ( response.status < 200 || response.status >= 400 ) {
+                return Promise.reject( response );
+            } else {
+                return Promise.resolve( response );
+            }
+        }
     }
 }

@@ -1,0 +1,6 @@
+{
+    "name": "@al/core/cardstack",
+    "main": "../bundles/al-core-cardstack.es5.js",
+    "module": "../bundles/al-core-cardstack.esm2015.js",
+    "typings": "../types/al-core-cardstack.d.ts"
+}

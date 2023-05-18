@@ -85,3 +85,31 @@ export interface APIRequestParams {
 }
 
 export type ValidRequestSpecifier = AlEndpointDescriptor | AlNetworkRequestDescriptor | APIRequestParams;
+
+export function isEndpointDescriptor( entity:any ):entity is AlEndpointDescriptor {
+    return typeof( entity ) === 'object' 
+            && ! ( 'url' in entity )
+            && 
+            (
+                'service' in entity && typeof( entity.service ) === 'string' 
+                || 'accountId' in entity && typeof( entity.service ) === 'string' 
+                ||'path' in entity && typeof( entity.path ) === 'string'
+            );
+}
+
+export function isResponse<Type=any>( instance:any ):instance is AlNetworkResponse<Type> {
+    if ( instance.hasOwnProperty("status")
+        && instance.hasOwnProperty('statusText')
+        && instance.hasOwnProperty('headers' )
+        && instance.hasOwnProperty( 'data' ) ) {
+        return true;
+    }
+    return false;
+}
+
+export function isLegacyRequestConfig( config:any ):config is APIRequestParams {
+    if ( ( 'service_name' in config || 'service_stack' in config ) && 'path' in config ) {
+        return true;
+    }
+    return false;
+}

@@ -3,11 +3,11 @@
  */
 import {
     AlApiClient,
-    AlCardstackCharacteristics,
     AlDefaultClient,
     AlLocation,
     APIRequestParams,
 } from '@al/core';
+import { AlCardstackCharacteristics } from '@al/core/cardstack';
 import { AlGestaltNotificationsClientInterface } from './types/notifications/al-gestalt-notifications-client-interface';
 import {
     AlAlertDefinition,

@@ -1,7 +1,7 @@
 import {
     AlCardstackCharacteristics,
     AlCardstackView,
-} from '@al/core';
+} from '@al/core/cardstack';
 
 const dummyColors = [
     {
