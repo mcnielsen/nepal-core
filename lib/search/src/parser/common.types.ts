@@ -10,13 +10,13 @@
 
 /* tslint:disable:typedef */
 
-import { AlBaseError } from "@al/core";
+import { AlError } from "@al/core";
 
 /**
  * This is a parser specific error.  Its constructor allows it to "attach" to a token where the error occurred, and to identify a specific point
  * in the input query where the error originates.
  */
-export class SQXParseError extends AlBaseError
+export class SQXParseError extends AlError
 {
     public token:SQXToken = null;
 

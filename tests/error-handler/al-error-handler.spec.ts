@@ -1,7 +1,6 @@
-import { AlBaseError, AlErrorHandler, AlNetworkResponse } from '@al/core';
-import { AxiosResponse, AxiosRequestConfig } from 'axios';
+import { AlError, AlNetworkResponse } from '@al/core';
 
-describe('AlErrorHandler', () => {
+describe('AlError', () => {
     describe(".log()", () => {
         let logStub;
         beforeEach( () => {
@@ -19,11 +18,11 @@ describe('AlErrorHandler', () => {
                     }
                 }
             };
-            AlErrorHandler.log( httpResponse, "Got a weird response" );
-            AlErrorHandler.log( new AlBaseError( "Something is rotten in the state of Denmark." ) );
-            AlErrorHandler.log( new Error("Something stinks under the kitchen sink." ) );
-            AlErrorHandler.log( "Throwing strings as Errors is silly and should never be done, but what can you do?", "Some comment" );
-            AlErrorHandler.log( 42 );
+            AlError.log( httpResponse, "Got a weird response" );
+            AlError.log( new AlError( "Something is rotten in the state of Denmark." ) );
+            AlError.log( new Error("Something stinks under the kitchen sink." ) );
+            AlError.log( "Throwing strings as Errors is silly and should never be done, but what can you do?", "Some comment" );
+            AlError.log( 42 );
             expect( logStub.mock.calls.length ).toEqual( 6 );  //  1 for each .log call, plus one complaining about `42`
         } );
     } );

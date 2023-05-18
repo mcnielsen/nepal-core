@@ -1,16 +1,17 @@
 import { 
     AlLocation,
+    AlError,
     ConfigOption, 
     AIMSSessionDescriptor,
     AIMSAuthenticationTokenInfo,
     AlClient,
     AlNetworkResponse,
-    getJsonPath
+    getJsonPath,
+    isResponse,
 } from '../common';
 import {
     AlBaseAPIClient,
 } from '../client';
-import { AlErrorHandler } from '../errors';
 import { AlExecutionContext } from '../context';
 
 /**
@@ -184,7 +185,7 @@ export class AlAuthenticationUtility extends AlBaseAPIClient {
             await this.context.session.setAuthentication( session );
             return this.state.result;
         } catch( e ) {
-            AlErrorHandler.log( e, "Failed to authenticate via token" );
+            AlError.log( e, "Failed to authenticate via token" );
             return this.state.result;
         }
     }
@@ -262,7 +263,7 @@ export class AlAuthenticationUtility extends AlBaseAPIClient {
 
     protected handleAuthenticationFailure( error:Error|any ):boolean {
 
-        if ( AlBaseAPIClient.isResponse( error ) ) {
+        if ( isResponse( error ) ) {
             if ( this.requiresMfaCode( error ) ) {
                 this.state.result = AlAuthenticationResult.MFAVerificationRequired;
                 this.state.sessionToken = error.headers['x-aims-session-token'];

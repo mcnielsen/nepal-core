@@ -7,8 +7,7 @@ import {
     AlCardstackValueDescriptor,
     AlCardstackActiveFilter
 } from './types';
-import { AlBaseError } from '../errors/al-error.types';
-import { AlStopwatch } from '../utility/al-stopwatch';
+import { AlError, AlStopwatch } from '@al/core';
 
 /**
  *  Manages a cardstack view state
@@ -713,7 +712,7 @@ export abstract class AlCardstackView< EntityType=any,
             } );
 
         } catch( e ) {
-            throw new AlBaseError( `Failed to normalize characteristics object`, e );
+            throw new AlError( `Failed to normalize characteristics object`, e );
         }
     }
 

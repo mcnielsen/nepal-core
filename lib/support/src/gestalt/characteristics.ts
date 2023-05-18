@@ -2,10 +2,12 @@ import { ALCargoV2 } from "@al/core/reporting";
 import {
     client, AIMS,
     AlBadRequestError,
+} from '@al/core';
+import {
     AlCardstackCharacteristics,
     AlCardstackPropertyDescriptor,
     AlCardstackValueDescriptor,
-} from '@al/core';
+} from '@al/core/cardstack';
 import { AlConnectorsClient } from "@al/core/reporting";
 import { AlHeraldClient } from "@al/core/reporting";
 import {
