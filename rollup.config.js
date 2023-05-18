@@ -49,4 +49,5 @@ export default [
     configureEntryPoint( 'search' ),
     configureEntryPoint( 'assets' ),
     configureEntryPoint( 'reporting' ),
+    configureEntryPoint( 'cardstack' ),
 ];
