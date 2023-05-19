@@ -1,4 +1,4 @@
-import { SourceScope } from "../../../sources";
+import { SourceScope } from '@al/core/assets';
 import { TopologyNode } from './topology-node.class';
 
 type NodeIteratorCallback = (asset: TopologyNode) => boolean;
@@ -108,7 +108,7 @@ export class PhoenixTopologySnapshot {
         if (topology.regions.length > 0) {
             topology.deploymentId = topology.regions[0].deploymentId;
         } else {
-            console.error("Could not calculate deployment id of topology because of missing regions");
+            console.warn("Could not calculate deployment id of topology because of missing regions");
         }
 
         if (rawData['topology'].hasOwnProperty('asset_counts_by_type')) {
