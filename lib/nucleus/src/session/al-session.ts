@@ -129,7 +129,7 @@ export class AlSessionInstance
         let authenticationSchemaId = "https://alertlogic.com/schematics/aims#definitions/authentication";
 
         if ( proposal.authentication.token_expiration <= this.getCurrentTimestamp()) {
-          throw new AlError( "AIMS authentication response contains unexpected expiration timestamp in the past", proposal.authentication );
+          throw new AlError( "AIMS authentication response contains unexpected expiration timestamp in the past", undefined, proposal.authentication );
         }
 
         // Now that the content of the authentication session descriptor has been validated, let's make it effective
