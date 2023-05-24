@@ -20,10 +20,10 @@ export class AlError extends Error
     /**
      * Optional reference to underlying Error, network request, or <any>thing that triggered this error.
      */
-    public origin?:any;
-    public details?:any;
+    public origin?:Error|AlError|unknown;
+    public details?:{[key:string]:any};
 
-    constructor( message?:string, derivedFrom?:any, details?:any ) {
+    constructor( message?:string, derivedFrom?:Error|AlError|any, details?:{[key:string]:any} ) {
         const trueProto = new.target.prototype;
         super(message);
         this.origin = derivedFrom;
