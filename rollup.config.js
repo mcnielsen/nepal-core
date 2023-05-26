@@ -18,8 +18,7 @@ function configureEntryPoint( bundleName, directory ) {
         directory = bundleName;
     }
     return {
-        input: [ `lib/${directory}/src/index.ts`,
-        ],
+        input: [ `lib/${directory}/src/index.ts` ],
         output: [
             {
                 file: `bundles/al-core-${bundleName}.esm2015.js`,
