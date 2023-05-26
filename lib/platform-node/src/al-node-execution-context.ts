@@ -29,11 +29,11 @@ export class AlNodeExecutionContext extends AlExecutionContext {
     }
 
     public base64Encode( data:string ):string {
-        return data;
+        return Buffer.from( data, 'utf8' ).toString( 'base64' );
     }
 
     public base64Decode( data:string ):string {
-        return data;
+        return Buffer.from( data, 'base64' ).toString( 'utf8' );
     }
 
     public async handleRequest<YieldType = any>( requestConfig:AlNetworkRequestDescriptor ):Promise<AlNetworkResponse<YieldType>> {
