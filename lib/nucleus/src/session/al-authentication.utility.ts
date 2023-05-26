@@ -246,7 +246,10 @@ export class AlAuthenticationUtility extends AlBaseAPIClient {
      */
     protected async getTokenInfo( accessToken:string ):Promise<AIMSAuthenticationTokenInfo> {
         return this.get( {
-            endpoint: { path: '/token_info' },
+            endpoint: { 
+                configuration: "aims",
+                path: '/token_info' 
+            },
             headers: { 'X-AIMS-Auth-Token': accessToken },
         } );
     }
