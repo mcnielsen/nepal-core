@@ -23,7 +23,7 @@
     "sourceMap"                       : true,
     "strict"                          : true,
     "strictNullChecks"                : false,
-    "target"                          : "ES2020",
+    "target"                          : "ES2015",
     "typeRoots"                       : [
       "node_modules/@types"
     ],
