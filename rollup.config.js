@@ -42,6 +42,7 @@ export default [
     configureEntryPoint( 'testing' ),
     configureEntryPoint( 'navigation' ),
     configureEntryPoint( 'platform-browser' ),
+    configureEntryPoint( 'platform-node' ),
     configureEntryPoint( 'defender' ),
     configureEntryPoint( 'support' ),
     configureEntryPoint( 'configuration' ),
