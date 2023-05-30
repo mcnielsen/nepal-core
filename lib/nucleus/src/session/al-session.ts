@@ -126,7 +126,6 @@ export class AlSessionInstance
     public async setAuthentication( proposal: AIMSSessionDescriptor ):Promise<AlActingAccountResolvedEvent> {
       try {
         this.startDetection();
-        let authenticationSchemaId = "https://alertlogic.com/schematics/aims#definitions/authentication";
 
         if ( proposal.authentication.token_expiration <= this.getCurrentTimestamp()) {
           throw new AlError( "AIMS authentication response contains unexpected expiration timestamp in the past", undefined, proposal.authentication );
@@ -153,7 +152,6 @@ export class AlSessionInstance
         this.storage.set("session", this.session );
         return result;
       } catch( e ) {
-        console.error( e );
         AlError.log( e, `AlSession.setAuthentication() failed` );
         this.deactivateSession();
         throw e;
