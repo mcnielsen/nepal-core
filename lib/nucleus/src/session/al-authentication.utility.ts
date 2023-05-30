@@ -248,7 +248,8 @@ export class AlAuthenticationUtility extends AlBaseAPIClient {
         return this.get( {
             endpoint: { 
                 configuration: "aims",
-                path: '/token_info' 
+                path: '/token_info',
+                aimsAuthHeader: false
             },
             headers: { 'X-AIMS-Auth-Token': accessToken },
         } );
