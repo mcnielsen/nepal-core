@@ -1,4 +1,3 @@
-export * from './asset-types';
 export * from './asset-descriptor.class';
 export * from './asset-type-dictionary.class';
 export * from './phoenix-topology-snapshot.class';

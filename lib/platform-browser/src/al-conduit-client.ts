@@ -1,5 +1,7 @@
 import { 
     AIMSSessionDescriptor,
+    AlDefaultClient,
+    AlError,
     AlLocation,
     AlExecutionContext,
     AlBehaviorPromise,
@@ -28,7 +30,7 @@ export class AlConduitClient
     constructor( public context:AlExecutionContext = AlExecutionContext.default ) {
     }
 
-    public start( targetDocument?:Document ) {
+    public async start( targetDocument?:Document ) {
         if ( ! targetDocument ) {
             if ( typeof( document ) === 'undefined' ) {
                 console.log("AlConduitClient: cannot start in headless mode." );
@@ -37,22 +39,19 @@ export class AlConduitClient
             targetDocument = document;
         }
         if ( AlConduitClient.refCount < 1 ) {
+            AlConduitClient.refCount++;
+            if ( ! AlConduitClient.conduitUri ) {
+                AlConduitClient.conduitUri = await this.calculateConduitURI();
+            }
             AlConduitClient.document = targetDocument;
             if ( targetDocument && targetDocument.body && typeof( targetDocument.body.appendChild ) === 'function' ) {
                 AlConduitClient.document.body.appendChild( this.render() );
             }
             AlStopwatch.once(this.validateReadiness, 5000);
         }
-        AlConduitClient.refCount++;
     }
 
     public render():DocumentFragment {
-        const residency = "US";
-        let environment = this.context.environment;
-        if ( environment === 'development' ) {
-            environment = 'integration';
-        } 
-        AlConduitClient.conduitUri = this.context.resolveURL( AlLocation.MagmaUI, '/conduit.html', undefined, { residency, environment } );
         const fragment = AlConduitClient.document.createDocumentFragment();
         const container = AlConduitClient.document.createElement( "div" );
         container.setAttribute("id", "conduitClient" );
@@ -61,6 +60,27 @@ export class AlConduitClient
         fragment.appendChild( container );
         container.innerHTML = `<iframe frameborder="0" src="${AlConduitClient.conduitUri}" style="width:1px;height:1px;position:absolute;left:-1px;top:-1px;"></iframe>`;
         return fragment;
+    }
+
+    public async calculateConduitURI() {
+        const residency = "US";
+        let environment = this.context.environment;
+        if ( environment === 'development' ) {
+            environment = 'integration';
+        }
+        let conduitUri = this.context.resolveURL( AlLocation.AccountsUI, '/conduit.html', { residency, environment } );
+        try {
+            const url = this.context.resolveURL( AlLocation.MagmaUI, `/assets/content/navigation/experience-mappings.json` );
+            let xpMappings = await AlDefaultClient.get( { url, aimsAuthHeader: false, withCredentials: false } );
+            let useMagma = xpMappings?.global?.navigation?.magmaConduit.trigger ?? false;
+            console.log("Got useMagma from xp mappings: %s", !!useMagma );
+            if ( typeof( useMagma ) === 'boolean' && useMagma ) {
+                conduitUri = this.context.resolveURL( AlLocation.MagmaUI, '/conduit.html', { residency, environment } );
+            }
+        } catch( e ) {
+            AlError.log( e, `Could not retrieve experience mappings to determine which conduit application to interact with` );
+        }
+        return conduitUri;
     }
 
     public async ready() {
