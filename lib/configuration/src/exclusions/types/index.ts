@@ -302,32 +302,32 @@ export class AllExclusionsToSave {
     changes: boolean;
 }
 
-export const enum BlackoutsResolution {
+export enum BlackoutsResolution {
     weekly = 'weekly',
     monthly = 'monthly',
     exact_date = 'exact_date',
     permanent = 'permanent'
 }
 
-export const enum AssetType {
+export enum AssetType {
     cidr = 'cidr',
     asset = 'asset',
     tag = 'tag'
 }
 
-export const enum DetailsFeature {
+export enum DetailsFeature {
     scan = 'scan',
     ids = 'ids'
 }
 
-export const enum ScanType {
+export enum ScanType {
     vulnerability = 'vulnerability',
     pci = 'pci',
     discovery = 'discovery',
     external = 'external'
 }
 
-export const enum Protocols {
+export enum Protocols {
     tcp = 'tcp',
     udp = 'udp',
     icmp = 'icmp',

@@ -826,7 +826,7 @@ export interface AlManageBlockStatus {
     intent: AlBlockIntent;
 }
 
-export const enum AlBlockIntent {
+export enum AlBlockIntent {
     BlockSoft = "block_soft",
     UnblockSoft = "unblock_soft",
     BlockForce = "block_force",
