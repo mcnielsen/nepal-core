@@ -69,17 +69,6 @@ export class AlConduitClient
             environment = 'integration';
         }
         let conduitUri = this.context.resolveURL( AlLocation.AccountsUI, '/conduit.html', { residency, environment } );
-        try {
-            const url = this.context.resolveURL( AlLocation.MagmaUI, `/assets/content/navigation/experience-mappings.json` );
-            let xpMappings = await AlDefaultClient.get( { url, aimsAuthHeader: false, withCredentials: false } );
-            let useMagma = xpMappings?.global?.navigation?.magmaConduit.trigger ?? false;
-            console.log("Got useMagma from xp mappings: %s", !!useMagma );
-            if ( typeof( useMagma ) === 'boolean' && useMagma ) {
-                conduitUri = this.context.resolveURL( AlLocation.MagmaUI, '/conduit.html', { residency, environment } );
-            }
-        } catch( e ) {
-            AlError.log( e, `Could not retrieve experience mappings to determine which conduit application to interact with` );
-        }
         return conduitUri;
     }
 
