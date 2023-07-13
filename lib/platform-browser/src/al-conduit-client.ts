@@ -68,7 +68,7 @@ export class AlConduitClient
         if ( environment === 'development' ) {
             environment = 'integration';
         }
-        let conduitUri = this.context.resolveURL( AlLocation.AccountsUI, '/conduit.html', { residency, environment } );
+        let conduitUri = this.context.resolveURL( AlLocation.AccountsUI, '/conduit.html', null, { residency, environment } );
         return conduitUri;
     }
 
