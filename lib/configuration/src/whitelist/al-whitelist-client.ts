@@ -2,7 +2,6 @@
  * Module to deal with available Deployments Public API endpoints
  */
 import {
-    AlApiClient,
     AlDefaultClient,
     AlLocation,
 } from '@al/core';
@@ -16,10 +15,10 @@ export class AlwsWhitelistClientInstance {
     private serviceVersion = 'v1';
 
     /* istanbul ignore next */
-    constructor(public client: AlApiClient = AlDefaultClient) { }
+    constructor() { }
 
     async listTags(accountId: string, deploymentId: string): Promise<WhiteListTag[]> {
-        return this.client.get<WhiteListTag[]>({
+        return AlDefaultClient.get<WhiteListTag[]>({
             service_stack: AlLocation.InsightAPI,
             version: this.serviceVersion,
             service_name: this.serviceName,
@@ -29,7 +28,7 @@ export class AlwsWhitelistClientInstance {
     }
 
     async addTag(accountId: string, deploymentId: string, tag: WhiteListTag): Promise<WhiteListTag> {
-        return this.client.post<WhiteListTag>({
+        return AlDefaultClient.post<WhiteListTag>({
             service_stack: AlLocation.InsightAPI,
             version: this.serviceVersion,
             service_name: this.serviceName,
@@ -40,7 +39,7 @@ export class AlwsWhitelistClientInstance {
     }
 
     async deleteTag(accountId: string, deploymentId: string, tag: WhiteListTag): Promise<void> {
-        return this.client.delete({
+        return AlDefaultClient.delete({
             service_stack: AlLocation.InsightAPI,
             version: this.serviceVersion,
             service_name: this.serviceName,

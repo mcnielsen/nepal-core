@@ -1,10 +1,10 @@
-import { AlApiClient, AlDefaultClient } from '@al/core';
+import { AlDefaultClient } from '@al/core';
 import { AEtagset, AEtagsetList } from './types';
 
 export class AEtagClientInstance {
     private serviceName = 'aetag';
 
-    public constructor(public client: AlApiClient = AlDefaultClient) {
+    public constructor() {
     }
 
     /**
@@ -15,7 +15,7 @@ export class AEtagClientInstance {
      * @returns
      */
     public async getByPaths<T>(accountId: string, paths: string[]): Promise<AEtagsetList<T>> {
-        return this.client.post<any>({
+        return AlDefaultClient.post<any>({
             service_name: this.serviceName,
             version: 'v1',
             account_id: accountId,
@@ -32,7 +32,7 @@ export class AEtagClientInstance {
      * @returns
      */
     public async getByPath<T>(accountId: string, path: string): Promise<AEtagset<T>> {
-        return this.client.get<any>({
+        return AlDefaultClient.get<any>({
             service_name: this.serviceName,
             version: 'v1',
             account_id: accountId,
@@ -50,7 +50,7 @@ export class AEtagClientInstance {
      * @returns
      */
     public async createOrUpdate<T>(accountId: string, params: {path: string; definition: string}, payload: T): Promise<{stored: string}> {
-        return this.client.post<any>({
+        return AlDefaultClient.post<any>({
             service_name: this.serviceName,
             version: 'v1',
             account_id: accountId,
@@ -70,7 +70,7 @@ export class AEtagClientInstance {
      * @returns
      */
     public async delete(accountId: string, path: string ): Promise<{deleted: string}> {
-        return this.client.delete<any>({
+        return AlDefaultClient.delete<any>({
             service_name: this.serviceName,
             version: 'v1',
             account_id: accountId,

@@ -2,7 +2,6 @@
  * Module to deal with available Assets Query Public API endpoints
  */
 import {
-  AlApiClient,
   AlDefaultClient,
   AlLocation
 } from '@al/core';
@@ -49,7 +48,7 @@ export class AlAssetsQueryClientInstance {
 
 
   /* istanbul ignore next */
-  constructor(public client: AlApiClient = AlDefaultClient) {
+  constructor() {
   }
 
 
@@ -60,7 +59,7 @@ export class AlAssetsQueryClientInstance {
     * @remarks https://console.cloudinsight.alertlogic.com/api/assets_query/#api-Topology-GetConfigTopology
     */
   async getConfigTopologySnapshot(accountId: string, deploymentId: string): Promise<PhoenixTopologySnapshot> {
-    const rawdata = await this.client.get({
+    const rawdata = await AlDefaultClient.get({
       service_stack: AlLocation.InsightAPI,
       version: 'v1',
       account_id: accountId,
@@ -94,7 +93,7 @@ export class AlAssetsQueryClientInstance {
     extraAssetTypes: string[] = [],
     categories: string[] = [],
     scope: boolean = true): Promise<PhoenixTopologySnapshot> {
-    const rawdata = await this.client.get<PhoenixTopologySnapshot>({
+    const rawdata = await AlDefaultClient.get<PhoenixTopologySnapshot>({
       service_stack: AlLocation.InsightAPI,
       version: 'v1',
       account_id: accountId,
@@ -117,7 +116,7 @@ export class AlAssetsQueryClientInstance {
    * asset_type: agent, appliance, network, vpc
    */
   async getHealth(accountId: string, assetType: string, queryParams?: CollectionHealthQueryParams): Promise<HealthResponse> {
-    return this.client.get<HealthResponse>({
+    return AlDefaultClient.get<HealthResponse>({
       service_stack: AlLocation.InsightAPI,
       version: 'v1',
       account_id: accountId,
@@ -134,7 +133,7 @@ export class AlAssetsQueryClientInstance {
    * "https://api.cloudinsight.alertlogic.com/remediations/v1/10000001/health/summary"
    */
   async getHealthSummary(accountId: string, queryParams?: { scope?: boolean, filter?: string[] }): Promise<HealthSummaryResponse> {
-    return this.client.get<HealthSummaryResponse>({
+    return AlDefaultClient.get<HealthSummaryResponse>({
       service_stack: AlLocation.InsightAPI,
       version: 'v1',
       account_id: accountId,
@@ -151,7 +150,7 @@ export class AlAssetsQueryClientInstance {
    * "https://api.cloudinsight.alertlogic.com/assets_query/v1/01000001/find?collector_type=agent&uuid=CD7C26C3-FAA1-4AD1-86CB-9628ED1B3327"
    */
   async findAsset(accountId: string, queryParams?: { uuid: string, collector_type?: string }): Promise<FoundAsset> {
-    return this.client.get<FoundAsset>({
+    return AlDefaultClient.get<FoundAsset>({
       service_stack: AlLocation.InsightAPI,
       version: 'v1',
       account_id: accountId,
@@ -168,7 +167,7 @@ export class AlAssetsQueryClientInstance {
    * "https://api.cloudinsight.alertlogic.com/assets_query/v1/01000001/find?collector_type=agent&uuid=CD7C26C3-FAA1-4AD1-86CB-9628ED1B3327"
    */
   async findAssets(accountId: string, queryParams?: FindAssetsRequest): Promise<FoundAsset[]> {
-    return this.client.get<FoundAsset[]>({
+    return AlDefaultClient.get<FoundAsset[]>({
       service_stack: AlLocation.InsightAPI,
       version: 'v1',
       account_id: accountId,
@@ -192,7 +191,7 @@ export class AlAssetsQueryClientInstance {
       appliance_uuid?: string, ip_address?: string,
       port?: string, host_uuid?: string
     }): Promise<GenericResponse> {
-    return this.client.get<GenericResponse>({
+    return AlDefaultClient.get<GenericResponse>({
       service_stack: AlLocation.InsightAPI,
       version: 'v1',
       account_id: accountId,
@@ -209,7 +208,7 @@ export class AlAssetsQueryClientInstance {
    * "https://api.cloudinsight.alertlogic.com/assets_query/v1/01000001/assets"
    */
   async getAccountAssets(accountId: string, queryParams?: AssetsQueryParams, clearCache: boolean = false): Promise<AssetQueryGeneralResponse> {
-    return this.client.get<AssetQueryGeneralResponse>({
+    return AlDefaultClient.get<AssetQueryGeneralResponse>({
       service_stack: AlLocation.InsightAPI,
       version: 'v1',
       account_id: accountId,
@@ -227,7 +226,7 @@ export class AlAssetsQueryClientInstance {
    * "https://api.cloudinsight.alertlogic.com/assets_query/v1/01000001/deployments/1C0EFEC8-7DBE-480D-A025-ECC13DE30AD5/assets"
    */
   async getDeploymentAssets(accountId: string, deploymentId: string, queryParams?: AssetsQueryParams): Promise<AssetQueryGeneralResponse> {
-    return this.client.get<AssetQueryGeneralResponse>({
+    return AlDefaultClient.get<AssetQueryGeneralResponse>({
       service_stack: AlLocation.InsightAPI,
       version: 'v1',
       account_id: accountId,
@@ -239,7 +238,7 @@ export class AlAssetsQueryClientInstance {
 
   async getExposuresSummary(accountId: string,
     qParams: ExposuresCountSummaryQueryParams): Promise<ExposuresCountSummary> {
-    return this.client.get<ExposuresCountSummary>({
+    return AlDefaultClient.get<ExposuresCountSummary>({
       service_stack: AlLocation.InsightAPI,
       version: 'v2',
       account_id: accountId,
@@ -257,7 +256,7 @@ export class AlAssetsQueryClientInstance {
    * "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/tags/summary?include_tagged_assets=true"
    */
   async getTagsSummary(accountId: string, includeTaggedAssets: boolean = false): Promise<TagsSummaryResponse> {
-    return this.client.get<TagsSummaryResponse>({
+    return AlDefaultClient.get<TagsSummaryResponse>({
       service_stack: AlLocation.InsightAPI,
       version: 'v1',
       account_id: accountId,
@@ -280,7 +279,7 @@ export class AlAssetsQueryClientInstance {
       include_remediations?: boolean,
       disposed?: string, extras?: string
     }): Promise<TopologyResponse> {
-    return this.client.get<TopologyResponse>({
+    return AlDefaultClient.get<TopologyResponse>({
       service_stack: AlLocation.InsightAPI,
       version: 'v1',
       account_id: accountId,
@@ -297,7 +296,7 @@ export class AlAssetsQueryClientInstance {
    * "https://api.cloudinsight.alertlogic.com/remediations/v1/10000001/deployments/347203EF-134C-1005-8499-1289DB15AB31/assessment-specs"
    */
   async getAssessmentSpecs(accountId: string, deploymentId: string): Promise<GenericResponse> {
-    return this.client.get<GenericResponse>({
+    return AlDefaultClient.get<GenericResponse>({
       service_stack: AlLocation.InsightAPI,
       version: 'v1',
       account_id: accountId,
@@ -313,7 +312,7 @@ export class AlAssetsQueryClientInstance {
    * "https://api.cloudinsight.alertlogic.com/remediations/v1/10000001/deployments/347203EF-134C-1005-8499-1289DB15AB31/remediation-items-list"
    */
   async getRemediationItemsList(accountId: string, deploymentId: string): Promise<RemediationsItemsListResponse> {
-    return this.client.get<RemediationsItemsListResponse>({
+    return AlDefaultClient.get<RemediationsItemsListResponse>({
       service_stack: AlLocation.InsightAPI,
       version: 'v1',
       account_id: accountId,
@@ -329,7 +328,7 @@ export class AlAssetsQueryClientInstance {
    * "https://api.cloudinsight.alertlogic.com/remediations/v1/10000001/deployments/347203EF-134C-1005-8499-1289DB15AB31/remediation-items"
    */
   async getRemediationItems(accountId: string, deploymentId: string): Promise<GenericResponse> {
-    return this.client.get<GenericResponse>({
+    return AlDefaultClient.get<GenericResponse>({
       service_stack: AlLocation.InsightAPI,
       version: 'v1',
       account_id: accountId,
@@ -347,7 +346,7 @@ export class AlAssetsQueryClientInstance {
    */
   async completeRemediations(accountId: string, deploymentId: string,
     remediationData: { operation: string, remediation_items: string[] }): Promise<any> {
-    return this.client.put<any>({
+    return AlDefaultClient.put<any>({
       service_stack: AlLocation.InsightAPI,
       version: 'v1',
       account_id: accountId,
@@ -373,7 +372,7 @@ export class AlAssetsQueryClientInstance {
   }): Promise<RemediationsItemsListResponse> {
     let baseRemediationData = { operation: 'dispose_remediations' };
     Object.assign(baseRemediationData, remediationData);
-    return this.client.put<RemediationsItemsListResponse>({
+    return AlDefaultClient.put<RemediationsItemsListResponse>({
       service_stack: AlLocation.InsightAPI,
       account_id: accountId,
       service_name: 'assets_query',
@@ -392,7 +391,7 @@ export class AlAssetsQueryClientInstance {
    */
   async uncompleteRemediations(accountId: string, deploymentId: string,
     remediationData: { operation: string, remediation_items: string[] }): Promise<any> {
-    return this.client.put<any>({
+    return AlDefaultClient.put<any>({
       service_stack: AlLocation.InsightAPI,
       version: 'v1',
       account_id: accountId,
@@ -413,7 +412,7 @@ export class AlAssetsQueryClientInstance {
     audit_ids?: string, deployment_ids?: string, remediation_item_ids?: string,
     remediation_ids?: string, vulnerability_ids?: string,
   }): Promise<any> {
-    return this.client.delete<any>({
+    return AlDefaultClient.delete<any>({
       service_stack: AlLocation.InsightAPI,
       account_id: accountId,
       service_name: 'assets_query',
@@ -426,7 +425,7 @@ export class AlAssetsQueryClientInstance {
   async undisposeRemediationItems(accountId: string, remediationData: UndisposeRemediationsRequestBody): Promise<RemediationsItemsListResponse> {
     let baseRemediationData: UndisposeRemediationsRequestBody = { operation: 'undispose_remediations' };
     Object.assign(baseRemediationData, remediationData);
-    return this.client.put<RemediationsItemsListResponse>({
+    return AlDefaultClient.put<RemediationsItemsListResponse>({
       service_stack: AlLocation.InsightAPI,
       account_id: accountId,
       service_name: 'assets_query',
@@ -451,7 +450,7 @@ export class AlAssetsQueryClientInstance {
     deploymentId: string,
     remediationData: { operation: string, filters: string[], user_id: string, remediations: string[] },
   ): Promise<any> {
-    return this.client.put<any>({
+    return AlDefaultClient.put<any>({
       service_stack: AlLocation.InsightAPI,
       version: 'v1',
       account_id: accountId,
@@ -468,7 +467,7 @@ export class AlAssetsQueryClientInstance {
    * "https://api.cloudinsight.alertlogic.com/assets_query/v2/10000001/exposures/deployment/summary"
    */
   async getExposuresDeploymentSummary(accountId: string, queryParams?: ExposureQueryParams): Promise<ExposuresSummary> {
-    return this.client.get<ExposuresSummary>({
+    return AlDefaultClient.get<ExposuresSummary>({
       service_stack: AlLocation.InsightAPI,
       account_id: accountId,
       service_name: 'assets_query',
@@ -486,7 +485,7 @@ export class AlAssetsQueryClientInstance {
    * "https://api.cloudinsight.alertlogic.com/assets_query/v2/10000001/exposures"
    */
   async queryExposures(accountId: string, queryParams?: ExposureQueryParams): Promise<ExposuresQueryResponse> {
-    return this.client.get<ExposuresQueryResponse>({
+    return AlDefaultClient.get<ExposuresQueryResponse>({
       service_stack: AlLocation.InsightAPI,
       account_id: accountId,
       service_name: 'assets_query',
@@ -511,7 +510,7 @@ export class AlAssetsQueryClientInstance {
     }): Promise<RemediationsItemsListResponse> {
     let baseRemediationData = { operation: 'conclude_remediations' };
     Object.assign(baseRemediationData, remediationData);
-    return this.client.put<RemediationsItemsListResponse>({
+    return AlDefaultClient.put<RemediationsItemsListResponse>({
       service_stack: AlLocation.InsightAPI,
       account_id: accountId,
       service_name: 'assets_query',
@@ -528,7 +527,7 @@ export class AlAssetsQueryClientInstance {
    * "https://api.cloudinsight.alertlogic.com/assets_query/v2/10000001/remediation-items"
    */
   async queryRemediationItems(accountId: string, queryParams?: RemediationItemsQueryParams): Promise<RemediationItemsQueryResponse> {
-    return this.client.get<RemediationItemsQueryResponse>({
+    return AlDefaultClient.get<RemediationItemsQueryResponse>({
       service_stack: AlLocation.InsightAPI,
       account_id: accountId,
       service_name: 'assets_query',
@@ -563,7 +562,7 @@ export class AlAssetsQueryClientInstance {
    * API: https://console.account.alertlogic.com/users/api/assets_write/#api-AssetGroupOperations
    */
   async assetGroupOperations(accountId: string, payload: AssetGroupPayload): Promise<AssetGroup> {
-    return this.client.put<AssetGroup>({
+    return AlDefaultClient.put<AssetGroup>({
       service_stack: AlLocation.InsightAPI,
       account_id: accountId,
       service_name: 'assets_query',
@@ -579,7 +578,7 @@ export class AlAssetsQueryClientInstance {
    * /assets_query/v1/:account_id/topology/asset_group
    */
   async getAssetGroupTopology(accountId: string, requestParams: AssetGroupTopologyQueryParams): Promise<AssetGroupTopologyResponse> {
-    return this.client.post<AssetGroupTopologyResponse>({
+    return AlDefaultClient.post<AssetGroupTopologyResponse>({
       service_stack: AlLocation.InsightAPI,
       account_id: accountId,
       service_name: 'assets_query',
@@ -595,7 +594,7 @@ export class AlAssetsQueryClientInstance {
    * /assets_query/v1/:account_id/asset_groups
    */
   async listAssetGroups(accountId: string): Promise<AssetGroupListResponse> {
-    return this.client.get<AssetGroupListResponse>({
+    return AlDefaultClient.get<AssetGroupListResponse>({
       service_stack: AlLocation.InsightAPI,
       account_id: accountId,
       service_name: 'assets_query',
@@ -610,7 +609,7 @@ export class AlAssetsQueryClientInstance {
    * /asset_query/v1/asset_types
    */
   async getAssetTypes(queryParams: { filter?: string, fields?: string, format?: string }): Promise<AssetTypesResponse> {
-    return this.client.get<AssetTypesResponse>({
+    return AlDefaultClient.get<AssetTypesResponse>({
       service_stack: AlLocation.InsightAPI,
       service_name: 'assets_query',
       path: 'asset_types',
@@ -625,7 +624,7 @@ export class AlAssetsQueryClientInstance {
    * /assets_query/v1/:account_id/asset_groups
    */
   async deleteAssetGroup(accountId: string, name: string, dryRun: boolean = false): Promise<DeleteAssetGroupResponse> {
-    return this.client.put<DeleteAssetGroupResponse>({
+    return AlDefaultClient.put<DeleteAssetGroupResponse>({
       service_stack: AlLocation.InsightAPI,
       account_id: accountId,
       service_name: 'assets_query',
@@ -649,7 +648,7 @@ export class AlAssetsQueryClientInstance {
    * @returns {Promise<AssetsQueryIncidentIdsResponse>} - A promise that resolves with an object containing incident IDs by asset.
    */
   async getIncidentsIdsByAsset(accountId: string, payload: AssetsQueryIncidentIdsPayload): Promise<AssetsQueryIncidentIdsResponse> {
-    return this.client.post({
+    return AlDefaultClient.post({
       service_stack: AlLocation.InsightAPI,
       account_id: accountId,
       service_name: 'assets_query',

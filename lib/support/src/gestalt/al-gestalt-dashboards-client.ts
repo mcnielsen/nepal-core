@@ -2,7 +2,6 @@
  * Gestalt API client
  */
 import {
-    AlApiClient,
     AlDefaultClient,
     AlLocation,
 } from '@al/core';
@@ -17,7 +16,7 @@ export class AlGestaltDashboardsClientInstance {
     protected serviceName: string = 'dashboards';
     protected serviceVersion: string = 'v1';
 
-    constructor(public client: AlApiClient = AlDefaultClient) {
+    constructor() {
     }
 
     /**
@@ -31,7 +30,7 @@ export class AlGestaltDashboardsClientInstance {
      * @returns a promise with the trigger trends and triggers involved
      */
     async getTriggersTrends(accountId: string, params?: AlTriggerTimeRangeParams): Promise<AlTriggerTrends[]> {
-        return this.client.get({
+        return AlDefaultClient.get({
             service_stack: this.serviceStack,
             service_name: this.serviceName,
             version: this.serviceVersion,

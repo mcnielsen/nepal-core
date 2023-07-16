@@ -1,5 +1,4 @@
 import {
-    AlApiClient,
     AlDefaultClient,
     AlLocation
 } from '@al/core';
@@ -17,7 +16,7 @@ export class AlCredentialsClientInstance {
     private serviceName = 'credentials';
 
     /* istanbul ignore next */
-    constructor(public client: AlApiClient = AlDefaultClient) {
+    constructor() {
     }
 
     /**
@@ -31,7 +30,7 @@ export class AlCredentialsClientInstance {
         assetType: string,
         credentialType: string,
         assetKey: string): Promise<void> {
-        return this.client.delete({
+        return AlDefaultClient.delete({
             service_stack: AlLocation.InsightAPI,
             version: this.serviceVersion,
             service_name: this.serviceName,
@@ -50,7 +49,7 @@ export class AlCredentialsClientInstance {
     async getHostScanCredentials(accountId: string,
         environmentId: string,
         assetKey: string): Promise<AlScanCredentialsResponse> {
-        return this.client.get<AlScanCredentialsResponse>({
+        return AlDefaultClient.get<AlScanCredentialsResponse>({
             service_stack: AlLocation.InsightAPI,
             version: this.serviceVersion,
             service_name: this.serviceName,
@@ -71,7 +70,7 @@ export class AlCredentialsClientInstance {
             assetType: string,
             assetKey: string
         ): Promise<AlScanCredentialsResponse> {
-        return this.client.get<AlScanCredentialsResponse>({
+        return AlDefaultClient.get<AlScanCredentialsResponse>({
             service_stack: AlLocation.InsightAPI,
             version: this.serviceVersion,
             service_name: this.serviceName,
@@ -88,7 +87,7 @@ export class AlCredentialsClientInstance {
      */
     async getAllHostScanCredentials(accountId: string,
         environmentId: string): Promise<AlScanCredentialsAllHosts> {
-        return this.client.get<AlScanCredentialsAllHosts>({
+        return AlDefaultClient.get<AlScanCredentialsAllHosts>({
             service_stack: AlLocation.InsightAPI,
             version: this.serviceVersion,
             service_name: this.serviceName,
@@ -109,7 +108,7 @@ export class AlCredentialsClientInstance {
         assetType: string,
         assetKey: string,
         credential: AlAssetScanCredentials): Promise<AlCredentialsStoredResponse> {
-        return this.client.put<AlCredentialsStoredResponse>({
+        return AlDefaultClient.put<AlCredentialsStoredResponse>({
             service_stack: AlLocation.InsightAPI,
             version: this.serviceVersion,
             service_name: this.serviceName,
@@ -120,7 +119,7 @@ export class AlCredentialsClientInstance {
     }
 
     public getAssetsCredentialsByType(accountId: string, deploymentId: string, type: string, assetId: string): Promise<AlScanCredentialsResponse> {
-        return this.client.get<AlScanCredentialsResponse>({
+        return AlDefaultClient.get<AlScanCredentialsResponse>({
             service_stack: AlLocation.InsightAPI,
             version: this.serviceVersion,
             service_name: this.serviceName,

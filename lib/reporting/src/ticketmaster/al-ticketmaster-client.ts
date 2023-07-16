@@ -2,7 +2,7 @@
  * Module to deal with available Correlations Public API endpoints
  */
 import {
-  AlDefaultClient, AlApiClient, AlLocation
+  AlDefaultClient, AlLocation
 } from '@al/core';
 
 export interface AlTicketMasterResponse {
@@ -11,11 +11,9 @@ export interface AlTicketMasterResponse {
 
 export class AlTicketMasterClientInstance {
 
-    protected client:AlApiClient;
     private serviceName = 'ticketmaster';
 
-    constructor(client:AlApiClient = null) {
-        this.client = client || AlDefaultClient;
+    constructor() {
     }
 
     /**
@@ -26,7 +24,7 @@ export class AlTicketMasterClientInstance {
      * @returns Observable
      */
     async getTicket(accountId: string): Promise<AlTicketMasterResponse> {
-        return this.client.post<any>({
+        return AlDefaultClient.post<any>({
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: 'v1',

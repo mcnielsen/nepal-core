@@ -1,5 +1,4 @@
 import {
-    AlApiClient,
     AlDefaultClient,
     AlLocation,
 } from '@al/core';
@@ -10,12 +9,10 @@ import {
 } from './types';
 
 export class AlFimClientInstance {
-    protected client: AlApiClient;
     protected serviceName = 'fim_config';
     protected serviceVersion = 'v1';
 
-    constructor(client?: AlApiClient) {
-        this.client = client || AlDefaultClient;
+    constructor() {
     }
     /**
     * Lists all fim excluded or monitored path configuration objects
@@ -27,7 +24,7 @@ export class AlFimClientInstance {
     async getAllConfigurations(pathType: fimPathType,
                                accountId: string,
                                deploymentId: string): Promise<AlFimConfiguration[]> {
-        return (await this.client.get({
+        return (await AlDefaultClient.get({
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -47,7 +44,7 @@ export class AlFimClientInstance {
                            accountId: string,
                            deploymentId: string,
                            configurationId: string): Promise<AlFimConfiguration> {
-        return (await this.client.get({
+        return (await AlDefaultClient.get({
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -67,7 +64,7 @@ export class AlFimClientInstance {
                               accountId: string,
                               deploymentId: string,
                               payload: AlFimConfiguration): Promise<AlFimConfiguration> {
-        return (await this.client.post({
+        return (await AlDefaultClient.post({
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -89,7 +86,7 @@ export class AlFimClientInstance {
                               deploymentId: string,
                               configurationId: string,
                               payload: AlFimConfiguration): Promise<AlFimConfiguration> {
-        return (await this.client.put({
+        return (await AlDefaultClient.put({
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -110,7 +107,7 @@ export class AlFimClientInstance {
                               accountId: string,
                               deploymentId: string,
                               configurationId: string): Promise<void> {
-        await this.client.delete({
+        await AlDefaultClient.delete({
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -126,7 +123,7 @@ export class AlFimClientInstance {
     *  https://console.account.product.dev.alertlogic.com/users/api/fim_config/index.html#api-Reports-GetSummary
     */
     async getConfigurationsSummary(accountId: string): Promise<AlFimConfigurationSummaryReport> {
-        return (await this.client.get({
+        return (await AlDefaultClient.get({
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: this.serviceVersion,

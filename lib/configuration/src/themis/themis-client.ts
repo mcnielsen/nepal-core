@@ -2,7 +2,6 @@
  * Module to deal with available Themis Public API endpoints
  */
 import {
-  AlApiClient,
   AlDefaultClient,
   AlLocation,
 } from '@al/core';
@@ -39,9 +38,7 @@ class ThemisClient {
 
   private serviceName = 'themis';
 
-  constructor(
-      public client:AlApiClient = AlDefaultClient
-  ) {}
+  constructor() {}
 
   async getRole(
       accountId: string,
@@ -49,7 +46,7 @@ class ThemisClient {
       roleType: 'ci_full' | 'cd_full' | 'ci_x_account_ct' | 'ci_readonly' | 'ci_essentials' | 'ci_manual',
       roleVersion: string
   ): Promise<ThemisRoleDocument> {
-      const role = await this.client.get({
+      const role = await AlDefaultClient.get({
           service_stack: AlLocation.InsightAPI,
           version: 'v1',
           service_name: this.serviceName,
@@ -60,7 +57,7 @@ class ThemisClient {
   }
 
   async getRoles(accountId: string): Promise<{roles: ThemisRoleDocument[]}> {
-      const roles = await this.client.get({
+      const roles = await AlDefaultClient.get({
           service_stack: AlLocation.InsightAPI,
           version: 'v1',
           service_name: this.serviceName,
@@ -71,7 +68,7 @@ class ThemisClient {
   }
 
   async validateRoleCredentials(accountId: string, awsRole: AWSRole): Promise<AWSRoleValidationResponse> {
-      const validate = await this.client.post({
+      const validate = await AlDefaultClient.post({
           service_stack: AlLocation.InsightAPI,
           version: 'v1',
           service_name: this.serviceName,

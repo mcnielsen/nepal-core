@@ -573,6 +573,7 @@ export class AlSessionInstance
                                          options:AuthenticationOptions ) {
       if ( options.actingAccount ) {
         if ( typeof( options.actingAccount ) === 'string' ) {
+          console.log("Getting account details in mergeSessionOptions" );
           session.acting = await ( this.context.client(AIMS) ).getAccountDetails( options.actingAccount );
         } else {
           session.acting = options.actingAccount;

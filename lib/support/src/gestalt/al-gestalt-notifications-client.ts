@@ -2,7 +2,6 @@
  * Gestalt API client
  */
 import {
-    AlApiClient,
     AlDefaultClient,
     AlLocation,
     APIRequestParams,
@@ -20,7 +19,7 @@ export class AlGestaltNotificationsClientInstance implements AlGestaltNotificati
     protected serviceName:string = 'notifications';
     protected serviceVersion:string = 'v1';
 
-    constructor( public client:AlApiClient = AlDefaultClient ) {
+    constructor() {
     }
 
     /**
@@ -34,7 +33,7 @@ export class AlGestaltNotificationsClientInstance implements AlGestaltNotificati
      * @returns a promise with the subscriptions
      */
     async getGenericAlertOptions(accountId: string, entity:string): Promise<AlGenericAlertOptions> {
-        const result = await this.client.get({
+        const result = await AlDefaultClient.get({
             service_stack: this.serviceStack,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -54,7 +53,7 @@ export class AlGestaltNotificationsClientInstance implements AlGestaltNotificati
      * @returns a promise with the subscriptions
      */
     async getNotificationsCharacteristics(accountId: string, entity:string): Promise<AlCardstackCharacteristics> {
-        const result = await this.client.get({
+        const result = await AlDefaultClient.get({
             service_stack: this.serviceStack,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -74,7 +73,7 @@ export class AlGestaltNotificationsClientInstance implements AlGestaltNotificati
      * @returns a promise with the subscriptions
      */
     async getNotificationsList(accountId: string, entity:string, version:number = 0, params?:{sortField?:string, sortDirection?:string}): Promise<AlAlertDefinition[]> {
-        const result = await this.client.get({
+        const result = await AlDefaultClient.get({
             service_stack: this.serviceStack,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -103,7 +102,7 @@ export class AlGestaltNotificationsClientInstance implements AlGestaltNotificati
             version: this.serviceVersion,
             path: `${accountId}/list/${entity}`
         };
-        return await this.client.flushCache( config );
+        return await AlDefaultClient.flushCache( config );
     }
 
     /**
@@ -118,7 +117,7 @@ export class AlGestaltNotificationsClientInstance implements AlGestaltNotificati
      */
     deleteEntity(accountId: string, hierarchyType:string, ids: string[]): Promise<boolean> {
         const strIds = ids.join(',');
-        return this.client.delete({
+        return AlDefaultClient.delete({
             service_stack: this.serviceStack,
             service_name: this.serviceName,
             version: this.serviceVersion,

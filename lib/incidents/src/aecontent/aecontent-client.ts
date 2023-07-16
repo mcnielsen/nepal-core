@@ -1,10 +1,10 @@
-import { AlApiClient, AlDefaultClient, AlLocation } from '@al/core';
+import { AlDefaultClient, AlLocation } from '@al/core';
 import { AlTuningRule } from './types/aecontent-client-tuning.type';
 
 export class AecontentClientInstance {
     private serviceName = 'aecontent';
 
-    public constructor(public client: AlApiClient = AlDefaultClient) {
+    public constructor() {
     }
 
     /**
@@ -15,7 +15,7 @@ export class AecontentClientInstance {
      * @param timestamp Epoch/Unix Timestamp
      */
     public async getByPath(path: string, timestamp: number): Promise<any> {
-        return this.client.get<any>({
+        return AlDefaultClient.get<any>({
             service_name: this.serviceName,
             path: `/observations/paths/${path}`,
             version: 'v1',
@@ -31,7 +31,7 @@ export class AecontentClientInstance {
      *
      */
     public async createRule(accountId: string, data: AlTuningRule): Promise<any> {
-        return this.client.post<any>({
+        return AlDefaultClient.post<any>({
             data,
             service_name: this.serviceName,
             path: `${accountId}/tunings`,
@@ -48,7 +48,7 @@ export class AecontentClientInstance {
      *
      */
     public async deleteRule(accountId: string, name: string): Promise<any> {
-        return this.client.get<any>({
+        return AlDefaultClient.get<any>({
             service_name: this.serviceName,
             path: `${accountId}/tunings`,
             version: 'v1',
@@ -67,7 +67,7 @@ export class AecontentClientInstance {
      *
      */
     public async getRule(accountId: string, name: string): Promise<any> {
-        return this.client.get<any>({
+        return AlDefaultClient.get<any>({
             service_name: this.serviceName,
             path: `${accountId}/tunings`,
             version: 'v1',

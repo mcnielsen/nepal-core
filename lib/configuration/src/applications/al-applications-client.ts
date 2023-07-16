@@ -1,5 +1,4 @@
 import {
-  AlApiClient,
   AlDefaultClient,
   AlLocation
 } from '@al/core';
@@ -17,12 +16,10 @@ import {
 
 export class AlApplicationsClientInstance {
 
-    protected client: AlApiClient;
     protected serviceName = 'applications';
     protected serviceVersion = 'v1';
 
-    constructor(client: AlApiClient = null) {
-        this.client = client || AlDefaultClient;
+    constructor() {
     }
 
     /**
@@ -39,7 +36,7 @@ export class AlApplicationsClientInstance {
      */
     async getAllApplications(accountId: string, queryParams?: AlApplicationConfigQuery): Promise<AlApplication[]> {
 
-        return this.client.get<AlApplication[]>({
+        return AlDefaultClient.get<AlApplication[]>({
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -63,7 +60,7 @@ export class AlApplicationsClientInstance {
      * https://console.product.dev.alertlogic.com/api/applications/#api-Rules-PostRules
      */
     async addRule(accountId: string, data: AlRulePayload, deploymentId:string = null) : Promise<AlRule> {
-        return this.client.post<AlRule>({
+        return AlDefaultClient.post<AlRule>({
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -87,7 +84,7 @@ export class AlApplicationsClientInstance {
      * https://console.product.dev.alertlogic.com/api/applications/#api-Rules-GetRule
      */
     async getRule(accountId: string, ruleId: string) : Promise<AlRule> {
-        return this.client.get<AlRule>({
+        return AlDefaultClient.get<AlRule>({
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -109,7 +106,7 @@ export class AlApplicationsClientInstance {
      *  https://console.product.dev.alertlogic.com/api/applications/#api-Rules-ListRules
      */
     async getAllRules(accountId: string, queryParams?: AlApplicationConfigQuery, deploymentId:string = null): Promise<AlRule[]> {
-        return this.client.get<AlRule[]>({
+        return AlDefaultClient.get<AlRule[]>({
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -132,7 +129,7 @@ export class AlApplicationsClientInstance {
      * https://api.product.dev.alertlogic.com/applications/v1/01000001/rules/B37CEE84-6D27-4D0F-943C-F23937587574
      */
     async deleteRule(accountId: string, ruleId: string): Promise<any> {
-        return this.client.delete<any>({
+        return AlDefaultClient.delete<any>({
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -155,7 +152,7 @@ export class AlApplicationsClientInstance {
      * https://api.product.dev.alertlogic.com/applications/v1/01000001/rules/BD30F3F3-5D12-421A-B806-C65155C40CE1
      */
     async updateRule(accountId: string, ruleId: string, payload: AlRulePayload, deploymentId:string = null) : Promise<AlRule> {
-        return this.client.put<AlRule>({
+        return AlDefaultClient.put<AlRule>({
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -178,7 +175,7 @@ export class AlApplicationsClientInstance {
      *  https://console.product.dev.alertlogic.com/api/applications/#api-Rules-ListRulesDepl
      */
     async getAllRulesByDeployment(accountId: string, deploymentId: string): Promise<AlRuleForDeployment[]> {
-        return this.client.get<AlRuleForDeployment[]>({
+        return AlDefaultClient.get<AlRuleForDeployment[]>({
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -210,7 +207,7 @@ export class AlApplicationsClientInstance {
      * https://console.product.dev.alertlogic.com/api/applications/index.html#api-Collectors-DeployCollector
      */
     async deployACollector(accountId: string, data: AlDeployACollectorPayload) : Promise<AlDeployACollector> {
-        return this.client.post<AlDeployACollector>({
+        return AlDefaultClient.post<AlDeployACollector>({
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -233,7 +230,7 @@ export class AlApplicationsClientInstance {
      * https://api.product.dev.alertlogic.com/applications/v1/01000001/rules/B37CEE84-6D27-4D0F-943C-F23937587574
      */
     async deleteADeployedCollector(accountId: string, collectorId: string): Promise<any> {
-        return this.client.delete<any>({
+        return AlDefaultClient.delete<any>({
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -256,7 +253,7 @@ export class AlApplicationsClientInstance {
     async updateADeployedCollector(accountId: string,
                                    collectorId: string,
                                    data: AlDeployACollectorPayload): Promise<DeployedCollectorUpdateResponse> {
-        return this.client.put<DeployedCollectorUpdateResponse>({
+        return AlDefaultClient.put<DeployedCollectorUpdateResponse>({
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -280,7 +277,7 @@ export class AlApplicationsClientInstance {
      */
     async getAllAttributes(accountId: string): Promise<Array<AlApplicationAttribute>> {
 
-        return this.client.get<Array<AlApplicationAttribute>>({
+        return AlDefaultClient.get<Array<AlApplicationAttribute>>({
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: this.serviceVersion,

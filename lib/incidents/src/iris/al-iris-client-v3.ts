@@ -2,7 +2,6 @@
  * Module to deal with available Iris Public API endpoints
  */
 import {
-    AlApiClient,
     AlDefaultClient,
     AlResponseValidationError,
     AlLocation,
@@ -32,8 +31,7 @@ export class AlIrisClientV3Instance extends AlIrisClientInstance {
 
     protected serviceVersion = 'v3';
 
-    super(client: AlApiClient = null): void {
-        this.client = client || AlDefaultClient;
+    super(): void {
     }
 
 
@@ -44,7 +42,7 @@ export class AlIrisClientV3Instance extends AlIrisClientInstance {
      * "https://api.cloudinsight.alertlogic.com/iris/v3/100/ascads/history"
      */
     async getIncidentHistory(accountId: string, incidentId: string): Promise<IncidentHistoryResponse[]> {
-        return this.client.get<IncidentHistoryResponse[]>({
+        return AlDefaultClient.get<IncidentHistoryResponse[]>({
             service_stack: AlLocation.InsightAPI,
             account_id: accountId,
             service_name: this.serviceName,
@@ -64,7 +62,7 @@ export class AlIrisClientV3Instance extends AlIrisClientInstance {
         filterExpression: any,
         queryParams?: { multi?: boolean, size?: number, metadata?: boolean, raw_totals?: boolean },
     ): Promise<any> {
-        return this.client.post<any>({
+        return AlDefaultClient.post<any>({
             service_stack: AlLocation.InsightAPI,
             account_id: accountId,
             service_name: this.serviceName,
@@ -79,7 +77,7 @@ export class AlIrisClientV3Instance extends AlIrisClientInstance {
      * Retrieves a dictionary of available incident filters and coerces it into a digestible format.
      */
     public async getIncidentFilterDictionary(): Promise<AlIncidentFilterDictionary> {
-        const rawDictionary = await this.client.get({
+        const rawDictionary = await AlDefaultClient.get({
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: 3,
@@ -125,7 +123,7 @@ export class AlIrisClientV3Instance extends AlIrisClientInstance {
      * Returns the open incidents number related to the correlation id
      */
     getOpenIncidentsByCorrelationId(accountId: string, correlationId: string): Promise<number> {
-        return this.client.get<number>({
+        return AlDefaultClient.get<number>({
             service_stack: AlLocation.InsightAPI,
             account_id: accountId,
             service_name: this.serviceName,
@@ -135,7 +133,7 @@ export class AlIrisClientV3Instance extends AlIrisClientInstance {
     }
 
     getMetadataDictionary(): Promise<MetaDataDictionary> {
-        return this.client.get<MetaDataDictionary>({
+        return AlDefaultClient.get<MetaDataDictionary>({
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -144,7 +142,7 @@ export class AlIrisClientV3Instance extends AlIrisClientInstance {
     }
 
     getIncidentById(accountId: string, incidentId: string): Promise<any> {
-        return this.client.get<any>({
+        return AlDefaultClient.get<any>({
             service_stack: AlLocation.InsightAPI,
             account_id: accountId,
             service_name: this.serviceName,
@@ -154,7 +152,7 @@ export class AlIrisClientV3Instance extends AlIrisClientInstance {
     }
 
     getIncidentAssetsRaw(accountId: string, incidentId: string): Promise<any> {
-        return this.client.get<any>({
+        return AlDefaultClient.get<any>({
             service_stack: AlLocation.InsightAPI,
             account_id: accountId,
             service_name: this.serviceName,
@@ -173,7 +171,7 @@ export class AlIrisClientV3Instance extends AlIrisClientInstance {
         noun: string,
         payload: unknown,
     ): Promise<any> {
-        return this.client.post<any>({
+        return AlDefaultClient.post<any>({
             service_stack: AlLocation.InsightAPI,
             account_id: accountId,
             service_name: this.serviceName,
@@ -206,7 +204,7 @@ export class AlIrisClientV3Instance extends AlIrisClientInstance {
 
 
     public undoBulkAction(accountId: string, token: string): Promise<any> {
-        return this.client.get<any>({
+        return AlDefaultClient.get<any>({
             service_stack: AlLocation.InsightAPI,
             account_id: accountId,
             service_name: this.serviceName,
@@ -217,7 +215,7 @@ export class AlIrisClientV3Instance extends AlIrisClientInstance {
 
 
     public translateQueryString(query: string[], aliases: boolean = false): Promise<any> {
-        return this.client.post<any>({
+        return AlDefaultClient.post<any>({
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -227,7 +225,7 @@ export class AlIrisClientV3Instance extends AlIrisClientInstance {
     }
 
     public getFacts(accountId: string, incidentId: string, observationId: string): Promise<unknown> {
-        return this.client.get<unknown>({
+        return AlDefaultClient.get<unknown>({
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -237,7 +235,7 @@ export class AlIrisClientV3Instance extends AlIrisClientInstance {
     }
 
     public getNestedEvidences(accountId: string, incidentId: string): Promise<AlObservation[]> {
-        return this.client.get<any[]>({
+        return AlDefaultClient.get<any[]>({
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -247,7 +245,7 @@ export class AlIrisClientV3Instance extends AlIrisClientInstance {
     }
 
     public getTestIncidentById(accountId: string, incidentId: string): Promise<unknown> {
-        return this.client.get<unknown>({
+        return AlDefaultClient.get<unknown>({
             service_stack: AlLocation.InsightAPI,
             account_id: accountId,
             service_name: this.serviceName,
@@ -257,7 +255,7 @@ export class AlIrisClientV3Instance extends AlIrisClientInstance {
     }
 
     public getTestIncidentAssetsRaw(accountId: string, incidentId: string): Promise<unknown> {
-        return this.client.get<unknown>({
+        return AlDefaultClient.get<unknown>({
             service_stack: AlLocation.InsightAPI,
             account_id: accountId,
             service_name: this.serviceName,
@@ -272,7 +270,7 @@ export class AlIrisClientV3Instance extends AlIrisClientInstance {
     }
 
     public getTestIncidentHistory(accountId: string, incidentId: string): Promise<IncidentHistoryResponse[]> {
-        return this.client.get<IncidentHistoryResponse[]>({
+        return AlDefaultClient.get<IncidentHistoryResponse[]>({
             service_stack: AlLocation.InsightAPI,
             account_id: accountId,
             service_name: this.serviceName,
@@ -282,7 +280,7 @@ export class AlIrisClientV3Instance extends AlIrisClientInstance {
     }
 
     public retinaSearch(accountId: string, incidentId: string, data: any): Promise<any> {
-        return this.client.post(
+        return AlDefaultClient.post(
             {
                 service_stack: AlLocation.InsightAPI,
                 service_name: this.serviceName,
@@ -294,7 +292,7 @@ export class AlIrisClientV3Instance extends AlIrisClientInstance {
     }
 
     public testRetinaSearch(accountId: string, incidentId: string, data: any): Promise<any> {
-        return this.client.post(
+        return AlDefaultClient.post(
             {
                 service_stack: AlLocation.InsightAPI,
                 service_name: this.serviceName,
@@ -317,7 +315,7 @@ export class AlIrisClientV3Instance extends AlIrisClientInstance {
         incidentId: string,
         data: AdditionalEvidenceRequest
     ): Promise<AdditionalEvidenceResponse> {
-        return this.client.post<AdditionalEvidenceResponse>(
+        return AlDefaultClient.post<AdditionalEvidenceResponse>(
             {
                 service_stack: AlLocation.InsightAPI,
                 service_name: this.serviceName,
@@ -339,7 +337,7 @@ export class AlIrisClientV3Instance extends AlIrisClientInstance {
         accountId: string,
         requestId: string,
     ): Promise<unknown> {
-        return this.client.get<unknown>(
+        return AlDefaultClient.get<unknown>(
             {
                 service_stack: AlLocation.InsightAPI,
                 service_name: this.serviceName,
@@ -360,7 +358,7 @@ export class AlIrisClientV3Instance extends AlIrisClientInstance {
         accountId: string,
         incidentId: string,
     ): Promise<AdditionalEvidenceResponse> {
-        return this.client.post<AdditionalEvidenceResponse>(
+        return AlDefaultClient.post<AdditionalEvidenceResponse>(
             {
                 service_stack: AlLocation.InsightAPI,
                 service_name: this.serviceName,
@@ -411,7 +409,7 @@ export class AlIrisClientV3Instance extends AlIrisClientInstance {
      * "https://api.product.dev.alertlogic.com/iris/v3/filter_columns'"
      */
     public getFiltersColumns(): Promise<Array<RawFilterColumns>> {
-        return this.client.get<Array<RawFilterColumns>>({
+        return AlDefaultClient.get<Array<RawFilterColumns>>({
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -516,12 +514,12 @@ export class AlIrisClientV3Instance extends AlIrisClientInstance {
         if (uuids.length === 1) {
             // Get PCAP file from iris for one event
             options.path = `${incidentId}/pcap/${uuids[0]}`;
-            return this.client.get(options) as Promise<Blob>;
+            return AlDefaultClient.get(options) as Promise<Blob>;
         } else if (uuids.length > 1) {
             // Get PCAP file from iris for an event's list
             options.path = `pcap/${incidentId}`;
             options.data = uuids;
-            return this.client.post(options) as Promise<Blob>;
+            return AlDefaultClient.post(options) as Promise<Blob>;
         } else {
             throw new Error(`Could not retrieve file!` );
         }
@@ -599,7 +597,7 @@ export class AlIrisClientV3Instance extends AlIrisClientInstance {
         incidentId: string,
         uuid: string,
     ): Promise<ElaborationEvent | ElaborationLog | ElaborationGuardDuty> {
-        return this.client.get(
+        return AlDefaultClient.get(
             {
                 service_stack: AlLocation.InsightAPI,
                 version: this.serviceVersion,
@@ -621,7 +619,7 @@ export class AlIrisClientV3Instance extends AlIrisClientInstance {
     }
 
     public downloadAttachment(accountId: string, incidentId: string, messageId: string): Promise<string> {
-        return this.client.get(
+        return AlDefaultClient.get(
             {
                 service_stack: AlLocation.InsightAPI,
                 service_name: this.serviceName,
@@ -891,7 +889,7 @@ export class AlIrisClientV3Instance extends AlIrisClientInstance {
         filterExpression: any,
         queryParams?: { multi?: boolean, size?: number, metadata?: boolean, raw_totals?: boolean },
     ): Promise<unknown> {
-        return this.client.post<unknown>({
+        return AlDefaultClient.post<unknown>({
             responseType: 'arraybuffer',
             service_stack: AlLocation.InsightAPI,
             account_id: accountId,
@@ -918,7 +916,7 @@ export class AlIrisClientV3Instance extends AlIrisClientInstance {
         if (observationId) {
             path = `${incidentId}/${observationId}/facts/csv/enrichment_map/${aggregatorPath}`;
         }
-        return this.client.get<unknown>(
+        return AlDefaultClient.get<unknown>(
             {
                 path,
                 service_stack: AlLocation.InsightAPI,
@@ -931,7 +929,7 @@ export class AlIrisClientV3Instance extends AlIrisClientInstance {
     }
 
     public renderMarkdown(markdown: string): Promise<any> {
-        return this.client.post<any>({
+        return AlDefaultClient.post<any>({
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -948,7 +946,7 @@ export class AlIrisClientV3Instance extends AlIrisClientInstance {
      * "https://algithub.pd.alertlogic.net/alertlogic/al_iris_py/blob/c7c66bd623962bbc1cb1dab2d8ae20e5606d2018/design/searches/searches.md"
      */
     async getSearchElaborations(accountId: string, incidentId: string): Promise<any> {
-        return this.client.get<any>({
+        return AlDefaultClient.get<any>({
             service_stack: AlLocation.InsightAPI,
             account_id: accountId,
             service_name: this.serviceName,
@@ -964,7 +962,7 @@ export class AlIrisClientV3Instance extends AlIrisClientInstance {
      * https://algithub.pd.alertlogic.net/alertlogic/al_iris_py/blob/master/design/searches/searches.md#manual-evidence
      */
     async getManualEvidence(accountId: string, incidentId: string): Promise<string[]> {
-        return this.client.get({
+        return AlDefaultClient.get({
             service_stack: AlLocation.InsightAPI,
             account_id: accountId,
             service_name: this.serviceName,
@@ -984,7 +982,7 @@ export class AlIrisClientV3Instance extends AlIrisClientInstance {
         incidentId: string,
         payload?: { ids?: string[] }
     ): Promise<{ incidentId?: string; ids: string[]; errors?: {ids: string[]; reason: string}[] }> {
-        return this.client.post({
+        return AlDefaultClient.post({
             service_stack: AlLocation.InsightAPI,
             account_id: accountId,
             service_name: this.serviceName,
@@ -1005,7 +1003,7 @@ export class AlIrisClientV3Instance extends AlIrisClientInstance {
         incidentId: string,
         payload?: { ids?: string[] }
     ): Promise<{ incidentId?: string; ids: string[]; errors?: {ids: string[]; reason: string}[] }> {
-        return this.client.delete({
+        return AlDefaultClient.delete({
             service_stack: AlLocation.InsightAPI,
             account_id: accountId,
             service_name: this.serviceName,

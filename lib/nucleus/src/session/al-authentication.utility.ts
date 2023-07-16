@@ -180,11 +180,14 @@ export class AlAuthenticationUtility extends AlBaseAPIClient {
     public async authenticateWithAccessToken( accessToken:string ):Promise<AlAuthenticationResult> {
         try {
             let tokenInfo = await this.getTokenInfo( accessToken );
+            console.log("Got token information; setting authentication" );
             tokenInfo.token = accessToken; // Annoyingly, AIMS does not include the `token` property in its response to this call, making the descriptor somewhat irregular
             let session:AIMSSessionDescriptor = { authentication: tokenInfo };
             await this.context.session.setAuthentication( session );
+            console.log("Successfully authenticated with access token" );
             return this.state.result;
         } catch( e ) {
+            console.log("Ack!", e );
             AlError.log( e, "Failed to authenticate via token" );
             return this.state.result;
         }

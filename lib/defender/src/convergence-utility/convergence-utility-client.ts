@@ -1,5 +1,4 @@
 import {
-    AlApiClient,
     AlDefaultClient,
     AlLocation
 } from '@al/core';
@@ -26,13 +25,13 @@ export class ConvergenceUtilityClientInstance {
     private readonly serviceVersion: string = 'v2';
     private readonly serviceStack: string = AlLocation.LegacyUI;
 
-    public constructor(public client: AlApiClient = AlDefaultClient) {
+    public constructor() {
     }
 
     public async listApplianceZones(
         accountId: string
     ): Promise<ZoneMembershipResponse> {
-        return this.client.get({
+        return AlDefaultClient.get({
             service_stack: this.serviceStack,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -45,7 +44,7 @@ export class ConvergenceUtilityClientInstance {
         accountId: string,
         applianceId: string
     ): Promise<ApplianceZoneRecord> {
-        const raw = await this.client.get({
+        const raw = await AlDefaultClient.get({
             service_stack: this.serviceStack,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -68,7 +67,7 @@ export class ConvergenceUtilityClientInstance {
         if (action) {
             urlSuffix += `_${action}`;
         }
-        return this.client.get({
+        return AlDefaultClient.get({
             params,
             service_stack: this.serviceStack,
             service_name: this.serviceName,
@@ -88,7 +87,7 @@ export class ConvergenceUtilityClientInstance {
         if (action) {
             urlSuffix += "_" + action;
         }
-        return this.client.get({
+        return AlDefaultClient.get({
             params,
             service_stack: this.serviceStack,
             service_name: this.serviceName,
@@ -102,7 +101,7 @@ export class ConvergenceUtilityClientInstance {
         accountId: string,
         deploymentId: string,
         params?: ConvergenceQueryParams): Promise<CollectionsGenericResponse> {
-        return this.client.get({
+        return AlDefaultClient.get({
             params,
             service_stack: this.serviceStack,
             service_name: this.serviceName,
@@ -117,7 +116,7 @@ export class ConvergenceUtilityClientInstance {
         deploymentId: string,
         data: CollectionSource
     ): Promise<CollectionSource> {
-        return this.client.post({
+        return AlDefaultClient.post({
             data: { source: data },
             service_stack: this.serviceStack,
             service_name: this.serviceName,
@@ -131,7 +130,7 @@ export class ConvergenceUtilityClientInstance {
         accountId: string,
         deploymentId: string,
         networkId: string): Promise<CollectionSource> {
-        return this.client.get({
+        return AlDefaultClient.get({
             service_stack: this.serviceStack,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -144,7 +143,7 @@ export class ConvergenceUtilityClientInstance {
         accountId: string,
         deploymentId: string,
         params?: { [i: string]: number | string | boolean }): Promise<CollectionsGenericResponse> {
-        return this.client.get({
+        return AlDefaultClient.get({
             params,
             service_stack: this.serviceStack,
             service_name: this.serviceName,
@@ -158,7 +157,7 @@ export class ConvergenceUtilityClientInstance {
         accountId: string,
         deploymentId: string,
         applianceId: string): Promise<CollectionSource> {
-        return this.client.get({
+        return AlDefaultClient.get({
             service_stack: this.serviceStack,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -172,7 +171,7 @@ export class ConvergenceUtilityClientInstance {
         deploymentId: string,
         applianceId: string,
         data: CollectionSource): Promise<CollectionSource> {
-        return this.client.put({
+        return AlDefaultClient.put({
             data,
             service_stack: this.serviceStack,
             service_name: this.serviceName,
@@ -187,7 +186,7 @@ export class ConvergenceUtilityClientInstance {
         hostId: string,
         type: 'metadata' | 'status'
     ): Promise<CollectionsGenericResponse> {
-        return this.client.get({
+        return AlDefaultClient.get({
             service_stack: this.serviceStack,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -197,7 +196,7 @@ export class ConvergenceUtilityClientInstance {
     }
 
     public async getAgentVersion(accountId: string, hostId: string): Promise<{ agentVersion: string }> {
-        return this.client.get({
+        return AlDefaultClient.get({
             service_stack: this.serviceStack,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -220,7 +219,7 @@ export class ConvergenceUtilityClientInstance {
         if (action) {
             productType += "_" + action;
         }
-        return this.client.get({
+        return AlDefaultClient.get({
             params,
             service_stack: this.serviceStack,
             service_name: this.serviceName,
@@ -233,7 +232,7 @@ export class ConvergenceUtilityClientInstance {
     public async listCredentials(
         accountId: string,
         params?: ConvergenceQueryParams): Promise<CollectionsGenericResponse> {
-        return this.client.get({
+        return AlDefaultClient.get({
             params,
             service_stack: this.serviceStack,
             service_name: this.serviceName,
@@ -246,7 +245,7 @@ export class ConvergenceUtilityClientInstance {
     public async getOneCredential(
         accountId: string,
         credentialId: string): Promise<CollectionCredential> {
-        return this.client.get({
+        return AlDefaultClient.get({
             service_stack: this.serviceStack,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -259,7 +258,7 @@ export class ConvergenceUtilityClientInstance {
         accountId: string,
         credentialId: string
     ): Promise<void> {
-        return this.client.delete({
+        return AlDefaultClient.delete({
             service_stack: this.serviceStack,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -280,7 +279,7 @@ export class ConvergenceUtilityClientInstance {
         } else if (productType === "intrusion-detection") {
             productType = "tm_collection";
         }
-        return this.client.get({
+        return AlDefaultClient.get({
             params,
             service_stack: this.serviceStack,
             service_name: this.serviceName,
@@ -300,7 +299,7 @@ export class ConvergenceUtilityClientInstance {
         } else if (productType === "intrusion-detection") {
             productType = "tm_collection";
         }
-        const response: { policy: CollectionPolicy } = await this.client.get({
+        const response: { policy: CollectionPolicy } = await AlDefaultClient.get({
             service_stack: this.serviceStack,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -320,7 +319,7 @@ export class ConvergenceUtilityClientInstance {
         } else if (productType === "intrusion-detection") {
             productType = "tm_collection";
         }
-        return this.client.delete({
+        return AlDefaultClient.delete({
             service_stack: this.serviceStack,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -340,7 +339,7 @@ export class ConvergenceUtilityClientInstance {
         } else if (productType === "intrusion-detection") {
             productType = "tm_collection";
         }
-        const response: CollectionsGenericResponse = await this.client.put({
+        const response: CollectionsGenericResponse = await AlDefaultClient.put({
             data: { policy: data },
             service_stack: this.serviceStack,
             service_name: this.serviceName,
@@ -365,7 +364,7 @@ export class ConvergenceUtilityClientInstance {
         } else if (productType === "intrusion-detection") {
             productType = "tm_collection";
         }
-        const response: { policy: CollectionPolicy } = await this.client.post({
+        const response: { policy: CollectionPolicy } = await AlDefaultClient.post({
             data: { policy: data },
             service_stack: this.serviceStack,
             service_name: this.serviceName,
@@ -379,7 +378,7 @@ export class ConvergenceUtilityClientInstance {
     }
 
     public async createPolicy(accountId: string, policyType: PolicyType, data: CollectionPolicy): Promise<CollectionPolicy> {
-        const raw = await this.client.post({
+        const raw = await AlDefaultClient.post({
             data: { policy: data },
             service_stack: this.serviceStack,
             service_name: this.serviceName,
@@ -394,7 +393,7 @@ export class ConvergenceUtilityClientInstance {
         accountId: string,
         policyType: PolicyType,
         policyId: string): Promise<CollectionPolicy> {
-        const raw = await this.client.get({
+        const raw = await AlDefaultClient.get({
             service_stack: this.serviceStack,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -408,7 +407,7 @@ export class ConvergenceUtilityClientInstance {
         accountId: string,
         policyType: PolicyType,
         policyId: string): Promise<boolean> {
-        const { isDeleteable } = await this.client.get<{ isDeleteable: boolean }>({
+        const { isDeleteable } = await AlDefaultClient.get<{ isDeleteable: boolean }>({
             service_stack: this.serviceStack,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -421,7 +420,7 @@ export class ConvergenceUtilityClientInstance {
     public async isCredentialDeletable(
         accountId: string,
         credentialId: string): Promise<boolean> {
-        const { isDeleteable } = await this.client.get<{ isDeleteable: boolean }>({
+        const { isDeleteable } = await AlDefaultClient.get<{ isDeleteable: boolean }>({
             service_stack: this.serviceStack,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -432,7 +431,7 @@ export class ConvergenceUtilityClientInstance {
     }
 
     public async deletePolicy(accountId: string, policyType: PolicyType, policyId: string): Promise<void> {
-        return this.client.delete({
+        return AlDefaultClient.delete({
             service_stack: this.serviceStack,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -445,7 +444,7 @@ export class ConvergenceUtilityClientInstance {
         accountId: string,
         policyType: PolicyType,
         params?: ConvergenceQueryParams): Promise<CollectionsGenericResponse> {
-        return this.client.get({
+        return AlDefaultClient.get({
             params,
             service_stack: this.serviceStack,
             service_name: this.serviceName,
@@ -461,7 +460,7 @@ export class ConvergenceUtilityClientInstance {
         policyId: string,
         data: CollectionPolicy
     ): Promise<CollectionPolicy> {
-        const raw = await this.client.put({
+        const raw = await AlDefaultClient.put({
             data: { policy: data },
             service_stack: this.serviceStack,
             service_name: this.serviceName,
@@ -478,7 +477,7 @@ export class ConvergenceUtilityClientInstance {
         deploymentId: string,
         collectorId: string,
         data: any): Promise<CollectionSource> {
-        return this.client.put({
+        return AlDefaultClient.put({
             data,
             service_stack: this.serviceStack,
             service_name: this.serviceName,
@@ -492,7 +491,7 @@ export class ConvergenceUtilityClientInstance {
         accountId: string,
         deploymentId: string,
         collectorId: string): Promise<CollectionSource> {
-        return this.client.get({
+        return AlDefaultClient.get({
             service_stack: this.serviceStack,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -505,7 +504,7 @@ export class ConvergenceUtilityClientInstance {
         accountId: string,
         deploymentId: string,
         params?: { [i: string]: number | string | boolean }): Promise<CollectionsGenericResponse> {
-        return this.client.get({
+        return AlDefaultClient.get({
             params,
             service_stack: this.serviceStack,
             service_name: this.serviceName,
@@ -521,7 +520,7 @@ export class ConvergenceUtilityClientInstance {
         data: any,
         entityType: string = 'collection'
     ): Promise<CollectionsGenericResponse> {
-        return this.client.post({
+        return AlDefaultClient.post({
             data,
             service_stack: this.serviceStack,
             service_name: this.serviceName,
@@ -537,7 +536,7 @@ export class ConvergenceUtilityClientInstance {
         collectionId: string,
         data: any,
         entityType: string = 'collection'): Promise<CollectionsGenericResponse> {
-        return this.client.put({
+        return AlDefaultClient.put({
             data,
             service_stack: this.serviceStack,
             service_name: this.serviceName,
@@ -548,7 +547,7 @@ export class ConvergenceUtilityClientInstance {
     }
 
     public async getCloudExplorerAwsRegions(accountId: string): Promise<CloudExplorerAwsRegionRecord[]> {
-        return this.client.get({
+        return AlDefaultClient.get({
             service_stack: this.serviceStack,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -566,7 +565,7 @@ export class ConvergenceUtilityClientInstance {
         if (action) {
             entityType += `_${action}`;
         }
-        return this.client.delete({
+        return AlDefaultClient.delete({
             service_stack: this.serviceStack,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -579,7 +578,7 @@ export class ConvergenceUtilityClientInstance {
         accountId: string,
         deploymentId: string,
         collectionId: string): Promise<CollectionSource> {
-        return this.client.get({
+        return AlDefaultClient.get({
             service_stack: this.serviceStack,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -592,7 +591,7 @@ export class ConvergenceUtilityClientInstance {
         accountId: string,
         deploymentId: string,
         params?: ConvergenceQueryParams): Promise<CollectionsGenericResponse> {
-        return this.client.get({
+        return AlDefaultClient.get({
             params,
             service_stack: this.serviceStack,
             service_name: this.serviceName,
@@ -607,7 +606,7 @@ export class ConvergenceUtilityClientInstance {
         accountId: string,
         params?: ConvergenceQueryParams
     ): Promise<CollectionsGenericResponse> {
-        return this.client.get({
+        return AlDefaultClient.get({
             params,
             service_stack: this.serviceStack,
             service_name: this.serviceName,
@@ -619,7 +618,7 @@ export class ConvergenceUtilityClientInstance {
     }
 
     public async addToCase(accountId: string, data: { id: string, type: string }): Promise<any> {
-        return this.client.post({
+        return AlDefaultClient.post({
             data,
             service_stack: this.serviceStack,
             service_name: this.serviceName,
@@ -630,7 +629,7 @@ export class ConvergenceUtilityClientInstance {
     }
 
     public async getFiltersByEntityType(accountId: string, entityType: string): Promise<CollectionFiltersResponse> {
-        return this.client.get<CollectionFiltersResponse>({
+        return AlDefaultClient.get<CollectionFiltersResponse>({
             service_stack: this.serviceStack,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -641,7 +640,7 @@ export class ConvergenceUtilityClientInstance {
 
     public async lookUpUsers(accountId: string, userIds: string[]): Promise<LookedUpUsersResponse> {
         const users: string = userIds.join(',');
-        return this.client.get<LookedUpUsersResponse>({
+        return AlDefaultClient.get<LookedUpUsersResponse>({
             service_stack: this.serviceStack,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -652,7 +651,7 @@ export class ConvergenceUtilityClientInstance {
     }
 
     public async getDownloads(accountId: string, product: string): Promise<any> {
-        return this.client.get<any>({
+        return AlDefaultClient.get<any>({
             service_stack: this.serviceStack,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -662,7 +661,7 @@ export class ConvergenceUtilityClientInstance {
     }
 
     public async getApiKey(accountId: string): Promise<any> {
-        return this.client.get<any>({
+        return AlDefaultClient.get<any>({
             service_stack: this.serviceStack,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -672,7 +671,7 @@ export class ConvergenceUtilityClientInstance {
     }
 
     public async listCertificateKeyPairs(accountId: string, params?: ConvergenceQueryParams): Promise<CollectionsGenericResponse> {
-        return this.client.get({
+        return AlDefaultClient.get({
             params,
             service_stack: this.serviceStack,
             service_name: this.serviceName,
@@ -684,7 +683,7 @@ export class ConvergenceUtilityClientInstance {
 
     public async createCertificateKeyPair(accountId: string, data: CertificateKeyPair): Promise<CertificateKeyPair> {
         const { keypair }: { keypair: CertificateKeyPair } =
-            await this.client.post({
+            await AlDefaultClient.post({
                 data: { keypair: data },
                 service_stack: this.serviceStack,
                 service_name: this.serviceName,
@@ -696,7 +695,7 @@ export class ConvergenceUtilityClientInstance {
     }
 
     public async deleteCertificateKeyPair(accountId: string, keypairId: string): Promise<void> {
-        return this.client.delete({
+        return AlDefaultClient.delete({
             service_stack: this.serviceStack,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -708,7 +707,7 @@ export class ConvergenceUtilityClientInstance {
     public async validatePemFile(accountId: string, file: File): Promise<string[][]> {
         const data: FormData = new FormData();
         data.append('file', file);
-        return this.client.post({
+        return AlDefaultClient.post({
             data,
             service_stack: this.serviceStack,
             service_name: this.serviceName,
@@ -724,7 +723,7 @@ export class ConvergenceUtilityClientInstance {
             type: ExportableRecordsType,
             params?: ConvergenceQueryParams
         ): Promise<string> {
-        return this.client.get({
+        return AlDefaultClient.get({
             params,
             service_stack: this.serviceStack,
             service_name: this.serviceName,

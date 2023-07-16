@@ -2,7 +2,6 @@
  * Module to deal with available Ticket Master Public API endpoints
  */
 import {
-  AlApiClient,
   AlDefaultClient,
 } from '@al/core';
 
@@ -52,7 +51,7 @@ export interface AetherSearchResponse {
 export class AetherClientInstance {
     private serviceName = 'aether';
 
-    public constructor(public client: AlApiClient = AlDefaultClient) {
+    public constructor() {
     }
 
     /**
@@ -76,7 +75,7 @@ export class AetherClientInstance {
             .replace(`&facet=`, `&`)
             .replace(`&parser=`, `&q.parser=`);
 
-        return this.client.post<AetherSearchResponse>({
+        return AlDefaultClient.post<AetherSearchResponse>({
             service_name: this.serviceName,
             path: '/exposures/2013-01-01/search',
             version: null,

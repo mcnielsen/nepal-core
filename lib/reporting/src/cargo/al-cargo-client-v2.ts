@@ -2,7 +2,6 @@
  * Cargo V2 Public API endpoints Implementation
  */
 import {
-    AlApiClient,
     AlDefaultClient,
     AlLocation,
 } from '@al/core';
@@ -20,8 +19,8 @@ import {
 export class AlCargoClientInstanceV2 extends AlCargoClientInstance {
     protected serviceVersion = 'v2';
 
-    constructor(public client: AlApiClient = AlDefaultClient) {
-        super(client);
+    constructor() {
+        super();
     }
 
     /**
@@ -38,7 +37,7 @@ export class AlCargoClientInstanceV2 extends AlCargoClientInstance {
      * https://console.account.product.dev.alertlogic.com/users/api/cargo/index.html#api-Schedules-CreateSchedule
      */
     async createSchedule(accountId: string, schedule: ScheduledReportV2): Promise<string> {
-        const result = await this.client.post({
+        const result = await AlDefaultClient.post({
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -63,7 +62,7 @@ export class AlCargoClientInstanceV2 extends AlCargoClientInstance {
      *  https://console.account.product.dev.alertlogic.com/users/api/cargo/index.html#api-Schedules-GetSchedule
      */
     async getSchedule(accountId: string, scheduleId: string): Promise<ScheduledReportV2> {
-        return this.client.get<ScheduledReportV2>({
+        return AlDefaultClient.get<ScheduledReportV2>({
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -89,7 +88,7 @@ export class AlCargoClientInstanceV2 extends AlCargoClientInstance {
         if (filterByType) {
             params.type = filterByType;
         }
-        return this.client.get<ScheduledReportListV2>({
+        return AlDefaultClient.get<ScheduledReportListV2>({
             service_name: this.serviceName,
             version: this.serviceVersion,
             account_id: accountId,
@@ -112,7 +111,7 @@ export class AlCargoClientInstanceV2 extends AlCargoClientInstance {
      * https://console.account.product.dev.alertlogic.com/users/api/index.html#api-Schedules-RemoveSchedule
      */
     async deleteSchedule(accountId: string, scheduleId: string): Promise<void> {
-        const scheduleDelete = await this.client.delete({
+        const scheduleDelete = await AlDefaultClient.delete({
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -136,7 +135,7 @@ export class AlCargoClientInstanceV2 extends AlCargoClientInstance {
      * https://console.account.product.dev.alertlogic.com/users/api/cargo/index.html#api-Schedules-UpdateSchedule
      */
     async updateSchedule(accountId: string, reportId: string, schedule: ScheduledReportV2): Promise<ScheduledReportV2> {
-        return this.client.post<ScheduledReportV2>({
+        return AlDefaultClient.post<ScheduledReportV2>({
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -162,7 +161,7 @@ export class AlCargoClientInstanceV2 extends AlCargoClientInstance {
      * @overrides cancelScheduledReport V1
      */
     async cancelScheduledReport(accountId: string, executionRecordId: string): Promise<void> {
-        const result = await this.client.post({
+        const result = await AlDefaultClient.post({
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -186,7 +185,7 @@ export class AlCargoClientInstanceV2 extends AlCargoClientInstance {
      *  https://console.account.product.dev.alertlogic.com/users/api/cargo/index.html#api-Execution_Records-CountExecutionRecords
      */
     async countExecutionRecords(accountId: string, scheduleId: string): Promise<number> {
-        const result = await this.client.get({
+        const result = await AlDefaultClient.get({
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -213,7 +212,7 @@ export class AlCargoClientInstanceV2 extends AlCargoClientInstance {
      *  https://console.account.product.dev.alertlogic.com/users/api/cargo/index.html#api-Execution_Records-CreateExecutionRecord
      */
     async createExecutionRecord(accountId: string, payload: ExecutionRecordRequestV2 | ExecutionRecordOnceRequestV2): Promise<unknown> {
-        const result = await this.client.post({
+        const result = await AlDefaultClient.post({
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -238,7 +237,7 @@ export class AlCargoClientInstanceV2 extends AlCargoClientInstance {
      *  https://console.account.product.dev.alertlogic.com/users/api/cargo/index.html#api-Execution_Records-GetExecutionRecordMultipleResult
      */
     async getExecutionRecordResultsArchive(accountId: string, executionRecordIds: string): Promise<unknown> {
-        const result = await this.client.get({
+        const result = await AlDefaultClient.get({
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -266,7 +265,7 @@ export class AlCargoClientInstanceV2 extends AlCargoClientInstance {
      *  https://console.account.product.dev.alertlogic.com/users/api/cargo/index.html#api-Execution_Records-GetExecutionRecordResult
      */
     async getExecutionRecordResult(accountId: string, executionRecordId: string): Promise<unknown> {
-        const result = await this.client.get({
+        const result = await AlDefaultClient.get({
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -291,7 +290,7 @@ export class AlCargoClientInstanceV2 extends AlCargoClientInstance {
      *  https://console.account.product.dev.alertlogic.com/users/api/cargo/index.html#api-Execution_Records-GetExecutionRecord
      */
     async getExecutionRecord(accountId: string, executionRecordId: string): Promise<ExecutionRecordV2> {
-        return this.client.get<ExecutionRecordV2>({
+        return AlDefaultClient.get<ExecutionRecordV2>({
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -312,7 +311,7 @@ export class AlCargoClientInstanceV2 extends AlCargoClientInstance {
      *  https://console.account.product.dev.alertlogic.com/users/api/cargo/index.html#api-Execution_Records-ListExecutionRecords
      */
     async getListExecutionRecords(accountId: string, queryParams?: ExecutionRecordsQueryParamsV2): Promise<ExecutionRecordListV2> {
-        return this.client.get<ExecutionRecordListV2>({
+        return AlDefaultClient.get<ExecutionRecordListV2>({
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -336,7 +335,7 @@ export class AlCargoClientInstanceV2 extends AlCargoClientInstance {
      *  https://console.account.product.dev.alertlogic.com/users/api/index.html#api-Execution_Records-RemoveExecutionRecord
      */
     async deleteExecutionRecord(accountId: string, executionRecordId: string): Promise<void> {
-        const result = await this.client.delete({
+        const result = await AlDefaultClient.delete({
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -363,7 +362,7 @@ export class AlCargoClientInstanceV2 extends AlCargoClientInstance {
      */
     async batchDeleteSchedules(accountId: string, ids: string[]): Promise<void> {
         const strIds = ids.join(',');
-        return await this.client.delete({
+        return await AlDefaultClient.delete({
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -388,7 +387,7 @@ export class AlCargoClientInstanceV2 extends AlCargoClientInstance {
      */
     async batchDeleteExecutionRecords(accountId: string, ids: string[]): Promise<void> {
         const strIds = ids.join(',');
-        return await this.client.delete({
+        return await AlDefaultClient.delete({
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: this.serviceVersion,

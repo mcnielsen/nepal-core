@@ -3,7 +3,6 @@
  * Note: Put here gestalt endpoints without a service name.
  */
 import {
-    AlApiClient,
     AlDefaultClient,
     AlLocation,
 } from '@al/core';
@@ -12,7 +11,7 @@ export class AlGestaltClientInstance {
 
     protected serviceStack:string = AlLocation.GestaltAPI;
 
-    constructor( public client:AlApiClient = AlDefaultClient ) {
+    constructor() {
     }
 
     /**
@@ -24,7 +23,7 @@ export class AlGestaltClientInstance {
      *  @returns a promise
      */
     async isGestaltResponding(): Promise<any> {
-        const result = await this.client.get({
+        const result = await AlDefaultClient.get({
             service_stack: this.serviceStack,
             path: `/canary`,
         });

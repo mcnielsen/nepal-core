@@ -63,6 +63,7 @@ export abstract class AlExecutionContext
         locationId: undefined,
         accessibleLocationIds: []
     };
+    protected provisionalToken?:string;
 
     constructor( options?:{[optionKey:string]:string|number|boolean|unknown} ) {
         super();
@@ -173,10 +174,24 @@ export abstract class AlExecutionContext
         return uri;
     }
 
+    public setProvisionalToken( token:string ) {
+        this.provisionalToken = token;
+    }
+
+    public clearProvisionalToken() {
+        this.provisionalToken = undefined;
+    }
+
     public getAIMSToken():string|undefined {
         if ( this.sessionInstance && this.sessionInstance.isActive() ) {
+            console.log("Returning token from active session!", this.sessionInstance );
             return this.sessionInstance.getToken();
         }
+        if ( this.provisionalToken ) {
+            console.log("Returning provisional token!" );
+            return this.provisionalToken;
+        }
+        console.log("No AIMS token available!" );
         return undefined;
     }
 

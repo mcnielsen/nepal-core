@@ -1,5 +1,4 @@
 import {
-    AlApiClient,
     AlDefaultClient,
     AlLocation
 } from "@al/core";
@@ -10,19 +9,17 @@ import {
 } from "./types";
 
 export class AlExclusionsClientInstance {
-    protected client: AlApiClient;
     protected serviceName = 'exclusions';
     protected serviceVersion = 'v1';
 
-    constructor(client?: AlApiClient) {
-        this.client = client || AlDefaultClient;
+    constructor() {
     }
 
     /**
      * @remarks https://console.cloudinsight.alertlogic.com/api/exclusions/index.html#api-Exclusion_Rules-GetRules
      */
     async listRules(accountId: string, deploymentId: string, searchParams?: { [i: string]: string }): Promise<ExclusionsRulesSnapshot> {
-        const rawData = await this.client.get({
+        const rawData = await AlDefaultClient.get({
             service_stack: AlLocation.InsightAPI,
             version: this.serviceVersion,
             service_name: this.serviceName,
@@ -37,7 +34,7 @@ export class AlExclusionsClientInstance {
      * @remarks https://console.cloudinsight.alertlogic.com/api/exclusions/index.html#api-Exclusion_Rules-GetRule
      */
     async getRule(accountId: string, deploymentId: string, ruleId: string): Promise<ExclusionsRulesDescriptor> {
-        const rawData = await this.client.get({
+        const rawData = await AlDefaultClient.get({
             service_stack: AlLocation.InsightAPI,
             version: this.serviceVersion,
             service_name: this.serviceName,
@@ -51,7 +48,7 @@ export class AlExclusionsClientInstance {
      * @remarks https://console.cloudinsight.alertlogic.com/api/exclusions/index.html#api-Exclusion_Rules-DeleteExclusionRule
      */
     async deleteRule(accountId: string, deploymentId: string, ruleId: string): Promise<void> {
-        return this.client.delete<void>({
+        return AlDefaultClient.delete<void>({
             service_stack: AlLocation.InsightAPI,
             version: this.serviceVersion,
             service_name: this.serviceName,
@@ -64,7 +61,7 @@ export class AlExclusionsClientInstance {
      * @remarks https://console.cloudinsight.alertlogic.com/api/exclusions/index.html#api-Exclusion_Rules-CreateExclusionRule
      */
     async createRule(accountId: string, deploymentId: string, data: ExclusionsRulesDescriptor): Promise<ExclusionsRulesDescriptor> {
-        const rawData = this.client.post({
+        const rawData = AlDefaultClient.post({
             data,
             service_stack: AlLocation.InsightAPI,
             version: this.serviceVersion,
@@ -79,7 +76,7 @@ export class AlExclusionsClientInstance {
      * @remarks https://console.cloudinsight.alertlogic.com/api/exclusions/index.html#api-Exclusion_Rules-UpdateExclusionRule
      */
     async updateRule(accountId: string, deploymentId: string, ruleId: string, data: ExclusionsRulesDescriptor): Promise<ExclusionsRulesDescriptor> {
-        const rawData = this.client.put({
+        const rawData = AlDefaultClient.put({
             data,
             service_stack: AlLocation.InsightAPI,
             version: this.serviceVersion,
@@ -95,7 +92,7 @@ export class AlExclusionsClientInstance {
      */
     async isExcluded(accountId: string, deploymentId: string, assetType: string, assetKey: string,
                      feature: string = "scan", searchParams?: { [i: string]: string }): Promise<ExclusionsRulesDescriptor> {
-        const rawData = await this.client.get({
+        const rawData = await AlDefaultClient.get({
             service_stack: AlLocation.InsightAPI,
             version: 'v2',
             service_name: this.serviceName,

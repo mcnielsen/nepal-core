@@ -1,5 +1,4 @@
 import {
-    AlApiClient,
     AlDefaultClient,
     AlLocation
 } from '@al/core';
@@ -13,10 +12,10 @@ export class AlWatchlistClientInstance {
     private serviceVersion = 'v1';
 
     /* istanbul ignore next */
-    constructor(public client: AlApiClient = AlDefaultClient) { }
+    constructor() { }
 
     async add(accountId: string, deploymentId: string, userId: string, assetKey: string): Promise<WatchList> {
-        const rawResponse = await this.client.post({
+        const rawResponse = await AlDefaultClient.post({
             service_stack: AlLocation.InsightAPI,
             version: this.serviceVersion,
             service_name: this.serviceName,
@@ -31,7 +30,7 @@ export class AlWatchlistClientInstance {
     }
 
     async remove(accountId: string, userId: string, assetKey: string): Promise<void> {
-        return this.client.delete({
+        return AlDefaultClient.delete({
             service_stack: AlLocation.InsightAPI,
             version: this.serviceVersion,
             service_name: this.serviceName,

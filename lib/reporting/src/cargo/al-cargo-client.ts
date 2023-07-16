@@ -2,7 +2,6 @@
  * Module to deal with available Cargo Public API endpoints
  */
 import {
-  AlApiClient,
   AlDefaultClient,
   APIRequestParams,
   AlLocation,
@@ -23,14 +22,14 @@ export class AlCargoClientInstance {
 
   protected serviceName = 'cargo';
 
-  constructor(public client: AlApiClient = AlDefaultClient) {
+  constructor() {
   }
 
   /**
    * Create report for given account_id
    */
   async createReport(accountId: string, reportRequest: CreateReportRequest): Promise<CreateReportResponse> {
-    return this.client.post<CreateReportResponse>({
+    return AlDefaultClient.post<CreateReportResponse>({
       service_stack: AlLocation.InsightAPI,
       service_name: this.serviceName,
       account_id: accountId,
@@ -42,7 +41,7 @@ export class AlCargoClientInstance {
    * Get report for given account_id and report_id
    */
   async getReport(accountId: string, reportId: string): Promise<CargoReportResponse> {
-    return this.client.get<CargoReportResponse>({
+    return AlDefaultClient.get<CargoReportResponse>({
       service_stack: AlLocation.InsightAPI,
       service_name: this.serviceName,
       account_id: accountId,
@@ -53,7 +52,7 @@ export class AlCargoClientInstance {
    * Update one or several properties of existing report for given account_id and report_id
    */
   async updateReport(accountId: string, reportId: string, reportRequest: CreateReportRequest): Promise<any> {
-    return this.client.post<any>({
+    return AlDefaultClient.post<any>({
       service_stack: AlLocation.InsightAPI,
       service_name: this.serviceName,
       account_id: accountId,
@@ -65,7 +64,7 @@ export class AlCargoClientInstance {
    * Remove report for given account_id and report_id
    */
   async removeReport(accountId: string, reportId: string): Promise<any> {
-    return this.client.delete<any>({
+    return AlDefaultClient.delete<any>({
       service_stack: AlLocation.InsightAPI,
       service_name: this.serviceName,
       account_id: accountId,
@@ -76,7 +75,7 @@ export class AlCargoClientInstance {
    * Get list of reports for given account_id
    */
   async listReports(accountId: string, queryParams: { report_type?: string } = {}): Promise<CargoReportListResponse> {
-    return this.client.get<CargoReportListResponse>({
+    return AlDefaultClient.get<CargoReportListResponse>({
       service_stack: AlLocation.InsightAPI,
       service_name: this.serviceName,
       account_id: accountId,
@@ -89,7 +88,7 @@ export class AlCargoClientInstance {
    * Scheduled report for given account_id
    */
   async scheduleReport(accountId: string, scheduleReportRequest: ReportScheduleRequest | ReportScheduleOnceRequest): Promise<any> {
-    return this.client.post<any>({
+    return AlDefaultClient.post<any>({
       service_stack: AlLocation.InsightAPI,
       service_name: this.serviceName,
       account_id: accountId,
@@ -101,7 +100,7 @@ export class AlCargoClientInstance {
    * Cancel scheduled report for given account_id and scheduled_report_id
    */
   async cancelScheduledReport(accountId: string, scheduleReportId: string):  Promise<any> {
-    return this.client.post<any>({
+    return AlDefaultClient.post<any>({
       service_stack: AlLocation.InsightAPI,
       service_name: this.serviceName,
       account_id: accountId,
@@ -112,7 +111,7 @@ export class AlCargoClientInstance {
    * Remove scheduled report for given account_id and scheduled_report_id
    */
   async removeScheduledReport(accountId: string, scheduleReportId: string):  Promise<any> {
-    return this.client.delete<any>({
+    return AlDefaultClient.delete<any>({
       service_stack: AlLocation.InsightAPI,
       service_name: this.serviceName,
       account_id: accountId,
@@ -123,7 +122,7 @@ export class AlCargoClientInstance {
    * Get scheduled report for given account_id and scheduled_report_id
    */
   async getScheduledReport(accountId: string, scheduleReportId: string):  Promise<CargoReport> {
-    return this.client.get<CargoReport>({
+    return AlDefaultClient.get<CargoReport>({
       service_stack: AlLocation.InsightAPI,
       service_name: this.serviceName,
       account_id: accountId,
@@ -135,7 +134,7 @@ export class AlCargoClientInstance {
    * Retrieve result data of scheduled report run for given account_id, scheduled_report_id and result_id
    */
   async getScheduledReportResult(accountId: string, scheduleReportId: string, resultId: string):  Promise<any> {
-    return this.client.get<any>({
+    return AlDefaultClient.get<any>({
       service_stack: AlLocation.InsightAPI,
       service_name: this.serviceName,
       account_id: accountId,
@@ -147,7 +146,7 @@ export class AlCargoClientInstance {
    * Archive will be formatted and compressed as tar.gz
    */
   async getScheduledReportResultArchive(accountId: string, scheduleReportId: string):  Promise<any> {
-    return this.client.get<any>({
+    return AlDefaultClient.get<any>({
       service_stack: AlLocation.InsightAPI,
       service_name: this.serviceName,
       account_id: accountId,
@@ -168,7 +167,7 @@ export class AlCargoClientInstance {
     if (queryParams) {
       requestArgs.params = queryParams;
     }
-    const result = await this.client.get(requestArgs);
+    const result = await AlDefaultClient.get(requestArgs);
     return result as CargoScheduledReportListResponse;
   }
 }

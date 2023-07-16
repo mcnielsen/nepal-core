@@ -2,7 +2,6 @@
  * Module to deal with available Deployments Public API endpoints
  */
 import {
-  AlApiClient,
   AlDefaultClient,
   AlLocation,
 } from '@al/core';
@@ -18,11 +17,11 @@ export class AlDeploymentsClientInstance {
   private serviceVersion = 'v1';
 
   /* istanbul ignore next */
-  constructor(public client:AlApiClient = AlDefaultClient) {
+  constructor() {
   }
 
   async createDeployment(accountId: string, deploymentRequest: DeploymentCreateBody): Promise<Deployment> {
-    return this.client.post<Deployment>({
+    return AlDefaultClient.post<Deployment>({
       service_stack: AlLocation.InsightAPI,
       version: this.serviceVersion,
       service_name: this.serviceName,
@@ -33,7 +32,7 @@ export class AlDeploymentsClientInstance {
   }
 
   async updateDeployment(accountId: string, deploymentId: string, deploymentRequest: DeploymentUpdateBody): Promise<Deployment> {
-    return this.client.put<Deployment>({
+    return AlDefaultClient.put<Deployment>({
       service_stack: AlLocation.InsightAPI,
       version: this.serviceVersion,
       service_name: this.serviceName,
@@ -44,7 +43,7 @@ export class AlDeploymentsClientInstance {
   }
 
   async deleteDeployment(accountId: string, deploymentId: string): Promise<void> {
-    return this.client.delete({
+    return AlDefaultClient.delete({
       service_stack: AlLocation.InsightAPI,
       version: this.serviceVersion,
       service_name: this.serviceName,
@@ -54,7 +53,7 @@ export class AlDeploymentsClientInstance {
   }
 
   async getDeployment(accountId: string, deploymentId: string): Promise<Deployment> {
-    return this.client.get<Deployment>({
+    return AlDefaultClient.get<Deployment>({
       service_stack: AlLocation.InsightAPI,
       version: this.serviceVersion,
       service_name: this.serviceName,
@@ -65,7 +64,7 @@ export class AlDeploymentsClientInstance {
   }
 
   async listDeployments(accountId: string, filters?: {[i:string]: string} | string[]): Promise<Deployment[]> {
-    return this.client.get<Deployment[]>({
+    return AlDefaultClient.get<Deployment[]>({
       service_stack: AlLocation.InsightAPI,
       version: this.serviceVersion,
       service_name: this.serviceName,

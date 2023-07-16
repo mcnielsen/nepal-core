@@ -2,7 +2,6 @@
  * Responder API client
  */
 import {
-    AlApiClient,
     AlDefaultClient,
     AlLocation
 } from '@al/core';
@@ -52,13 +51,11 @@ import {
 
 export class AlResponderClientInstance {
 
-    protected client: AlApiClient;
     protected serviceVersion = 'v1';
     protected serviceStack = AlLocation.ResponderAPI;
     protected targetEndpoint = "responder";
 
-    constructor(client: AlApiClient = null) {
-        this.client = client || AlDefaultClient;
+    constructor() {
     }
 
     /**
@@ -73,7 +70,7 @@ export class AlResponderClientInstance {
      *
      * */
     async getPlaybookDefinitions(): Promise<AlResponderPlaybookDefinition[]>{
-        return this.client.get<AlResponderPlaybookDefinition[]>({
+        return AlDefaultClient.get<AlResponderPlaybookDefinition[]>({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -94,7 +91,7 @@ export class AlResponderClientInstance {
      *
      * */
     async getPlaybooks(accountId: string, parameters: AlPlaybookRequest = {}):Promise<AlResponderPlaybooks> {
-        return this.client.get<AlResponderPlaybooks>({
+        return AlDefaultClient.get<AlResponderPlaybooks>({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -130,7 +127,7 @@ export class AlResponderClientInstance {
                 ...staticParams,
                 ...marker ? { marker } : {}
             };
-            const result = await this.client.get<AlResponderPlaybooks>({
+            const result = await AlDefaultClient.get<AlResponderPlaybooks>({
                 version: this.serviceVersion,
                 service_stack: this.serviceStack,
                 target_endpoint: this.targetEndpoint,
@@ -160,7 +157,7 @@ export class AlResponderClientInstance {
      *
      * */
     async getPlaybookById(accountId: string, id: string): Promise<AlResponderPlaybook> {
-        return this.client.get<AlResponderPlaybook>({
+        return AlDefaultClient.get<AlResponderPlaybook>({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -182,7 +179,7 @@ export class AlResponderClientInstance {
      */
     async createPlaybook(accountId: string,
         payload: AlResponderPlaybook): Promise<AlResponderPlaybook> {
-        return this.client.post<AlResponderPlaybook>({
+        return AlDefaultClient.post<AlResponderPlaybook>({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -208,7 +205,7 @@ export class AlResponderClientInstance {
         id: string,
         payload: AlResponderPlaybook): Promise<AlResponderPlaybook> {
 
-        return this.client.put<AlResponderPlaybook>({
+        return AlDefaultClient.put<AlResponderPlaybook>({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -230,7 +227,7 @@ export class AlResponderClientInstance {
      * @remarks
      */
     async deletePlaybookById(accountId: string, id: string): Promise<void> {
-        return await this.client.delete({
+        return await AlDefaultClient.delete({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -253,7 +250,7 @@ export class AlResponderClientInstance {
      *
      * */
     async getPlaybookSummary(accountId: string): Promise<AlResponderPlaybookSummary> {
-        return this.client.get<AlResponderPlaybookSummary>({
+        return AlDefaultClient.get<AlResponderPlaybookSummary>({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -276,7 +273,7 @@ export class AlResponderClientInstance {
      *
      * */
     async getActions(accountId: string, params?: { payload_type: string }): Promise<AlResponderAction[]> {
-        return this.client.get<AlResponderAction[]>({
+        return AlDefaultClient.get<AlResponderAction[]>({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -302,7 +299,7 @@ export class AlResponderClientInstance {
      *
      * */
     async getActionByRef(accountId: string, actionRef: string, params?: { payload_type: string }): Promise<AlResponderAction> {
-        return this.client.get<AlResponderAction>({
+        return AlDefaultClient.get<AlResponderAction>({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -325,7 +322,7 @@ export class AlResponderClientInstance {
      *
      * */
     async getExecutions(accountId: string, params: AlResponderExecutionQueryParams): Promise<AlResponderExecutions> {
-        return this.client.get<AlResponderExecutions>({
+        return AlDefaultClient.get<AlResponderExecutions>({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -348,7 +345,7 @@ export class AlResponderClientInstance {
      */
     async createExecution(accountId: string,
         payload: AlResponderExecutionRequest): Promise<AlResponderExecutions> {
-        return this.client.post<AlResponderExecutions>({
+        return AlDefaultClient.post<AlResponderExecutions>({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -371,7 +368,7 @@ export class AlResponderClientInstance {
      *
      * */
     async getExecutionResult(accountId: string, executionId: string): Promise<AlResponderExecutionResult> {
-        return this.client.get<AlResponderExecutionResult>({
+        return AlDefaultClient.get<AlResponderExecutionResult>({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -393,7 +390,7 @@ export class AlResponderClientInstance {
      *
      * */
     async getExecutionsHistory(accountId: string, payload: AlResponderExecutionQueryParams): Promise<AlResponderExecutionsHistoryResult> {
-        return this.client.post<AlResponderExecutionsHistoryResult>({
+        return AlDefaultClient.post<AlResponderExecutionsHistoryResult>({
             data: payload,
             version: this.serviceVersion,
             service_stack: this.serviceStack,
@@ -417,7 +414,7 @@ export class AlResponderClientInstance {
      *
      * */
     async getExecutionsHistoryById(accountId: string, type: string, executionId:string ): Promise<AlResponderExecutionsHistory> {
-        return this.client.get<AlResponderExecutionsHistory>({
+        return AlDefaultClient.get<AlResponderExecutionsHistory>({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -443,7 +440,7 @@ export class AlResponderClientInstance {
         payload: {
             delay: number;
         }): Promise<AlResponderExecution> {
-        return this.client.post<AlResponderExecution>({
+        return AlDefaultClient.post<AlResponderExecution>({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -466,7 +463,7 @@ export class AlResponderClientInstance {
      */
     async pauseExecution(accountId: string,
         executionId: string): Promise<void> {
-        return this.client.post<void>({
+        return AlDefaultClient.post<void>({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -489,7 +486,7 @@ export class AlResponderClientInstance {
      */
     async resumeExecution(accountId: string,
         executionId: string): Promise<void> {
-        return this.client.post<void>({
+        return AlDefaultClient.post<void>({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -510,7 +507,7 @@ export class AlResponderClientInstance {
      * @remarks
      */
     async deleteExecutionById(accountId: string, id: string):Promise<void> {
-        return await this.client.delete({
+        return await AlDefaultClient.delete({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -538,7 +535,7 @@ export class AlResponderClientInstance {
             parameters?: {};
         },
     ): Promise<AlResponderInspectorError[]> {
-        return this.client.post<AlResponderInspectorError[]>({
+        return AlDefaultClient.post<AlResponderInspectorError[]>({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -561,7 +558,7 @@ export class AlResponderClientInstance {
      *
      * */
     async getSchema(accountId: string): Promise<AlResponderSchema[]> {
-        return this.client.get<AlResponderSchema[]>({
+        return AlDefaultClient.get<AlResponderSchema[]>({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -584,7 +581,7 @@ export class AlResponderClientInstance {
      *
      * */
     async getSchemaByType(accountId: string, dataType: string): Promise<AlResponderSchema> {
-        return this.client.get<AlResponderSchema>({
+        return AlDefaultClient.get<AlResponderSchema>({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -606,7 +603,7 @@ export class AlResponderClientInstance {
      *
      * */
     async getInquiries(accountId: string): Promise<AlResponderInquiries> {
-        return this.client.get<AlResponderInquiries>({
+        return AlDefaultClient.get<AlResponderInquiries>({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -628,7 +625,7 @@ export class AlResponderClientInstance {
      *
      * */
     async getInquiriesHistory(accountId: string, request: AlResponderExecutionQueryParams): Promise<AlResponderInquiries> {
-        return this.client.post<AlResponderInquiries>({
+        return AlDefaultClient.post<AlResponderInquiries>({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -652,7 +649,7 @@ export class AlResponderClientInstance {
      *
      * */
     async getInquiry(accountId: string, inquiryId: string): Promise<AlResponderInquiry> {
-        return this.client.get<AlResponderInquiry>({
+        return AlDefaultClient.get<AlResponderInquiry>({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -678,7 +675,7 @@ export class AlResponderClientInstance {
         inquiryId: string,
         payload: { [key: string]: unknown })
         : Promise<{ id: string; response: { [key: string]: unknown } }> {
-        return this.client.put<{ id: string; response: { [key: string]: unknown } }>({
+        return AlDefaultClient.put<{ id: string; response: { [key: string]: unknown } }>({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -701,7 +698,7 @@ export class AlResponderClientInstance {
      *
      * */
     async getSchedules(accountId: string): Promise<AlResponderSchedule[]> {
-        return this.client.get<AlResponderSchedule[]>({
+        return AlDefaultClient.get<AlResponderSchedule[]>({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -723,7 +720,7 @@ export class AlResponderClientInstance {
      */
     async createSchedule(accountId: string,
         payload: AlResponderSchedule): Promise<AlResponderSchedule> {
-        return this.client.post<AlResponderSchedule>({
+        return AlDefaultClient.post<AlResponderSchedule>({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -745,7 +742,7 @@ export class AlResponderClientInstance {
      * @remarks
      */
     async deleteScheduleById(accountId: string, id: string): Promise<void> {
-        return await this.client.delete({
+        return await AlDefaultClient.delete({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -769,7 +766,7 @@ export class AlResponderClientInstance {
     async updateSchedule(accountId: string,
         id: string,
         payload: AlResponderSchedule): Promise<AlResponderSchedule> {
-        return this.client.put<AlResponderSchedule>({
+        return AlDefaultClient.put<AlResponderSchedule>({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -793,7 +790,7 @@ export class AlResponderClientInstance {
      *
      * */
     async getScheduleById(accountId: string, id: string): Promise<AlResponderSchedule> {
-        return this.client.get<AlResponderSchedule>({
+        return AlDefaultClient.get<AlResponderSchedule>({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -814,7 +811,7 @@ export class AlResponderClientInstance {
      *
      * */
     async getSystemSamples(): Promise<AlResponderSamples> {
-        return this.client.get<AlResponderSamples>({
+        return AlDefaultClient.get<AlResponderSamples>({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -836,7 +833,7 @@ export class AlResponderClientInstance {
      *
      * */
     async getSamples(accountId: string): Promise<AlResponderSamples> {
-        return this.client.get<AlResponderSamples>({
+        return AlDefaultClient.get<AlResponderSamples>({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -860,7 +857,7 @@ export class AlResponderClientInstance {
      */
     async createPayloadSample(accountId: string,
         payload: AlResponderSample): Promise<AlResponderSample> {
-        return this.client.post<AlResponderSample>({
+        return AlDefaultClient.post<AlResponderSample>({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -882,7 +879,7 @@ export class AlResponderClientInstance {
      * @remarks
      */
     async deletePayloadSampleById(accountId: string, id: string): Promise<void> {
-        return await this.client.delete({
+        return await AlDefaultClient.delete({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -906,7 +903,7 @@ export class AlResponderClientInstance {
     async updatePayloadSample(accountId: string,
         id: string,
         payload: AlResponderSample): Promise<AlResponderSample> {
-        return this.client.put<AlResponderSample>({
+        return AlDefaultClient.put<AlResponderSample>({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -929,7 +926,7 @@ export class AlResponderClientInstance {
      *
      * */
     async getTriggers(accountId: string, params?: AlResponderTriggerQueryParams): Promise<AlResponderTriggers> {
-        return this.client.get<AlResponderTriggers>({
+        return AlDefaultClient.get<AlResponderTriggers>({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -953,7 +950,7 @@ export class AlResponderClientInstance {
      *
      * */
     async getTrigger(accountId: string, triggerId: string): Promise<AlResponderPlaybookTrigger> {
-        return this.client.get<AlResponderPlaybookTrigger>({
+        return AlDefaultClient.get<AlResponderPlaybookTrigger>({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -977,7 +974,7 @@ export class AlResponderClientInstance {
      *
      * */
     async updateTrigger(accountId: string, triggerId: string, trigger: AlResponderPlaybookTrigger): Promise<AlResponderPlaybookTrigger> {
-        return this.client.put<AlResponderPlaybookTrigger>({
+        return AlDefaultClient.put<AlResponderPlaybookTrigger>({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -1000,7 +997,7 @@ export class AlResponderClientInstance {
      *
      * */
     async deleteTrigger(accountId: string, triggerId: string): Promise<void> {
-        return this.client.delete({
+        return AlDefaultClient.delete({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -1023,7 +1020,7 @@ export class AlResponderClientInstance {
      *
      * */
     async createTrigger(accountId: string, trigger: AlResponderPlaybookTrigger): Promise<AlResponderPlaybookTrigger> {
-        return this.client.post<AlResponderPlaybookTrigger>({
+        return AlDefaultClient.post<AlResponderPlaybookTrigger>({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -1044,7 +1041,7 @@ export class AlResponderClientInstance {
      */
     async getTemplates(accountId: string,
         parameters: {include_parents?: boolean} = {}): Promise<{playbook_templates: AlPlaybookTemplate[]}> {
-        return this.client.get<{playbook_templates: AlPlaybookTemplate[]}>({
+        return AlDefaultClient.get<{playbook_templates: AlPlaybookTemplate[]}>({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -1067,7 +1064,7 @@ export class AlResponderClientInstance {
      * @remarks
      */
     async createTemplate(accountId: string, payload: AlPlaybookTemplate): Promise<AlPlaybookTemplate> {
-        return this.client.post<AlPlaybookTemplate>({
+        return AlDefaultClient.post<AlPlaybookTemplate>({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -1088,7 +1085,7 @@ export class AlResponderClientInstance {
      * @returns an existing playbook template
      * */
     async getTemplateById(accountId: string, id: string): Promise<AlPlaybookTemplate> {
-        return this.client.get<AlPlaybookTemplate>({
+        return AlDefaultClient.get<AlPlaybookTemplate>({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -1109,7 +1106,7 @@ export class AlResponderClientInstance {
      * @remarks
      */
     async deleteTemplateById(accountId: string, id: string): Promise<void> {
-        const result = await this.client.delete({
+        const result = await AlDefaultClient.delete({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -1134,7 +1131,7 @@ export class AlResponderClientInstance {
     async updateTemplate(accountId: string,
         id: string,
         payload: AlPlaybookTemplate): Promise<AlPlaybookTemplate> {
-        return this.client.put<AlPlaybookTemplate>({
+        return AlDefaultClient.put<AlPlaybookTemplate>({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -1155,7 +1152,7 @@ export class AlResponderClientInstance {
     *
     */
     async getPlaybookRoles(accountId: string): Promise<AlResponderRoles> {
-        return this.client.get<AlResponderRoles>({
+        return AlDefaultClient.get<AlResponderRoles>({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -1175,7 +1172,7 @@ export class AlResponderClientInstance {
     *
     */
     async getTriggerRoles(accountId: string): Promise<AlResponderRoles> {
-        return this.client.get<AlResponderRoles>({
+        return AlDefaultClient.get<AlResponderRoles>({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -1195,7 +1192,7 @@ export class AlResponderClientInstance {
     *
     */
     async getIncidentBifrostFormat(accountId: string, incidentId: string): Promise<any> {
-        return this.client.get({
+        return AlDefaultClient.get({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -1213,7 +1210,7 @@ export class AlResponderClientInstance {
      * @return {Promise<AlResponderMRList>}
      */
     async getMRConfigList(accountId: string, parameters: {[key: string]: string | boolean | number} = {}): Promise<AlResponderMRList> {
-        return this.client.get({
+        return AlDefaultClient.get({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -1230,7 +1227,7 @@ export class AlResponderClientInstance {
      * @returns {Promise<AlResponderMRGeneric>}
      */
     async getMRConfigItemById(accountId: string, id: string): Promise<AlResponderMRGeneric> {
-        return this.client.get({
+        return AlDefaultClient.get({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -1252,7 +1249,7 @@ export class AlResponderClientInstance {
         accountId: string,
         payload: AlResponderMRAWSWAF | AlResponderMRAWSSNS | AlResponderMREventBridge | AlResponderMRStackstormAction | AlResponderMRPaloAltoBlock
     ): Promise<void> {
-        return this.client.post<void>({
+        return AlDefaultClient.post<void>({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -1277,7 +1274,7 @@ export class AlResponderClientInstance {
         id: string,
         payload: AlResponderMRAWSWAF | AlResponderMRAWSSNS | AlResponderMREventBridge | AlResponderMRStackstormAction | AlResponderMRPaloAltoBlock
     ): Promise<void> {
-        return this.client.put<void>({
+        return AlDefaultClient.put<void>({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -1297,7 +1294,7 @@ export class AlResponderClientInstance {
      * @returns
      */
     async deleteMRConfigItem(accountId: string, id: string): Promise<void> {
-        return this.client.delete<void>({
+        return AlDefaultClient.delete<void>({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -1315,7 +1312,7 @@ export class AlResponderClientInstance {
      * @returns {Promise<AlResponderMRDefinitions>}
      */
     async getMRConfigDefinitions(accountId: string): Promise<AlResponderMRDefinitions> {
-        return this.client.get({
+        return AlDefaultClient.get({
             version: this.serviceVersion,
             target_endpoint: this.targetEndpoint,
             service_stack: this.serviceStack,
@@ -1333,7 +1330,7 @@ export class AlResponderClientInstance {
      * @returns {Promise<Array<AlResponderMRDryRun>>}
      */
     async getMRDryRuns(accountId: string): Promise<Array<AlResponderMRDryRun>> {
-        return this.client.get({
+        return AlDefaultClient.get({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -1355,7 +1352,7 @@ export class AlResponderClientInstance {
         accountId: string,
         payload: AlResponderMRGeneric | AlResponderMRAWSWAF | AlResponderMRAWSSNS | AlResponderMREventBridge | AlResponderMRStackstormAction | AlResponderMRPaloAltoBlock
     ): Promise<{id: string}> {
-        return this.client.post<{id: string}>({
+        return AlDefaultClient.post<{id: string}>({
             version: this.serviceVersion,
             service_stack: this.serviceStack,
             target_endpoint: this.targetEndpoint,
@@ -1374,7 +1371,7 @@ export class AlResponderClientInstance {
      * @returns {Promise<AlResponderMRDryRun>}
      */
     async getMRDryRunById(accountId: string, id: string): Promise<AlResponderMRDryRun> {
-        return this.client.get({
+        return AlDefaultClient.get({
             version: this.serviceVersion,
             target_endpoint: this.targetEndpoint,
             service_stack: this.serviceStack,
@@ -1389,7 +1386,7 @@ export class AlResponderClientInstance {
      * /v1/{accoutId}/definitions/mr_devices
      */
     async getMRDevicesDefinitions(accountId: string): Promise<Array<AlResponderMRDeviceDefinitions>> {
-        return this.client.get({
+        return AlDefaultClient.get({
             version: this.serviceVersion,
             target_endpoint: this.targetEndpoint,
             service_stack: this.serviceStack,
@@ -1406,7 +1403,7 @@ export class AlResponderClientInstance {
      * @returns {Promise<AlResponderBlockHistoryList>}
      */
     async getBlockHistory(accountId: string, payload: AlResponderBlockHistoryPayload): Promise<AlResponderBlockHistoryList> {
-        return this.client.post({
+        return AlDefaultClient.post({
             version: this.serviceVersion,
             target_endpoint: this.targetEndpoint,
             service_stack: this.serviceStack,
@@ -1426,7 +1423,7 @@ export class AlResponderClientInstance {
      * @returns {Promise<AlResponderMRDefinitionDetail>}
      */
     async getMRConfigDefinitionDetail(accountId: string, type: string): Promise<AlResponderMRDefinitionDetail> {
-        return this.client.get({
+        return AlDefaultClient.get({
             version: this.serviceVersion,
             target_endpoint: this.targetEndpoint,
             service_stack: this.serviceStack,
@@ -1443,7 +1440,7 @@ export class AlResponderClientInstance {
      * @returns {Promise<string>}
      */
     async manageBlockStatus(accountId: string, payload: AlResponderManageBlockStatusRequest): Promise<string> {
-        return this.client.post({
+        return AlDefaultClient.post({
             version: this.serviceVersion,
             target_endpoint: this.targetEndpoint,
             service_stack: this.serviceStack,
@@ -1461,7 +1458,7 @@ export class AlResponderClientInstance {
      * @returns {Promise<unknown>}
      */
     async managedResponse(accountId: string, requestBody: AlManagedResponsePayload, params?: { dry_run: boolean }): Promise<unknown> {
-        return this.client.post({
+        return AlDefaultClient.post({
             version: this.serviceVersion,
             target_endpoint: this.targetEndpoint,
             service_stack: this.serviceStack,
@@ -1481,7 +1478,7 @@ export class AlResponderClientInstance {
      * @returns {Promise<AlResponderLimits>}
      */
     async getLimits(accountId: string): Promise<AlResponderLimits> {
-        return this.client.get({
+        return AlDefaultClient.get({
             version: this.serviceVersion,
             target_endpoint: this.targetEndpoint,
             service_stack: this.serviceStack,

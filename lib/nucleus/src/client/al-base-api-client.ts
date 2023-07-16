@@ -105,7 +105,7 @@ export class AlBaseAPIClient extends AlAbstractClient {
             } );
             return this.endpointCache;
         } catch ( e ) {
-            return this.fallbackResolveEndpoints( accountId, serviceList, AlBaseAPIClient.defaultResidency );
+            AlError.report( e, `Failed to resolve endpoints (default)` );
         }
     }
 
@@ -134,7 +134,7 @@ export class AlBaseAPIClient extends AlAbstractClient {
             } );
             return this.endpointCache;
         } catch( e ) {
-            return this.fallbackResolveEndpoints( accountId, serviceList, this.context.residency );
+            AlError.report( e, `Failed to resolve endpoints (residency-aware)` );
         }
     }
 
@@ -357,19 +357,25 @@ export class AlBaseAPIClient extends AlAbstractClient {
                 return baseURL;
             }
 
-            let serviceList = residencyAware ? AlBaseAPIClient.resolveByResidencyServiceList : AlBaseAPIClient.defaultServiceList;
-            if ( ! serviceList.includes(serviceEndpointId)) {
-                serviceList.push(serviceEndpointId);
-            }
-
-            if ( residencyAware ) {
-                await this.resolveResidencyAwareEndpoints( accountId, serviceList );
+            if ( this.context.getAIMSToken() ) {
+                //  Only try to use endpoints resolution if we're authenticated or have a provisional access token
+                let serviceList = residencyAware ? AlBaseAPIClient.resolveByResidencyServiceList : AlBaseAPIClient.defaultServiceList;
+                if ( ! serviceList.includes(serviceEndpointId)) {
+                    serviceList.push(serviceEndpointId);
+                }
+                if ( residencyAware ) {
+                    await this.resolveResidencyAwareEndpoints( accountId, serviceList );
+                } else {
+                    await this.resolveDefaultEndpoints( accountId, serviceList );
+                }
+                baseURL = getJsonPath<string>( this.endpointCache,
+                                                 [ environment, accountId, serviceEndpointId, residency ],
+                                                 null );
             } else {
-                await this.resolveDefaultEndpoints( accountId, serviceList );
+                //  Otherwise, for lack of a better plan, guess!
+                baseURL = this.context.resolveURL( AlLocation.InsightAPI );
+                console.log("Warning: using baked-in dictionary to resolve endpoint '%s'", serviceEndpointId );
             }
-            baseURL = getJsonPath<string>( this.endpointCache,
-                                             [ environment, accountId, serviceEndpointId, residency ],
-                                             null );
             if ( baseURL ) {
                 return baseURL;
             }
@@ -377,17 +383,6 @@ export class AlBaseAPIClient extends AlAbstractClient {
             return null;
         } );
         return result;
-    }
-
-    protected fallbackResolveEndpoints( accountId:string, serviceList:string[], residency:string ) {
-        console.warn(`Could not retrieve data for endpoints for [${serviceList.join(",")}]; using defaults for environment '${this.context.environment}'` );
-        let insightHost = this.context.resolveURL( AlLocation.InsightAPI );
-        serviceList.forEach( serviceName => {
-                setJsonPath( this.endpointCache,
-                             [ this.context.environment, accountId, serviceName, residency ],
-                             insightHost );
-            } );
-        return this.endpointCache;
     }
 
     /**

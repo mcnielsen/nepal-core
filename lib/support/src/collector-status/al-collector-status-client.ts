@@ -1,7 +1,7 @@
 /**
  * Collector status API client
  */
-import { AlApiClient, AlDefaultClient, AlLocation } from "@al/core";
+import { AlDefaultClient, AlLocation } from "@al/core";
 import {
     AlCollectorStatusHistoryResponse,
     AlCollectorStatusObject,
@@ -9,12 +9,10 @@ import {
 } from "./types";
 
 export class AlCollectorStatusClientInstance {
-    protected client: AlApiClient;
     protected serviceVersion = "v1";
     protected serviceName = "collectors_status";
 
-    constructor(client: AlApiClient = null) {
-        this.client = client || AlDefaultClient;
+    constructor() {
     }
 
     /**
@@ -28,7 +26,7 @@ export class AlCollectorStatusClientInstance {
         statusId: string,
         params?: AlCollectorStatusQueryParams
     ): Promise<Array<AlCollectorStatusObject>> {
-        return this.client.get<Array<AlCollectorStatusObject>>({
+        return AlDefaultClient.get<Array<AlCollectorStatusObject>>({
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -50,7 +48,7 @@ export class AlCollectorStatusClientInstance {
         statusId: string,
         params?: AlCollectorStatusQueryParams
     ): Promise<AlCollectorStatusHistoryResponse> {
-        return this.client.get<AlCollectorStatusHistoryResponse>({
+        return AlDefaultClient.get<AlCollectorStatusHistoryResponse>({
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: this.serviceVersion,
@@ -73,7 +71,7 @@ export class AlCollectorStatusClientInstance {
         stream: string,
         payload: AlCollectorStatusObject
     ): Promise<void> {
-        return this.client.get<void>({
+        return AlDefaultClient.get<void>({
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: this.serviceVersion,

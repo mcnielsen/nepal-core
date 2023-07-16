@@ -3,7 +3,6 @@
  * https://console.account.product.dev.alertlogic.com/users/api/vulnerabilities/index.html
  */
 import {
-    AlApiClient,
     AlDefaultClient,
 } from '@al/core';
 
@@ -12,18 +11,18 @@ import { Remediation, Vulnerability } from './types';
 export class AlVulnerabilitiesClientInstance {
 
     /* istanbul ignore next */
-    constructor(public client: AlApiClient = AlDefaultClient) {
+    constructor() {
     }
 
     async getRemediation(remediationId: string): Promise<Remediation> {
-        return this.client.get<Remediation>({
+        return AlDefaultClient.get<Remediation>({
             service_name: 'remediation',
             path: `/${remediationId}`,
         });
     }
 
     async getVulnerability(vulnerabilityId: string): Promise<Vulnerability> {
-        return this.client.get<Vulnerability>({
+        return AlDefaultClient.get<Vulnerability>({
             service_name: 'vulnerability',
             path: `/${vulnerabilityId}`,
         });

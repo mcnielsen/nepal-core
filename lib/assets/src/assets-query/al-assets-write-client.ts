@@ -1,5 +1,4 @@
 import {
-    AlApiClient,
     AlDefaultClient,
     AlLocation
 } from '@al/core';
@@ -19,7 +18,7 @@ export class AlAssetsWriteClientInstance {
 
 
     /* istanbul ignore next */
-    constructor(public client: AlApiClient = AlDefaultClient) {
+    constructor() {
     }
 
     /**
@@ -28,7 +27,7 @@ export class AlAssetsWriteClientInstance {
     async createNetwork(accountId: string,
         deploymentId: string,
         data: AssetWriteNetworkRequestBody): Promise<{ key: string }> {
-        return this.client.put({
+        return AlDefaultClient.put({
             data,
             service_stack: AlLocation.InsightAPI,
             version: this.serviceVersion,
@@ -47,7 +46,7 @@ export class AlAssetsWriteClientInstance {
     async declareModifyAsset(accountId: string,
                              deploymentId: string,
                              data: AssetWriteDeclareAssetRequestBody | AssetWriteDeletePropertiesRequestBody ): Promise<AssetWriteDeclareAssetResponse> {
-        return this.client.put({
+        return AlDefaultClient.put({
             data,
             service_stack: AlLocation.InsightAPI,
             version: this.serviceVersion,

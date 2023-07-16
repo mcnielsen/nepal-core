@@ -1,7 +1,7 @@
 /*
 * Module to deal with available Kalm Public API endpoints
 */
-import { AlApiClient, AlDefaultClient, AlLocation, AlValidationSchemaProvider } from '@al/core';
+import { AlDefaultClient, AlLocation, AlValidationSchemaProvider } from '@al/core';
 import { StandardKalmResponse, StorageDescriptor } from './types';
 import { kalmTypeSchematics } from './schemas/kalm.schematics';
 
@@ -17,13 +17,13 @@ export class AlKalmClientInstance {
   private version = 'v1';
 
   /* istanbul ignore next */
-  constructor(public client: AlApiClient = AlDefaultClient) {
+  constructor() {
   }
   /*
   *
   */
   async listCatalogTables(): Promise<StorageDescriptor[]> {
-    return this.client.get<StorageDescriptor[]>({
+    return AlDefaultClient.get<StorageDescriptor[]>({
       service_stack: AlLocation.InsightAPI,
       service_name: this.serviceName,
       version: this.version,
@@ -35,7 +35,7 @@ export class AlKalmClientInstance {
   *
   */
   async getCatalogTable(table: string): Promise<StorageDescriptor> {
-    return this.client.get<StorageDescriptor>({
+    return AlDefaultClient.get<StorageDescriptor>({
       service_stack: AlLocation.InsightAPI,
       service_name: this.serviceName,
       version: this.version,
@@ -47,7 +47,7 @@ export class AlKalmClientInstance {
    *
    */
   async startSimpleQuery(accountId: string, namedQuery: string, queryParams: SimpleQueryAdditionalParams = {}): Promise<StandardKalmResponse> {
-    return this.client.get({
+    return AlDefaultClient.get({
       service_stack: AlLocation.InsightAPI,
       service_name: this.serviceName,
       version: this.version,
@@ -70,7 +70,7 @@ export class AlKalmClientInstance {
    * @returns
    */
   async queryStream(accountId: string, namedQuery: string, queryParams: SimpleQueryAdditionalParams = {}): Promise<StandardKalmResponse> {
-    return this.client.get({
+    return AlDefaultClient.get({
       responseType: 'arraybuffer',
       service_stack: AlLocation.InsightAPI,
       service_name: this.serviceName,
@@ -90,7 +90,7 @@ export class AlKalmClientInstance {
    * @returns
    */
   async queryStreamCsv(accountId: string, namedQuery: string, queryParams: SimpleQueryAdditionalParams = {}): Promise<StandardKalmResponse> {
-    return this.client.get({
+    return AlDefaultClient.get({
       responseType: 'arraybuffer',
       service_stack: AlLocation.InsightAPI,
       service_name: this.serviceName,
@@ -101,26 +101,12 @@ export class AlKalmClientInstance {
     });
   }
 
-  /*
-  public hasSchema(schemaId: string): boolean {
-    return schemaId in kalmTypeSchematics;
-  }
-
-  public async getSchema(schemaId: string): Promise<unknown> {
-    return kalmTypeSchematics[schemaId];
-  }
-
-  public getProviders(): AlApiClient[] {
-    return [];
-  }
-  */
-
   /**
    * /kalm/v1/{account_id}/query/tic_mitre_classification
    * @returns mitre classification
    */
   public getMitreClassification(accountId: string): Promise<StandardKalmResponse> {
-    return this.client.get({
+    return AlDefaultClient.get({
       service_stack: AlLocation.InsightAPI,
       service_name: this.serviceName,
       version: this.version,
@@ -133,7 +119,7 @@ export class AlKalmClientInstance {
    * @returns blocked attacks
    */
   public getBlockedAttacks(accountId: string, queryParams: SimpleQueryAdditionalParams): Promise<StandardKalmResponse> {
-    return this.client.get({
+    return AlDefaultClient.get({
       service_stack: AlLocation.InsightAPI,
       service_name: this.serviceName,
       version: this.version,
@@ -147,7 +133,7 @@ export class AlKalmClientInstance {
    * @returns violations by type
    */
   public getViolationsByType(accountId: string, queryParams: SimpleQueryAdditionalParams): Promise<StandardKalmResponse> {
-    return this.client.get({
+    return AlDefaultClient.get({
       service_stack: AlLocation.InsightAPI,
       service_name: this.serviceName,
       version: this.version,
@@ -161,7 +147,7 @@ export class AlKalmClientInstance {
    * @returns blocked attacks
    */
   public getViolationsByAttackClass(accountId: string, queryParams: SimpleQueryAdditionalParams): Promise<StandardKalmResponse> {
-    return this.client.get({
+    return AlDefaultClient.get({
       service_stack: AlLocation.InsightAPI,
       service_name: this.serviceName,
       version: this.version,
@@ -175,7 +161,7 @@ export class AlKalmClientInstance {
    * @returns violations by destination
    */
   public getViolationsByDestination(accountId: string, queryParams: SimpleQueryAdditionalParams): Promise<StandardKalmResponse> {
-    return this.client.get({
+    return AlDefaultClient.get({
       service_stack: AlLocation.InsightAPI,
       service_name: this.serviceName,
       version: this.version,

@@ -46,8 +46,10 @@ export class AlError extends Error
      * Reports an error to an external error reporting service.
      */
     public static report( error:AlNetworkResponse|AlError|Error|string|any, commentary?:string, ...details:any[] ) {
-        let normalized = AlError.normalize( error, commentary );
-        //  boop boop
+        let normalized = AlError.normalize( error, commentary, ...details );
+        if ( this.upstream ) {
+            this.upstream( normalized );
+        }
     }
 
     /**

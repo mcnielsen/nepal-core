@@ -1,5 +1,4 @@
 import {
-    AlApiClient,
     AlDefaultClient,
     AlLocation
 } from '@al/core';
@@ -12,18 +11,16 @@ import {
 } from './types';
 
 export class AlAssetsManagerClientInstance {
-    client: AlApiClient;
     private readonly serviceName: string = 'assets_manager';
     private readonly version: string = 'v1';
 
-    constructor(client?: AlApiClient) {
-        this.client = client || AlDefaultClient;
+    constructor() {
     }
 
     async getReportSummary(accountId: string,
                             deploymentId: string,
                             qParams: AlAssetsManagerReportSummaryQueryParams): Promise<AlAssetsManagerReportSummary> {
-        return this.client.get<AlAssetsManagerReportSummary>({
+        return AlDefaultClient.get<AlAssetsManagerReportSummary>({
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: this.version,
@@ -40,7 +37,7 @@ export class AlAssetsManagerClientInstance {
                         deploymentId: string,
                         data: AlAssetManagerNetwork,
                         queryParams?: {force_large_network? : boolean }): Promise<AlAssetManagerNetwork> {
-        return this.client.post<AlAssetManagerNetwork>({
+        return AlDefaultClient.post<AlAssetManagerNetwork>({
             data,
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
@@ -56,7 +53,7 @@ export class AlAssetsManagerClientInstance {
      */
     async modifyNetwork(accountId: string, deploymentId: string,
             networkUuid: string, data: AlAssetManagerNetwork, queryParams?: {force_large_network? : boolean } ): Promise<AlAssetManagerNetwork> {
-        return this.client.put<AlAssetManagerNetwork>({
+        return AlDefaultClient.put<AlAssetManagerNetwork>({
             data,
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
@@ -71,7 +68,7 @@ export class AlAssetsManagerClientInstance {
      *  @remarks https://console.product.dev.alertlogic.com/api/assets_manager/#api-Management-DeleteNetwork
      */
     async deleteNetwork(accountId: string, deploymentId: string, networkUuid: string): Promise<void> {
-        return this.client.delete({
+        return AlDefaultClient.delete({
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: this.version,
@@ -85,7 +82,7 @@ export class AlAssetsManagerClientInstance {
      */
     async createSubnet(accountId: string, deploymentId: string, networkUuid: string,
                       data: AlAssetsManagerSubnet): Promise<AlAssetsManagerSubnet> {
-        return this.client.post<AlAssetsManagerSubnet>({
+        return AlDefaultClient.post<AlAssetsManagerSubnet>({
             data,
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
@@ -101,7 +98,7 @@ export class AlAssetsManagerClientInstance {
     async modifySubnet(accountId: string, deploymentId: string,
                       networkUuid: string, subnetUuid: string,
                       data: AlAssetsManagerSubnet): Promise<AlAssetsManagerSubnet> {
-        return this.client.put<AlAssetsManagerSubnet>({
+        return AlDefaultClient.put<AlAssetsManagerSubnet>({
             data,
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
@@ -116,7 +113,7 @@ export class AlAssetsManagerClientInstance {
      */
     async deleteSubnet(accountId: string, deploymentId: string,
                       networkUuid: string, subnetUuid: string): Promise<void> {
-        return this.client.delete({
+        return AlDefaultClient.delete({
             service_stack: AlLocation.InsightAPI,
             service_name: this.serviceName,
             version: this.version,
