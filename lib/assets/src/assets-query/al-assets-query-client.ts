@@ -225,7 +225,7 @@ export class AlAssetsQueryClientInstance {
    * /assets_query/v1/:account_id/deployments/:deployment_id/assets
    * "https://api.cloudinsight.alertlogic.com/assets_query/v1/01000001/deployments/1C0EFEC8-7DBE-480D-A025-ECC13DE30AD5/assets"
    */
-  async getDeploymentAssets(accountId: string, deploymentId: string, queryParams?: AssetsQueryParams): Promise<AssetQueryGeneralResponse> {
+  async getDeploymentAssets(accountId: string, deploymentId: string, queryParams?: AssetsQueryParams, clearCache: boolean = false): Promise<AssetQueryGeneralResponse> {
     return AlDefaultClient.get<AssetQueryGeneralResponse>({
       service_stack: AlLocation.InsightAPI,
       version: 'v1',
@@ -233,6 +233,7 @@ export class AlAssetsQueryClientInstance {
       service_name: 'assets_query',
       path: `/deployments/${deploymentId}/assets`,
       params: queryParams,
+      headers: clearCache ? { 'Cache-Control': 'max-age=0' } : {},
     });
   }
 
