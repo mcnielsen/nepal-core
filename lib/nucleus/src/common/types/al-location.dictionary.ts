@@ -18,7 +18,6 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
         locTypeId: AlLocation.GlobalAPI,
         locationId: 'insight-global',
         productType: 'insight',
-        aspect: 'api',
         uri: 'https://api.global.alertlogic.com',
         environment: 'production|production-staging'
     },
@@ -26,7 +25,6 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
         locTypeId: AlLocation.GlobalAPI,
         locationId: 'insight-global',
         productType: 'insight',
-        aspect: 'api',
         uri: 'https://api.global-integration.product.dev.alertlogic.com',
         environment: 'integration|development'
     },
@@ -37,7 +35,6 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
     {
         locTypeId: AlLocation.InsightAPI,
         productType: 'insight',
-        aspect: 'api',
         uri: 'https://api.cloudinsight.alertlogic.com',
         environment: 'production|production-staging',
         residency: 'US'
@@ -45,7 +42,6 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
     {
         locTypeId: AlLocation.InsightAPI,
         productType: 'insight',
-        aspect: 'api',
         uri: 'https://api.cloudinsight.alertlogic.co.uk',
         environment: 'production|production-staging',
         residency: 'EMEA'
@@ -53,7 +49,6 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
     {
         locTypeId: AlLocation.InsightAPI,
         productType: 'insight',
-        aspect: 'api',
         uri: 'https://api.product.dev.alertlogic.com',
         environment: 'integration|development',
         residency: 'US'
@@ -87,7 +82,6 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
         locTypeId: AlLocation.LegacyUI,
         locationId: 'defender-us-denver',
         productType: 'defender',
-        aspect: 'ui',
         uri: 'https://console.clouddefender.alertlogic.com',
         environment: 'production|production-staging',
         residency: 'US',
@@ -102,7 +96,6 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
         locTypeId: AlLocation.LegacyUI,
         locationId: 'defender-uk-newport',
         productType: 'defender',
-        aspect: 'ui',
         uri: 'https://console.alertlogic.co.uk',
         environment: 'production|production-staging',
         residency: 'EMEA',
@@ -117,7 +110,6 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
         locTypeId: AlLocation.LegacyUI,
         locationId: 'defender-us-ashburn',
         productType: 'defender',
-        aspect: 'ui',
         uri: 'https://console.alertlogic.net',
         environment: 'production|production-staging',
         residency: 'US',
@@ -132,7 +124,6 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
         locTypeId: AlLocation.LegacyUI,
         locationId: 'defender-us-ashburn',
         productType: 'defender',
-        aspect: 'ui',
         uri: 'https://cd-integration-console.alertlogic.net',
         environment: 'integration|development',
         residency: 'US',
@@ -513,14 +504,12 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
     {
         locTypeId: AlLocation.AETunerAPI,
         uri: 'https://aetuner.mdr.global.alertlogic.com',
-        aspect: 'api',
         environment: 'production|production-staging',
         keyword: 'aetuner'
     },
     {
         locTypeId: AlLocation.AETunerAPI,
         uri: 'https://aetuner.mdr.product.dev.alertlogic.com',
-        aspect: 'api',
         environment: 'development|integration',
         keyword: 'aetuner'
     },
@@ -530,13 +519,11 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
      */
     {
         locTypeId: AlLocation.IntegrationsAPI,
-        aspect: 'api',
         uri: 'https://connectors.mdr.global.alertlogic.com',
         environment: 'production|production-staging'
     },
     {
         locTypeId: AlLocation.IntegrationsAPI,
-        aspect: 'api',
         uri: 'https://connectors.mdr.product.dev.alertlogic.com',
         environment: 'integration|development'
     },
@@ -546,25 +533,21 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
      */
     {
         locTypeId: AlLocation.ResponderAPI,
-        aspect: 'api',
         uri: 'https://responder.mdr.global.alertlogic.com',
         environment: 'production|production-staging'
     },
     {
         locTypeId: AlLocation.ResponderAPI,
-        aspect: 'api',
         uri: 'https://responder.mdr.product.dev.alertlogic.com',
         environment: 'integration|development'
     },
     {
         locTypeId: AlLocation.ResponderWS,
-        aspect: 'api',
         uri: 'wss://responder-async.mdr.global.alertlogic.com',
         environment: 'production|production-staging'
     },
     {
         locTypeId: AlLocation.ResponderWS,
-        aspect: 'api',
         uri: 'wss://responder-async.mdr.product.dev.alertlogic.com',
         environment: 'integration|development'
     },
@@ -574,7 +557,6 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
      */
     {
         locTypeId: AlLocation.DistributorAPI,
-        aspect: 'api',
         uri: 'https://distributor.mdr.global.alertlogic.com',
         environment: 'production|production-staging'
     },
@@ -584,7 +566,6 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
      */
     {
         locTypeId: AlLocation.DistributorAPI,
-        aspect: 'api',
         uri: 'https://distributor.mdr.product.dev.alertlogic.com',
         environment: 'integration|development'
     },
@@ -594,7 +575,6 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
      */
     {
         locTypeId: AlLocation.YARDAPI,
-        aspect: 'api',
         locationId: 'defender-us-denver',
         uri: 'https://yard.alertlogic.com',
         environment: 'production|production-staging',
@@ -602,7 +582,6 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
     },
     {
         locTypeId: AlLocation.YARDAPI,
-        aspect: 'api',
         locationId: 'defender-us-ashburn',
         uri: 'https://yard.alertlogic.net',
         environment: 'production|production-staging',
@@ -610,7 +589,6 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
     },
     {
         locTypeId: AlLocation.YARDAPI,
-        aspect: 'api',
         locationId: 'defender-uk-newport',
         uri: 'https://yard.alertlogic.co.uk',
         environment: 'production|production-staging',
@@ -618,10 +596,24 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
     },
     {
         locTypeId: AlLocation.YARDAPI,
-        aspect: 'api',
         uri: 'https://yard.dsaops.alertlogic.net',
         environment: 'integration|development',
         residency: "US"
+    },
+
+    /**
+     * Fortra Platform Base URL
+     */
+    {
+        locTypeId: AlLocation.FortraPlatform,
+        uri: 'https://foundation.foundation-stage.cloudops.fortradev.com',
+        environment: 'integration|development|production-staging|production',
+    },
+
+    {
+        locTypeId: AlLocation.FrontlineVM,
+        uri: 'https://lmgtfy.app/?q=patience+grasshopper+gif',
+        environment: 'integration|development|production-staging|production',
     },
 ];
 

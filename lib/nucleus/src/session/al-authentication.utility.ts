@@ -6,6 +6,7 @@ import {
     AIMSAuthenticationTokenInfo,
     AlClient,
     AlNetworkResponse,
+    FortraSession,
     getJsonPath,
     isResponse,
 } from '../common';
@@ -122,6 +123,37 @@ export class AlAuthenticationUtility extends AlBaseAPIClient {
     }
 
     /**
+     * Authenticate against AIMS using a fortra IdP-provided access token.
+     */
+    public async authenticateFromFortraSession( fortraSession:FortraSession ):Promise<AlAuthenticationResult> {
+        let useGestalt = this.context.getOption( ConfigOption.GestaltAuthenticate, false );
+        if ( useGestalt ) {
+            try {
+                let session = await this.authenticateViaGestaltFromFortra( fortraSession );
+                return await this.finalizeSession( session );
+            } catch( e ) {
+                if ( this.handleAuthenticationFailure( e ) ) {
+                    return this.state.result;
+                }
+                throw e;
+            }
+        }
+
+        try {
+            let session = await this.authenticateViaAIMSFromFortra( fortraSession );
+            return await this.finalizeSession( session );
+        } catch( e ) {
+            if ( this.handleAuthenticationFailure( e ) ) {
+                return this.state.result;
+            }
+        }
+
+        this.state.result = AlAuthenticationResult.InvalidCredentials;
+
+        return this.state.result;
+    }
+
+    /**
      * Performs authentication using a session token (which must be separately populated into `this.state.sessionToken`) and
      * an MFA verification code.
      */
@@ -180,14 +212,11 @@ export class AlAuthenticationUtility extends AlBaseAPIClient {
     public async authenticateWithAccessToken( accessToken:string ):Promise<AlAuthenticationResult> {
         try {
             let tokenInfo = await this.getTokenInfo( accessToken );
-            console.log("Got token information; setting authentication" );
             tokenInfo.token = accessToken; // Annoyingly, AIMS does not include the `token` property in its response to this call, making the descriptor somewhat irregular
             let session:AIMSSessionDescriptor = { authentication: tokenInfo };
             await this.context.session.setAuthentication( session );
-            console.log("Successfully authenticated with access token" );
             return this.state.result;
         } catch( e ) {
-            console.log("Ack!", e );
             AlError.log( e, "Failed to authenticate via token" );
             return this.state.result;
         }
@@ -351,7 +380,9 @@ export class AlAuthenticationUtility extends AlBaseAPIClient {
     }
 
     /**
-     * Use HTTP Basic Auth
+     * Normal Authentication - username and password (or key/secret key)
+     *
+     * Uses HTTP Basic Auth
      * Optionally supply an mfa code if the user account is enrolled for Multi-Factor Authentication
      *
      * There are two variants of this method: one which executes directly against AIMS, and the other which
@@ -379,6 +410,35 @@ export class AlAuthenticationUtility extends AlBaseAPIClient {
             },
             data: { authorization: `Basic ${this.context.base64Encode(`${user}:${pass}`)}` },
         } );
+    }
+
+    /**
+     * Fortra-Derived Authentication - use a fortra identity to authenticate against AIMS
+     */
+
+    protected async authenticateViaAIMSFromFortra( fortraSession:FortraSession ):Promise<AIMSSessionDescriptor> {
+        let outcome = await this.post( {
+            endpoint: {
+                configuration: "aims",
+                path: "authenticate"
+            },
+            headers: { Authorization: `Bearer ${fortraSession.accessToken}` },
+            aimsAuthHeader: false
+        } ) as AIMSSessionDescriptor;
+        outcome.fortraSession = fortraSession;
+        return outcome;
+    }
+
+    protected async authenticateViaGestaltFromFortra( fortraSession:FortraSession ):Promise<AIMSSessionDescriptor> {
+        let outcome = await this.post( {
+            endpoint: {
+                configuration: "gestalt",
+                path: "authenticate",
+            },
+            data: { authorization: `Bearer ${fortraSession.accessToken}` },
+        } ) as AIMSSessionDescriptor;
+        outcome.fortraSession = fortraSession;
+        return outcome;
     }
 
     /**

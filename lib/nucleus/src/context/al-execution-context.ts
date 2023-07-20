@@ -184,14 +184,11 @@ export abstract class AlExecutionContext
 
     public getAIMSToken():string|undefined {
         if ( this.sessionInstance && this.sessionInstance.isActive() ) {
-            console.log("Returning token from active session!", this.sessionInstance );
             return this.sessionInstance.getToken();
         }
         if ( this.provisionalToken ) {
-            console.log("Returning provisional token!" );
             return this.provisionalToken;
         }
-        console.log("No AIMS token available!" );
         return undefined;
     }
 

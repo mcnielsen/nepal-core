@@ -132,9 +132,15 @@ export class AlSessionInstance
         }
 
         // Now that the content of the authentication session descriptor has been validated, let's make it effective
+        if ( this._session && this._session.authentication.token !== proposal.authentication.token ) {
+            this.deactivateSession();
+        }
         if ( this._session ) {
             deepMerge( this._session.authentication.user, proposal.authentication.user );
             deepMerge( this._session.authentication.account, proposal.authentication.account );
+            if ( proposal.fortraSession ) {
+                this._session.fortraSession = proposal.fortraSession;
+            }
         } else {
             this._session = proposal;
         }
@@ -573,7 +579,6 @@ export class AlSessionInstance
                                          options:AuthenticationOptions ) {
       if ( options.actingAccount ) {
         if ( typeof( options.actingAccount ) === 'string' ) {
-          console.log("Getting account details in mergeSessionOptions" );
           session.acting = await ( this.context.client(AIMS) ).getAccountDetails( options.actingAccount );
         } else {
           session.acting = options.actingAccount;
