@@ -86,6 +86,8 @@ export class AlLocation
     public static Auth0             = "auth0";
     public static GoogleTagManager  = "gtm";
     public static DatadogRum        = "datadogrum";
+    public static FortraPlatform    = "fortra:platform";
+    public static FrontlineVM       = "frontline:vm";
 
     /**
      * Generates location type definitions for residency-specific prod, integration, and dev versions of a UI
@@ -166,13 +168,12 @@ export interface AlLocationDescriptor
     aliases?:string[];              //  A list of
 
     productType?:string;            //  'defender' or 'insight' (others perhaps in the future?)
-    aspect?:string;                 //  'ui' or 'api'
+    keyword?: string;
+    weight?: number;
 
     uiCaption?:string;
     uiEntryPoint?:{locTypeId:string, path?:string};
     data?:any;                      //  Miscellaneous associated data
-    weight?:number;                 //  Relative weight for resolution by URI.  In general, the more significant a node is the lower its weight should be.
-    keyword?:string;                //
     magmaRedirectPath?: string;
 }
 

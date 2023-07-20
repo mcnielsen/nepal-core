@@ -37,11 +37,18 @@ export interface AIMSAccount {
     modified: AlChangeStamp;
 }
 
+export interface FortraSession {
+    identityToken:string;
+    accessToken:string;
+    refreshToken?:string;
+}
+
 export interface AIMSSessionDescriptor {
     authentication: AIMSAuthentication;
     acting?: AIMSAccount;
     boundLocationId?: string;
     profileId?:string;
+    fortraSession?:FortraSession; /* for AIMS sessions created from fortra SSO sessions */
 }
 
 export interface AIMSAuthenticationTokenInfo extends AIMSAuthentication {
