@@ -228,9 +228,6 @@ type UriMappingItem =
  */
 export class AlLocatorMatrix implements AlLocationContext
 {
-    public static totalTime = 0;
-    public static totalSeeks = 0;
-
     public environment:string               = "production";
     public residency:string                 = "US";
     public locationId?:string;
@@ -246,14 +243,13 @@ export class AlLocatorMatrix implements AlLocationContext
     constructor( nodes:AlLocationDescriptor[] = [], 
                  actingUri:string|boolean = true,
                  initialContext?:AlLocationContext ) {
-        if ( initialContext ) {
-            this.setContext( initialContext );
-        }
         if ( nodes && nodes.length ) {
             this.setLocations( nodes );
         }
         if ( typeof( actingUri ) === 'boolean' || actingUri ) {
-            this.setActingUrl( actingUri );
+            this.setActingUrl( actingUri, initialContext );
+        } else if ( initialContext ) {
+            this.setContext( initialContext );
         }
     }
 
@@ -265,12 +261,10 @@ export class AlLocatorMatrix implements AlLocationContext
         this.residency = "US";
         this.locationId = undefined;
         this.accessibleLocationIds = undefined;
-        AlLocatorMatrix.totalTime = 0;
-        AlLocatorMatrix.totalSeeks = 0;
     }
 
-    public target( context:AlLocationContext, debug?:boolean ) {
-        this.setContext( context, debug );
+    public target( context:AlLocationContext ) {
+        this.setContext( context );
     }
 
     /**
@@ -307,7 +301,6 @@ export class AlLocatorMatrix implements AlLocationContext
      *  Resolves a literal URI to a service node.
      */
     public getNodeByURI( targetURI:string ):AlLocationDescriptor|undefined {
-        let start = this.timestamp(0);
         let result:AlLocationDescriptor|undefined = undefined;
         Object.entries( this.uriMap ).find( ( [ keyword, candidates ] ) => {
             if ( targetURI.includes( keyword ) ) {
@@ -335,10 +328,6 @@ export class AlLocatorMatrix implements AlLocationContext
             }
             return false;
         } );
-
-        let duration = this.timestamp( 1000 ) - start;
-        AlLocatorMatrix.totalTime += duration;
-        AlLocatorMatrix.totalSeeks++;
 
         return result;
     }
@@ -429,10 +418,10 @@ export class AlLocatorMatrix implements AlLocationContext
                 }
             } );
         } );
-        this.setActingUrl( true, true );
+        this.setActingUrl( true );
     }
 
-    public setActingUrl( actingUri:string|boolean|undefined, forceRefresh:boolean = false, debug?:boolean ) {
+    public setActingUrl( actingUri:string|boolean|undefined, additionalContext?:AlLocationContext ) {
         if ( actingUri === undefined ) {
             this.actingUri = undefined;
             this.actor = undefined;
@@ -452,26 +441,30 @@ export class AlLocatorMatrix implements AlLocationContext
          *  and updating the ambient context to match its environment and data residency attributes.  It is
          *  opaque for a reason :)
          */
-        if ( typeof( actingUri ) === 'string' && actingUri !== this.actingUri || forceRefresh ) {
+        if ( typeof( actingUri ) === 'string' && actingUri !== this.actingUri ) {
             this.actingUri = actingUri;
             this.actor = this.getNodeByURI( actingUri );
+            let context:AlLocationContext = {};
             if ( this.actor ) {
-                const environment   = this.actor.environment || this.environment;
-                const residency     = this.actor.residency || this.residency;
-                this.setContext( { environment, residency }, debug );
-            } else {
-                if ( actingUri ) {
-                    let environment = "production";
-                    if ( actingUri.startsWith("http://localhost" ) ) {
-                        environment = "development";
-                    } else if ( actingUri.includes("product.dev.alertlogic.com") ) {
-                        environment = "integration";
-                    }
-                    this.setContext( { environment, residency: "US" }, debug );
-                } else {
-                    throw new Error(`Setting context by URL '${actingUri}' failed` );
+                context.environment = this.actor.environment || additionalContext?.environment || this.environment;
+                context.residency = this.actor.residency || additionalContext?.residency || this.residency;
+                context.locationId = this.actor.locationId || additionalContext?.locationId || this.locationId,
+                context.accessibleLocationIds = additionalContext?.accessibleLocationIds || this.accessibleLocationIds;
+            } else if ( actingUri ) {
+                context.environment = "production";
+                context.residency   = "US";
+                if ( actingUri.startsWith("http://localhost" ) ) {
+                    context.environment = "development";
+                } else if ( actingUri.includes("product.dev.alertlogic.com") ) {
+                    context.environment = "integration";
                 }
+                if ( actingUri.includes(".co.uk") ) {
+                    context.residency = "EMEA";
+                }
+            } else {
+                throw new Error(`Setting context by URL '${actingUri}' failed` );
             }
+            this.setContext( context );
         }
     }
 
@@ -577,12 +570,13 @@ export class AlLocatorMatrix implements AlLocationContext
      *  Sets the acting context (preferred environment, data residency, location attributes).
      *  This acts as a merge against existing context, so the caller can provide only fragmentary information without borking things.
      */
-    protected setContext( context:AlLocationContext, debug?:boolean ) {
+    protected setContext( context:AlLocationContext, debug?:string|boolean ) {
+        let notes:string[] = [];
         this.nodeCache = {};    //  flush lookup cache
         this.environment = context && context.environment ? context.environment : this.environment;
         this.residency = context && context.residency ? context.residency : this.residency;
-        this.locationId = context.locationId ?? this.locationId;
-        this.accessibleLocationIds = context.accessibleLocationIds ?? this.accessibleLocationIds;
+        this.locationId = context && context.locationId ? context.locationId : this.locationId;
+        this.accessibleLocationIds = context && context.accessibleLocationIds ? context.accessibleLocationIds : this.accessibleLocationIds;
 
         /**
          * Dark Grey Magicks!  The following code attempts to ensure three things: first, that residency properly reflects locationId;
@@ -598,10 +592,13 @@ export class AlLocatorMatrix implements AlLocationContext
             }
             this.locationId = first.locationId;
             if ( debug ) {
-                console.log("Guessed location %s from environment and residency", this.locationId  );
+                notes.push(`Used first locationId: ${this.locationId}` );
             }
         } else if ( this.accessibleLocationIds && ! this.accessibleLocationIds.includes( this.locationId ) ) {
             this.locationId = this.accessibleLocationIds[0];
+            if ( debug ) {
+                notes.push(`accessibility limited to ${this.locationId} `);
+            }
         }
 
         if ( this.locationId in AlInsightLocations ) {
@@ -613,8 +610,17 @@ export class AlLocatorMatrix implements AlLocationContext
                 }
                 this.residency = AlInsightLocations[correctedLocationId].residency;
                 this.locationId = correctedLocationId;
+                if ( debug ) {
+                    notes.push( `overrode location/residency by insight location ${this.locationId}` );
+                }
             }
         }
+
+        if ( debug ) {
+            console.log(`Context set to ${this.environment}/${this.residency} (${this.locationId}): %s`, 
+                        ( typeof( debug ) === 'string' ? debug : 'Debug' ) + ( notes.length ? `: ${notes.join(", " )}` : '' ) );
+        }
+
     }
 
     protected timestamp( defaultValue:number ):number {

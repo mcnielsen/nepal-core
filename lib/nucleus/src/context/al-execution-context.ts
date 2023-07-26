@@ -237,6 +237,9 @@ export abstract class AlExecutionContext
         if ( typeof( envContextOrURL ) === 'string' ) {
             if ( envContextOrURL.startsWith("http://") || envContextOrURL.startsWith("https://") ) {
                 this.locatorService.setActingUrl( envContextOrURL );
+                if ( residency || locationId || accessibleLocationIds ) {
+                    this.locatorService.target( { residency, locationId, accessibleLocationIds } );
+                }
             } else {
                 this.locatorService.target( { environment: envContextOrURL, residency, locationId, accessibleLocationIds } );
             }
