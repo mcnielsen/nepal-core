@@ -1,4 +1,4 @@
-import { AlCardstackCharacteristics } from '@al/core';
+import { AlCardstackCharacteristics } from '@al/core/cardstack';
 import { AlAlertDefinition } from './al-alert-definition';
 import { AlGenericAlertOptions } from './notification.types';
 

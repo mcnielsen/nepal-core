@@ -225,9 +225,10 @@ export class AlSessionInstance
      * Sets the 'active' datacenter.  This provides a default residency and API stack to interact with.
      */
     public setActiveDatacenter( insightLocationId:string ) {
+      this.context.target( null, null, insightLocationId );
+
       if ( ! this.session.boundLocationId || insightLocationId !== this.session.boundLocationId ) {
         this.session.boundLocationId = insightLocationId;
-        this.context.target( null, null, insightLocationId );
         this.storage.set( "session", this.session );
         if ( AlInsightLocations.hasOwnProperty( insightLocationId ) ) {
             const metadata = AlInsightLocations[insightLocationId];

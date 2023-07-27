@@ -585,39 +585,32 @@ export class AlLocatorMatrix implements AlLocationContext
          */
         let candidates = Object.values( this.nodeDictionary ).filter( n => n.environment === this.environment );
 
-        if ( ! this.locationId ) {
-            let first = candidates.find( n => n.locationId );
-            if ( ! first ) {
-                throw new Error(`Misconfiguration: cannot find any node with an insight locationId for context ${this.environment}/${this.residency}` );
-            }
-            this.locationId = first.locationId;
-            if ( debug ) {
-                notes.push(`Used first locationId: ${this.locationId}` );
-            }
-        } else if ( this.accessibleLocationIds && ! this.accessibleLocationIds.includes( this.locationId ) ) {
-            this.locationId = this.accessibleLocationIds[0];
-            if ( debug ) {
-                notes.push(`accessibility limited to ${this.locationId} `);
-            }
-        }
-
-        if ( this.locationId in AlInsightLocations ) {
-            if ( AlInsightLocations[this.locationId].alternatives ) {
-                let alternatives = AlInsightLocations[this.locationId].alternatives;
-                let correctedLocationId = alternatives.find( alternative => this.accessibleLocationIds.includes( alternative ) );
-                if ( ! correctedLocationId ) {
-                    correctedLocationId = alternatives[0];
-                }
-                this.residency = AlInsightLocations[correctedLocationId].residency;
-                this.locationId = correctedLocationId;
+        if ( this.locationId && this.accessibleLocationIds ) {
+            if ( ! this.accessibleLocationIds.includes( this.locationId ) ) {
+                this.locationId = this.accessibleLocationIds[0];
                 if ( debug ) {
-                    notes.push( `overrode location/residency by insight location ${this.locationId}` );
+                    notes.push(`accessibility limited to ${this.locationId} `);
+                }
+            }
+
+            if ( this.locationId in AlInsightLocations ) {
+                if ( AlInsightLocations[this.locationId].alternatives ) {
+                    let alternatives = AlInsightLocations[this.locationId].alternatives;
+                    let correctedLocationId = alternatives.find( alternative => this.accessibleLocationIds.includes( alternative ) );
+                    if ( ! correctedLocationId ) {
+                        correctedLocationId = alternatives[0];
+                    }
+                    this.residency = AlInsightLocations[correctedLocationId].residency;
+                    this.locationId = correctedLocationId;
+                    if ( debug ) {
+                        notes.push( `overrode location/residency by insight location ${this.locationId}` );
+                    }
                 }
             }
         }
 
         if ( debug ) {
-            console.log(`Context set to ${this.environment}/${this.residency} (${this.locationId}): %s`, 
+            console.log(`Context set to ${this.environment}/${this.residency} (${this.locationId} in [${this.accessibleLocationIds ? this.accessibleLocationIds.join(",") : ''}]): %s`, 
                         ( typeof( debug ) === 'string' ? debug : 'Debug' ) + ( notes.length ? `: ${notes.join(", " )}` : '' ) );
         }
 

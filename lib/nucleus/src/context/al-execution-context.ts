@@ -19,7 +19,7 @@ import {
 import { RootClient } from '../client';
 
 import { AlSessionInstance } from '../session/al-session';
-import { initializeAlGlobals } from './globals';
+import { initializeAlGlobals, AlGlobalizer } from './globals';
 
 export abstract class AlExecutionContext 
                     extends AlEventStream 
@@ -69,6 +69,7 @@ export abstract class AlExecutionContext
         super();
         if ( ! AlExecutionContext.defaultContext ) {
             AlExecutionContext.defaultContext = this;
+            AlGlobalizer.expose( "al", { "context": this } );
         }
         this.setOptions( options );
         this.sessionInstance = new AlSessionInstance( this );
@@ -236,15 +237,14 @@ export abstract class AlExecutionContext
                    accessibleLocationIds?:string[] ) {
         if ( typeof( envContextOrURL ) === 'string' ) {
             if ( envContextOrURL.startsWith("http://") || envContextOrURL.startsWith("https://") ) {
-                this.locatorService.setActingUrl( envContextOrURL );
-                if ( residency || locationId || accessibleLocationIds ) {
-                    this.locatorService.target( { residency, locationId, accessibleLocationIds } );
-                }
+                this.locatorService.setActingUrl( envContextOrURL, { residency, locationId, accessibleLocationIds } );
             } else {
                 this.locatorService.target( { environment: envContextOrURL, residency, locationId, accessibleLocationIds } );
             }
         } else if ( typeof( envContextOrURL ) === 'object' && envContextOrURL !== null ) {
             this.locatorService.target( envContextOrURL );
+        } else if ( residency || locationId || accessibleLocationIds ) {
+            this.locatorService.target( { residency, locationId, accessibleLocationIds } );
         }
     }
 
