@@ -179,6 +179,16 @@ describe( 'AlLocatorMatrix', () => {
             expect( context.locator.resolveURL( AlLocation.InsightAPI, "/aims/v1/2/accounts" ) ).toEqual( "https://api.cloudinsight.alertlogic.co.uk/aims/v1/2/accounts" );
         } );
 
+        it("should infer correct context/sibling nodes for production URLs given a residency-agnostic URL and bound location", () => {
+            context.target( `https://console.alertlogic.com/#/deployments-adr/2`, null, `defender-uk-newport`, [ 'defender-uk-newport', 'insight-eu-ireland' ] );
+            let matching = context.locator.getNode( AlLocation.IncidentsUI );
+            expect( typeof( matching ) ).toBe("object");
+            expect( matching.environment ).toEqual( 'production' );
+            expect( matching.residency ).toEqual( 'EMEA' );
+            expect( matching.uri ).toEqual( "https://console.incidents.alertlogic.co.uk" );
+            expect( context.locator.resolveURL( AlLocation.InsightAPI, "/aims/v1/2/accounts" ) ).toEqual( "https://api.cloudinsight.alertlogic.co.uk/aims/v1/2/accounts" );
+        } );
+
         it("should infer correct context/sibling nodes for integration URLs", () => {
 
             //  Context inferred from integration URL

@@ -600,11 +600,13 @@ export class AlLocatorMatrix implements AlLocationContext
                     if ( ! correctedLocationId ) {
                         correctedLocationId = alternatives[0];
                     }
-                    this.residency = AlInsightLocations[correctedLocationId].residency;
+                    this.residency = AlInsightLocations[correctedLocationId].residency || this.residency;
                     this.locationId = correctedLocationId;
                     if ( debug ) {
                         notes.push( `overrode location/residency by insight location ${this.locationId}` );
                     }
+                } else {
+                    this.residency = AlInsightLocations[this.locationId].residency || this.residency;
                 }
             }
         }
