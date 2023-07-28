@@ -252,6 +252,10 @@ export class AlBaseAPIClient extends AlAbstractClient {
             if ( typeof( descriptor.credentialed ) === 'boolean' ) {
                 request.credentialed = descriptor.credentialed;
             }
+            if ( typeof( ( descriptor as any ).withCredentials ) === 'boolean' ) {  
+                /* honor 'withCredentials' when provided instead of 'credentialed' */
+                request.credentialed = ( descriptor as any ).withCredentials;
+            }
             if ( descriptor.debug ) {
                 request.debug = true;
             }
