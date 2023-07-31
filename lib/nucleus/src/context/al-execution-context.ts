@@ -72,7 +72,8 @@ export abstract class AlExecutionContext
             AlGlobalizer.expose( "al", { "context": this } );
         }
         this.setOptions( options );
-        this.sessionInstance = new AlSessionInstance( this );
+        this.locatorService         =   new AlLocatorMatrix( AlLocationDictionary, true );
+        this.sessionInstance        =   new AlSessionInstance( this );
         initializeAlGlobals( this.sessionInstance, this.locator, this.client( RootClient ) );
     }
 

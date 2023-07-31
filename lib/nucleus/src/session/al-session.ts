@@ -23,6 +23,7 @@ import {
     AlCabinet,
     ConfigOption,
     AlError,
+    AlStopwatch,
 } from "../common";
 import { AlExecutionContext } from '../context';
 import { AlBeforeNetworkRequest } from '../client';
@@ -567,6 +568,7 @@ export class AlSessionInstance
     protected async restoreSession( session:AIMSSessionDescriptor ) {
       try {
           this.startDetection();
+          await AlStopwatch.promise( 1 );
           await this.setAuthentication(session);
       } catch( e ) {
           this.deactivateSession();

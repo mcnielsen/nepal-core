@@ -39,7 +39,7 @@ export class AlError extends Error
      */
     public static log( error:AlNetworkResponse|AlError|Error|string|any, commentary?:string, ...details:any[] ) {
         let normalized = AlError.normalize( error );
-        console.log( commentary ? `${commentary}: ${normalized.message}` : normalized.message, details.length > 0 ? details : undefined );
+        console.log( commentary ? `${commentary}: ${normalized.message}` : normalized.message, details.length > 0 ? details : undefined, error );
     }
 
     /**

@@ -301,9 +301,6 @@ describe( 'AlLocatorMatrix', () => {
             expect( uri ).toEqual( "https://incidents-pr-9.ui-dev.product.dev.alertlogic.com/#/summary/1" );
         } );
 
-        /**
-         * Good test, but relies on window
-         */
         xit( "should use window.location if the node isn't recognized", () => {
             let uri = context.locator.resolveURL( "SomethingUnrecognizable", '/#/arbitrary', { residency: "US", environment: "production" } );
             expect( uri ).toEqual( window.location.origin + ( ( window.location.pathname && window.location.pathname.length > 1 ) ? window.location.pathname : '' ) + "/#/arbitrary" );
@@ -316,4 +313,32 @@ describe( 'AlLocatorMatrix', () => {
         } );
     } );
 
+    describe( "contextual residency awareness", () => {
+        it("should be maintained as expected", async () => {
+
+            /* Starting state: default values */
+            expect( context.environment ).toEqual( "development" );
+            expect( context.residency ).toEqual( "US" );
+            expect( context.locationId ).toEqual("unspecified");
+            expect( context.accessibleLocationIds ).toEqual( [] );
+
+            context.target( "https://console.alertlogic.com/#/search/expert/2");
+
+            /* After context is derived from URL: production/US */
+            expect( context.environment ).toEqual( "production" );
+            expect( context.residency ).toEqual( "US" );
+            expect( context.locationId ).toEqual("unspecified");
+            expect( context.accessibleLocationIds ).toEqual( [] );
+
+            await AlTestExecutionContext.setAuthState("2");
+            context.target( {
+                locationId: "defender-uk-newport",
+                accessibleLocationIds: [ "defender-uk-newport", "insight-eu-ireland", "defender-us-denver", "insight-us-virginia" ]
+            } );
+
+            expect( context.environment ).toEqual("production");
+            expect( context.residency ).toEqual( "EMEA" );
+            expect( context.locationId ).toEqual( "defender-uk-newport" );
+        } );
+    } );
 } );

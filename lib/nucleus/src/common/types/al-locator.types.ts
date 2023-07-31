@@ -233,6 +233,8 @@ export class AlLocatorMatrix implements AlLocationContext
     public locationId?:string;
     public accessibleLocationIds?:string[];
 
+    public debug                            = false;
+
     private actingUri:string|undefined;
     private actor:AlLocationDescriptor|undefined;
 
@@ -249,7 +251,7 @@ export class AlLocatorMatrix implements AlLocationContext
         if ( typeof( actingUri ) === 'boolean' || actingUri ) {
             this.setActingUrl( actingUri, initialContext );
         } else if ( initialContext ) {
-            this.setContext( initialContext );
+            this.setContext( initialContext, "Initial" );
         }
     }
 
@@ -264,7 +266,7 @@ export class AlLocatorMatrix implements AlLocationContext
     }
 
     public target( context:AlLocationContext ) {
-        this.setContext( context );
+        this.setContext( context, "Targeting" );
     }
 
     /**
@@ -464,7 +466,7 @@ export class AlLocatorMatrix implements AlLocationContext
             } else {
                 throw new Error(`Setting context by URL '${actingUri}' failed` );
             }
-            this.setContext( context );
+            this.setContext( context, "Acting URL" );
         }
     }
 
@@ -570,7 +572,7 @@ export class AlLocatorMatrix implements AlLocationContext
      *  Sets the acting context (preferred environment, data residency, location attributes).
      *  This acts as a merge against existing context, so the caller can provide only fragmentary information without borking things.
      */
-    protected setContext( context:AlLocationContext, debug?:string|boolean ) {
+    protected setContext( context:AlLocationContext, reason?:string ) {
         let notes:string[] = [];
         this.nodeCache = {};    //  flush lookup cache
         this.environment = context && context.environment ? context.environment : this.environment;
@@ -588,7 +590,7 @@ export class AlLocatorMatrix implements AlLocationContext
         if ( this.locationId && this.accessibleLocationIds ) {
             if ( ! this.accessibleLocationIds.includes( this.locationId ) ) {
                 this.locationId = this.accessibleLocationIds[0];
-                if ( debug ) {
+                if ( this.debug ) {
                     notes.push(`accessibility limited to ${this.locationId} `);
                 }
             }
@@ -602,7 +604,7 @@ export class AlLocatorMatrix implements AlLocationContext
                     }
                     this.residency = AlInsightLocations[correctedLocationId].residency || this.residency;
                     this.locationId = correctedLocationId;
-                    if ( debug ) {
+                    if ( this.debug ) {
                         notes.push( `overrode location/residency by insight location ${this.locationId}` );
                     }
                 } else {
@@ -611,11 +613,9 @@ export class AlLocatorMatrix implements AlLocationContext
             }
         }
 
-        if ( debug ) {
-            console.log(`Context set to ${this.environment}/${this.residency} (${this.locationId} in [${this.accessibleLocationIds ? this.accessibleLocationIds.join(",") : ''}]): %s`, 
-                        ( typeof( debug ) === 'string' ? debug : 'Debug' ) + ( notes.length ? `: ${notes.join(", " )}` : '' ) );
+        if ( this.debug ) {
+            console.log(`Context set to ${this.environment}/${this.residency} (${this.locationId} in [${this.accessibleLocationIds ? this.accessibleLocationIds.join(",") : ''}]): %s`, reason ? reason : 'Debug' );
         }
-
     }
 
     protected timestamp( defaultValue:number ):number {
