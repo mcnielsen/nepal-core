@@ -1,4 +1,4 @@
-import { AlChangeStamp } from '../../types/index';
+import { AlChangeStamp } from '../../types';
 
 export interface AIMSAuthentication {
     user: AIMSUser;
@@ -29,9 +29,17 @@ export interface AIMSAccount {
     default_location: string;
     mfa_required?: boolean;
     federated_login_required?: boolean;
-    idle_session_timeout?:number;
+    fortra_authenticated?: boolean;
+    fortra_required_after?: number;
+    idle_session_timeout?: number;
     created: AlChangeStamp;
     modified: AlChangeStamp;
+}
+
+export interface FortraSession {
+    identityToken:string;
+    accessToken:string;
+    refreshToken?:string;
 }
 
 export interface AIMSSessionDescriptor {
@@ -39,6 +47,7 @@ export interface AIMSSessionDescriptor {
     acting?: AIMSAccount;
     boundLocationId?: string;
     profileId?:string;
+    fortraSession?:FortraSession; /* for AIMS sessions created from fortra SSO sessions */
 }
 
 export interface AIMSAuthenticationTokenInfo extends AIMSAuthentication {

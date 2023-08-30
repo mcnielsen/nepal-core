@@ -5,16 +5,20 @@ stages:
     -
         name: PR Test
         when:
-            - pull_request
             - pull_request:
                 trigger_phrase: test it
         image: public.ecr.aws/codebuild/amazonlinux2-x86_64-standard:4.0
         compute_size: small
         commands:
-            - npm install
-            - curl https://intoli.com/install-google-chrome.sh | bash
-            - mv /usr/bin/google-chrome-stable /usr/bin/google-chrome
+            - npm ci
+            # - curl https://intoli.com/install-google-chrome.sh | bash
+            # - mv /usr/bin/google-chrome-stable /usr/bin/google-chrome
+            - wget https://dl.google.com/linux/direct/google-chrome-stable_current_x86_64.rpm
+            - sudo yum install -y ./google-chrome-stable_current_x86_64.rpm
+            # - sudo ln -s /usr/bin/google-chrome-stable /usr/bin/google-chrome
             - google-chrome --version && which google-chrome
+            - node -v
+            - npm -v
             - npm run test
             - npm run lint
             - npm run build
@@ -58,13 +62,18 @@ stages:
     -
         name: Master Push - Publish
         when:
-            - push: ['master']
+            - push: ['master','v1']
         image: public.ecr.aws/codebuild/amazonlinux2-x86_64-standard:4.0
         compute_size: small
         commands:
-            - curl https://intoli.com/install-google-chrome.sh | bash
-            - mv /usr/bin/google-chrome-stable /usr/bin/google-chrome
+            - wget https://dl.google.com/linux/direct/google-chrome-stable_current_x86_64.rpm
+            - sudo yum install -y ./google-chrome-stable_current_x86_64.rpm
+            # - sudo ln -s /usr/bin/google-chrome-stable /usr/bin/google-chrome
+            # - curl https://intoli.com/install-google-chrome.sh | bash
+            # - mv /usr/bin/google-chrome-stable /usr/bin/google-chrome
             - google-chrome --version && which google-chrome
+            - node -v
+            - npm -v
             - |
               set -ex
 

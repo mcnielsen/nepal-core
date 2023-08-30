@@ -1,7 +1,7 @@
 import { AlDefaultClient } from '../../client';
 import { AlSession } from '../al-session';
 import { AlLocatorService, AlLocation } from '../../common/navigation';
-import { AIMSSessionDescriptor } from '../../aims-client/types';
+import { AIMSSessionDescriptor, FortraSession } from '../../aims-client/types';
 import { AlRuntimeConfiguration, ConfigOption } from '../../configuration';
 import { AlConduitClient } from './al-conduit-client';
 import { getJsonPath } from '../../common/utility';
@@ -94,6 +94,38 @@ export class AlAuthenticationUtility {
         this.state.result = AlAuthenticationResult.InvalidCredentials;
         return this.state.result;
     }
+
+    /**
+     * Authenticate against AIMS using a fortra IdP-provided access token.
+     */
+    public async authenticateFromFortraSession( fortraSession:FortraSession ):Promise<AlAuthenticationResult> {
+        let useGestalt = AlRuntimeConfiguration.getOption( ConfigOption.GestaltAuthenticate, false );
+        if ( useGestalt && AlLocatorService.getCurrentEnvironment() !== 'development' ) {
+            try {
+                let session = await this.authenticateViaGestaltFromFortra( fortraSession );
+                return await this.finalizeSession( session );
+            } catch( e ) {
+                if ( this.handleAuthenticationFailure( e ) ) {
+                    return this.state.result;
+                }
+                throw e;
+            }
+        }
+
+        try {
+            let session = await this.authenticateViaAIMSFromFortra( fortraSession );
+            return await this.finalizeSession( session );
+        } catch( e ) {
+            if ( this.handleAuthenticationFailure( e ) ) {
+                return this.state.result;
+            }
+        }
+
+        this.state.result = AlAuthenticationResult.InvalidCredentials;
+
+        return this.state.result;
+    }
+
 
     /**
      * Performs authentication using a session token (which must be separately populated into `this.state.sessionToken`) and
@@ -200,6 +232,34 @@ export class AlAuthenticationUtility {
             return returnURL;
         }
         return defaultReturnURL || AlLocatorService.resolveURL( AlLocation.AccountsUI, `/#/` );
+    }
+
+    /**
+     * Fortra-Derived Authentication - use a fortra identity to authenticate against AIMS
+     */
+
+    protected async authenticateViaAIMSFromFortra( fortraSession:FortraSession ):Promise<AIMSSessionDescriptor> {
+        let outcome = await AlDefaultClient.post( {
+            service_stack: AlLocation.GlobalAPI,
+            service_name: "aims",
+            version: 1,
+            path: "authenticate",
+            headers: { Authorization: `Bearer ${fortraSession.accessToken}` },
+            aimsAuthHeader: false
+        } ) as AIMSSessionDescriptor;
+        outcome.fortraSession = fortraSession;
+        return outcome;
+    }
+
+    protected async authenticateViaGestaltFromFortra( fortraSession:FortraSession ):Promise<AIMSSessionDescriptor> {
+        let outcome = await AlDefaultClient.post( {
+            service_stack: AlLocation.MagmaUI,
+            version: 1,
+            path: "session/v1/authenticate",
+            data: { authorization: `Bearer ${fortraSession.accessToken}` },
+        } ) as AIMSSessionDescriptor;
+        outcome.fortraSession = fortraSession;
+        return outcome;
     }
 
     /**

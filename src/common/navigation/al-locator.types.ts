@@ -86,6 +86,9 @@ export class AlLocation
     public static Auth0             = "auth0";
     public static GoogleTagManager  = "gtm";
     public static DatadogRum        = "datadogrum";
+    public static FortraPlatform    = "fortra:platform";
+    public static FrontlineVM       = "frontline:vm";
+
 
     /**
      * Generates location type definitions for residency-specific prod, integration, and dev versions of a UI

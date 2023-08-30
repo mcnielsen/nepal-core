@@ -623,5 +623,20 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
         environment: 'integration|development',
         residency: "US"
     },
+
+    /**
+     * Fortra Platform Base URL
+     */
+    {
+        locTypeId: AlLocation.FortraPlatform,
+        uri: 'https://foundation.foundation-stage.cloudops.fortradev.com',
+        environment: 'integration|development|production-staging|production',
+    },
+
+    {
+        locTypeId: AlLocation.FrontlineVM,
+        uri: 'https://lmgtfy.app/?q=patience+grasshopper+gif',
+        environment: 'integration|development|production-staging|production',
+    },
 ];
 

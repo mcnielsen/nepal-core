@@ -8,14 +8,31 @@ import { AlDefaultClient, APIRequestParams } from '../client';
 
 export class AlErrorHandler
 {
+    public static upstream?:{(error:AlBaseError):void};
+    public static verbose = false;
+
     /**
      *  Logs a normalized error message to the console.
      *
      *  @param error Can be an AxiosResponse, Error, string, or anything else (although "anything else" will be handled with a generic error message).
      */
-    public static log( error:AxiosResponse|AlBaseError|Error|string|any, commentary?:string ) {
+    public static log( error:AxiosResponse|AlBaseError|Error|string|any, commentary?:string, overrideVerbosity?:boolean ) {
         let normalized = AlErrorHandler.normalize( error );
-        console.log( commentary ? `${commentary}: ${normalized.message}` : normalized.message );
+        if ( AlErrorHandler.verbose || overrideVerbosity ) {
+            console.log( commentary ? `${commentary}: ${normalized.message}` : normalized.message );
+        }
+    }
+
+    /**
+     * Reports an error to an external error reporting service.
+     */
+    public static report( error:AxiosResponse|AlBaseError|Error|string|any, commentary?:string, ...details:any[] ) {
+        if ( AlErrorHandler.upstream ) {
+            let normalized = AlErrorHandler.normalize( error );
+            AlErrorHandler.upstream( normalized );
+        } else {
+            AlErrorHandler.log( error, commentary, true );
+        }
     }
 
     /**
@@ -25,7 +42,7 @@ export class AlErrorHandler
      *              any other Error or derived class, string, or anything.
      * @returns AlBaseError of the appropriate flavor.
      */
-    public static normalize( error:AxiosResponse|AlBaseError|Error|string|any ):AlBaseError {
+    public static normalize( error:AxiosResponse|AlBaseError|Error|string|any, commentary?:string ):AlBaseError {
         if ( error instanceof AlBaseError ) {
             return error;
         } else if ( AlDefaultClient.isResponse( error ) ) {
@@ -33,14 +50,23 @@ export class AlErrorHandler
             let serviceName = `service_name` in config ? config.service_name : config.url;
             let statusCode = `status` in error ? error.status : 0;
             let errorText = `Received an unexpected ${statusCode} (${error.statusText}) response from '${serviceName}' at '${error.config.url}'.`;
+            if ( commentary ) {
+                errorText = `${commentary}: ${errorText}`;
+            }
             return new AlAPIServerError( errorText, serviceName, statusCode, error );
         } else if ( error instanceof Error ) {
-            return new AlBaseError( error.message, error );
+            let message = error.message;
+            if ( commentary ) {
+                message = `${commentary}: ${error.message}`;
+            }
+            return new AlBaseError( message, error );
         } else if ( typeof( error ) === 'string' ) {
+            if ( commentary ) {
+                error = `${commentary}: ${error}`;
+            }
             return new AlBaseError( error );
         } else {
-            console.log("Not sure how to convert this to an error: ", error );
-            return new AlBaseError( `An unexpected internal error occurred.`, error );
+            return new AlBaseError( commentary || `An unexpected internal error occurred.`, error );
         }
     }
 

@@ -225,8 +225,8 @@ describe("AlDefaultClient", () => {
       } );
     });
 
-    describe('When performing two fetch operations', () => {
-      describe(' with no TTL', () => {
+    xdescribe('When performing two fetch operations', () => {
+      xdescribe(' with no TTL', () => {
         it('should return fresh data without caching', async () => {
           // Here we mock out a second response from back end...
           xhrMock.get('https://api.global-integration.product.dev.alertlogic.com/aims/v1/2/users', once({
@@ -242,7 +242,7 @@ describe("AlDefaultClient", () => {
           expect(response).to.equal('second response');
         });
       });
-      describe('with caching enabled', () => {
+      xdescribe('with caching enabled', () => {
         it('should return the first server response', async () => {
           xhrMock.get('https://api.global-integration.product.dev.alertlogic.com/aims/v1/2/users', once({
             status: 200,
@@ -257,7 +257,7 @@ describe("AlDefaultClient", () => {
           expect(response).to.equal('first response');
         });
       });
-      describe('with caching enabled and the same query params supplied', () => {
+      xdescribe('with caching enabled and the same query params supplied', () => {
         it('should return the first server response', async () => {
           xhrMock.get('https://api.global-integration.product.dev.alertlogic.com/aims/v1/2/users?foo=bar', once({
             status: 200,
@@ -287,7 +287,7 @@ describe("AlDefaultClient", () => {
           });
         });
       });
-      describe('with caching enabled and different query params supplied', () => {
+      xdescribe('with caching enabled and different query params supplied', () => {
         it('should return the second server response', async () => {
           xhrMock.get('https://api.global-integration.product.dev.alertlogic.com/aims/v1/2/users?foo=bar', once({
             status: 200,

@@ -14,6 +14,7 @@ import {
     AIMSAccount,
     AIMSAuthentication,
     AIMSSessionDescriptor,
+    FortraSession,
 } from "../aims-client";
 import {
     AlApiClient,
@@ -219,10 +220,12 @@ export class AlSessionInstance
         }
 
         // Now that the content of the authentication session descriptor has been validated, let's make it effective
+        // Note: we only merge whitelisted fields, so arbitrary data can't be committed to localStorage.
         deepMerge( this.sessionData.authentication.user, proposal.authentication.user );
         deepMerge( this.sessionData.authentication.account, proposal.authentication.account );
         this.sessionData.authentication.token = proposal.authentication.token;
         this.sessionData.authentication.token_expiration = proposal.authentication.token_expiration;
+        this.sessionData.fortraSession = proposal.fortraSession;
         if ( proposal.boundLocationId ) {
             this.sessionData.boundLocationId = proposal.boundLocationId;
         }
@@ -398,6 +401,13 @@ export class AlSessionInstance
      */
     getSession(): AIMSSessionDescriptor {
       return this.sessionData;
+    }
+
+    /**
+     * Get Fortra IdP Session Descriptor, if present
+     */
+    getFortraSession():FortraSession|undefined {
+        return this.sessionData.fortraSession;
     }
 
     /**
