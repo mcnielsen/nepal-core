@@ -609,11 +609,15 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
         uri: 'https://foundation.foundation-stage.cloudops.fortradev.com',
         environment: 'integration|development|production-staging|production',
     },
-
     {
         locTypeId: AlLocation.FrontlineVM,
-        uri: 'https://lmgtfy.app/?q=patience+grasshopper+gif',
-        environment: 'integration|development|production-staging|production',
+        uri: 'https://vm.release.ddiaws.com',
+        environment: 'integration|development',
+    },
+    {
+        locTypeId: AlLocation.FrontlineVM,
+        uri: 'https://vm.release.ddiaws.com',
+        environment: 'production-staging|production',
     },
 ];
 
