@@ -353,6 +353,9 @@ export class AlSessionInstance
     setTokenInfo(token: string, tokenExpiration: number) {
       this.sessionData.authentication.token = token;
       this.sessionData.authentication.token_expiration = tokenExpiration;
+      if ( this.sessionData.fortraSession ) {
+          this.sessionData.fortraSession.accessToken = token;
+      }
       this.storage.set("session", this.sessionData );
     }
 
@@ -722,7 +725,11 @@ export class AlSessionInstance
                 ||
              ( this.authenticatedStacks.includes( event.request.service_stack ) && event.request.aimsAuthHeader !== false ) ) {
           event.request.headers = event.request.headers || {};
-          event.request.headers['X-AIMS-Auth-Token'] = this.getToken();
+          if ( this.sessionData?.fortraSession ) {
+              event.request.headers['Authorization'] = `Bearer ${this.sessionData.fortraSession.accessToken}`;
+          } else {
+              event.request.headers['X-AIMS-Auth-Token'] = this.getToken();
+          }
         }
       }
     }

@@ -1,7 +1,7 @@
 import { AlDefaultClient } from '../../client';
 import { AlSession } from '../al-session';
 import { AlLocatorService, AlLocation } from '../../common/navigation';
-import { AIMSSessionDescriptor, FortraSession } from '../../aims-client/types';
+import { AIMSSessionDescriptor, FortraSession, AIMSAuthentication } from '../../aims-client/types';
 import { AlRuntimeConfiguration, ConfigOption } from '../../configuration';
 import { AlConduitClient } from './al-conduit-client';
 import { getJsonPath } from '../../common/utility';
@@ -99,6 +99,10 @@ export class AlAuthenticationUtility {
      * Authenticate against AIMS using a fortra IdP-provided access token.
      */
     public async authenticateFromFortraSession( fortraSession:FortraSession ):Promise<AlAuthenticationResult> {
+        /*
+         * This doesn't exist yet, and may never need to
+         */
+        /*
         let useGestalt = AlRuntimeConfiguration.getOption( ConfigOption.GestaltAuthenticate, false );
         if ( useGestalt && AlLocatorService.getCurrentEnvironment() !== 'development' ) {
             try {
@@ -111,6 +115,7 @@ export class AlAuthenticationUtility {
                 throw e;
             }
         }
+        */
 
         try {
             let session = await this.authenticateViaAIMSFromFortra( fortraSession );
@@ -239,15 +244,19 @@ export class AlAuthenticationUtility {
      */
 
     protected async authenticateViaAIMSFromFortra( fortraSession:FortraSession ):Promise<AIMSSessionDescriptor> {
-        let outcome = await AlDefaultClient.post( {
+        let tokenInfo = await AlDefaultClient.get( {
             service_stack: AlLocation.GlobalAPI,
             service_name: "aims",
             version: 1,
-            path: "authenticate",
+            path: `/token_info`,
             headers: { Authorization: `Bearer ${fortraSession.accessToken}` },
             aimsAuthHeader: false
-        } ) as AIMSSessionDescriptor;
-        outcome.fortraSession = fortraSession;
+        } ) as AIMSAuthentication;
+        tokenInfo.token = fortraSession.accessToken;                    //  token_info endpoint doesn't include this property in its response
+        let outcome:AIMSSessionDescriptor = {
+            authentication: tokenInfo,
+            fortraSession
+        };
         return outcome;
     }
 
@@ -267,10 +276,15 @@ export class AlAuthenticationUtility {
      * result to `Authenticated`.
      */
     protected async finalizeSession( session:AIMSSessionDescriptor ) {
-        await AlSession.setAuthentication( session );
-        await this.conduit.setSession( session );
-        this.state.result = AlAuthenticationResult.Authenticated;
-        return this.getResult();
+        try {
+            await AlSession.setAuthentication( session );
+            await this.conduit.setSession( session );
+            this.state.result = AlAuthenticationResult.Authenticated;
+            return this.getResult();
+        } catch( e ) {
+            console.error(`Failed to authenticate`, e );
+            throw e;
+        }
     }
 
     protected handleAuthenticationFailure( error:Error|any ):boolean {
