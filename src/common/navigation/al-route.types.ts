@@ -111,6 +111,9 @@ export interface AlRouteCondition
     //  An array of account IDs that fulfill the condition
     accounts?:string[];
 
+    //  An array of user IDs that fulfill the condition
+    userIds?:string[];
+
     //  An array of primary account IDs that fulfill the condition
     primaryAccounts?:string[];
 
