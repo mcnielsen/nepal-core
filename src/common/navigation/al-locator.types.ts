@@ -141,7 +141,7 @@ export class AlLocation
                 locTypeId: locTypeId,
                 environment: 'production',
                 residency: 'EMEA',
-                uri: `https://console.${appCode}.alertlogic.co.uk`,
+                uri: `https://console.${appCode}.alertlogic.com`,
                 keyword: appCode,
             });
         }
