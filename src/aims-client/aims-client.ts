@@ -678,8 +678,8 @@ export class AIMSClientInstance implements AlValidationSchemaProvider {
     return mfa;
   }
 
-  async getUserDetails(accountId: string, userId: string, queryParams?: {include_role_ids?: boolean, include_user_credential?: boolean}) {
-    const user = await this.client.get({
+  getUserDetails(accountId: string, userId: string, queryParams?: {include_role_ids?: boolean, include_user_credential?: boolean}): Promise<AIMSUser> {
+    return this.client.get<AIMSUser>({
       service_stack: AlLocation.InsightAPI,
       service_name: this.serviceName,
       version: this.serviceVersion,
@@ -687,7 +687,6 @@ export class AIMSClientInstance implements AlValidationSchemaProvider {
       path: `/users/${userId}`,
       params: queryParams,
     });
-    return user as AIMSUser;
   }
 
   /**
