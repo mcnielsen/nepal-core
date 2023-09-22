@@ -956,13 +956,10 @@ export class AlApiClient implements AlValidationSchemaProvider
     this.lastError = errorResponse;
     if ( errorResponse.status >= 500 ) {
         //  TODO: dispatch service error event
-        console.error(`APIClient Warning: received response ${errorResponse.status} from API request [${errorResponse.config.method} ${errorResponse.config.url}]`);
     } else if ( errorResponse.status >= 400 ) {
         //  TODO: dispatch client request error event
-        console.error(`APIClient Warning: received response ${errorResponse.status} from API request [${errorResponse.config.method} ${errorResponse.config.url}]`);
     } else if ( errorResponse.status < 200 ) {
         //  TODO: not quite sure...
-        console.error(`APIClient Warning: received ${errorResponse.status} from API request [${errorResponse.config.method} ${errorResponse.config.url}]`);
     }
     let snapshot:any = {
       status: errorResponse.status,
