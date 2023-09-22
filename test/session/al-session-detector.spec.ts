@@ -178,7 +178,7 @@ describe('AlSessionDetector', () => {
             } );
             expect( rejected ).to.equal( true );
             expect( sessionDetector.authenticated ).to.equal( false );
-            expect( errorStub.callCount ).to.be.above( 0 );
+            expect( errorStub.callCount ).to.be.eq( 0 );
         } );
         it( "should normalize and ingest a valid session descriptor", async () => {
             let normalizeStub = sinon.stub( sessionDetector, 'normalizeSessionDescriptor' ).returns( Promise.resolve( exampleSession ) );
