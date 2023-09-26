@@ -94,29 +94,37 @@ export class AlLocation
      * Generates location type definitions for residency-specific prod, integration, and dev versions of a UI
      */
     public static uiNode( locTypeId:string, appCode:string, devPort:number, magmaRedirectPath?: string ):AlLocationDescriptor[] {
-        let nodes:AlLocationDescriptor[] = [
-            {
+        let nodes:AlLocationDescriptor[] = [];
+
+        if ( locTypeId === AlLocation.MagmaUI ) {
+            nodes.push( {
                 locTypeId: locTypeId,
                 environment: 'production',
                 residency: 'US',
-                uri: `${locTypeId===AlLocation.MagmaUI ? `https://console.alertlogic.com` : `https://console.${appCode}.alertlogic.com`}`,
+                uri: `https://console.alertlogic.com`,
                 keyword: `${locTypeId===AlLocation.MagmaUI ? 'console.alertlogic.com': appCode}`
-            },
-            {
+            } );
+        } else {
+            nodes.push( {
                 locTypeId: locTypeId,
-                environment: 'production-staging',
+                environment: 'production',
                 residency: 'US',
-                uri: `https://${appCode}-production-staging-us.ui-dev.product.dev.alertlogic.com`,
-                keyword: appCode,
-            },
-            {
-                locTypeId: locTypeId,
-                environment: 'production-staging',
-                residency: 'EMEA',
-                uri: `https://${appCode}-production-staging-us.ui-dev.product.dev.alertlogic.com`,
-                keyword: appCode,
-            },
-            {
+                uri: `https://console.${appCode}.alertlogic.com`,
+                aliases: [ `https://console.${appCode}.alertlogic.co.uk` ],
+                keyword: `${locTypeId===AlLocation.MagmaUI ? 'console.alertlogic.com': appCode}`
+            } );
+        }
+
+        nodes.push( {
+            locTypeId: locTypeId,
+            environment: 'production-staging',
+            residency: 'US',
+            uri: `https://${appCode}-production-staging-us.ui-dev.product.dev.alertlogic.com`,
+            keyword: appCode,
+            aliases: [ `https://${appCode}-production-staging-uk.ui-dev.product.dev.alertlogic.com` ]
+        } );
+
+        nodes.push( {
                 locTypeId: locTypeId,
                 environment: 'integration',
                 uri: `https://console.${appCode}.product.dev.alertlogic.com`,
@@ -134,17 +142,8 @@ export class AlLocation
                 uri: `http://localhost:${devPort}`,
                 keyword: 'localhost',
             }
-        ];
-        // Because we only deploy to one stack in prod for Magma now, only add the EMEA based prod nodes for all other non magma UI apps...
-        if(locTypeId!==AlLocation.MagmaUI){
-            nodes.push({
-                locTypeId: locTypeId,
-                environment: 'production',
-                residency: 'EMEA',
-                uri: `https://console.${appCode}.alertlogic.com`,
-                keyword: appCode,
-            });
-        }
+        );
+
         if ( magmaRedirectPath ) {
             nodes.forEach( node => node.magmaRedirectPath = magmaRedirectPath );
         }
