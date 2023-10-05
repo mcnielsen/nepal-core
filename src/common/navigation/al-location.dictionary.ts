@@ -215,29 +215,21 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
     {
         locTypeId: AlLocation.HudUI,
         uri: 'https://hud.iris.alertlogic.com',
+        aliases: [
+            'https://hud.iris.alertlogic.co.uk'
+        ],
         environment: 'production',
         residency: 'US',
-        keyword: 'hud',
-    },
-    {
-        locTypeId: AlLocation.HudUI,
-        uri: 'https://hud-ui-production-staging-uk.ui-dev.product.dev.alertlogic.com',
-        environment: 'production-staging',
-        residency: 'EMEA',
         keyword: 'hud',
     },
     {
         locTypeId: AlLocation.HudUI,
         uri: 'https://hud-ui-production-staging-us.ui-dev.product.dev.alertlogic.com',
+        aliases: [
+            'https://hud-ui-production-staging-uk.ui-dev.product.dev.alertlogic.com'
+        ],
         environment: 'production-staging',
         residency: 'US',
-        keyword: 'hud',
-    },
-    {
-        locTypeId: AlLocation.HudUI,
-        uri: 'https://hud.iris.alertlogic.co.uk',
-        environment: 'production',
-        residency: 'EMEA',
         keyword: 'hud',
     },
     {
@@ -264,29 +256,19 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
     {
         locTypeId: AlLocation.IrisUI,
         uri: 'https://console.iris.alertlogic.com',
+        aliases: [ 'https://console.iris.alertlogic.co.uk' ],
         environment: 'production',
         residency: 'US',
-        keyword: 'iris',
-    },
-    {
-        locTypeId: AlLocation.IrisUI,
-        uri: 'https://console.iris.alertlogic.co.uk',
-        environment: 'production',
-        residency: 'EMEA',
         keyword: 'iris',
     },
     {
         locTypeId: AlLocation.IrisUI,
         uri: 'https://iris-ui-production-staging-us.ui-dev.product.dev.alertlogic.com',
+        aliases: [
+            'https://iris-ui-production-staging-uk.ui-dev.product.dev.alertlogic.com'
+        ],
         environment: 'production-staging',
         residency: 'US',
-        keyword: 'iris',
-    },
-    {
-        locTypeId: AlLocation.IrisUI,
-        uri: 'https://iris-ui-production-staging-uk.ui-dev.product.dev.alertlogic.com',
-        environment: 'production-staging',
-        residency: 'EMEA',
         keyword: 'iris',
     },
     {
