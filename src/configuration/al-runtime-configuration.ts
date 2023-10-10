@@ -86,7 +86,7 @@ export class AlRuntimeConfiguration {
 
     protected static defaultOptions:{[optionKey:string]:string|number|boolean|unknown} = {
         'session_via_gestalt': false,
-        'session_gestalt_domain': 'cd17:accounts',
+        'session_gestalt_domain': 'cd21:magma',
         'session_metadata': true,
         'session_consolidated_resolver': false,
         'disable_endpoints_resolution': false,
