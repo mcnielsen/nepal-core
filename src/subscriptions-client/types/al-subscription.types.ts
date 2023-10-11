@@ -22,6 +22,14 @@ export interface AlEntitlementRecord
 }
 
 /**
+ * Default values of the data retention policy
+ */
+export enum DefaultDataRetentionPolicy {
+    Value = 13,
+    Unit = 'months'
+}
+
+/**
  *  AlEntitlementCollection manages groups of entitlement records, and makes it easy (and safe) to interrogate them.
  */
 export class AlEntitlementCollection
