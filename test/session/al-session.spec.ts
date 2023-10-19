@@ -22,6 +22,8 @@ import {
     exampleActing,
     exampleSession,
 } from '../mocks/session-data.mocks';
+import { DefaultDataRetentionPolicy } from "../../src/subscriptions-client";
+
 
 
 const sessionDescriptor = {
@@ -552,6 +554,37 @@ describe('AlSession', () => {
         expect( accountList ).to.deep.equal( managedAccounts );
       } );
     } );
+
+    describe('getDataRetentionPeriod', () => {
+      it('should return the data retention period in months for valid input', () => {
+        // Mock resolvedAccount.entitlements.getProduct to return a valid product
+        session['resolvedAccount'].entitlements.getProduct = () => ({ value_type: 'months', value: 21, productId: 'log_data_retention', active: true, expires: new Date() });
+        
+        const result = session.getDataRetetionPeriod();
+        
+        expect(result).to.equal(21);
+      });
+    
+      it('should return the default data retention period for unrecognized unit', () => {
+        // Mock resolvedAccount.entitlements.getProduct to return an unrecognized unit
+        session['resolvedAccount'].entitlements.getProduct = () => ({ value_type: 'days', value: 6, productId: 'log_data_retention', active: true, expires: new Date() });
+        
+        const result = session.getDataRetetionPeriod();
+        
+        expect(result).to.equal(DefaultDataRetentionPolicy.Value);
+      });
+    
+      it('should return the default data retention period on error', () => {
+        // Mock resolvedAccount.entitlements.getProduct to throw an error
+        session['resolvedAccount'].entitlements.getProduct = () => {
+          throw new Error('Some error');
+        }
+        
+        const result = session.getDataRetetionPeriod();
+        
+        expect(result).to.equal(DefaultDataRetentionPolicy.Value);
+      });
+    });
 
   } );
 
