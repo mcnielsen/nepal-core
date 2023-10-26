@@ -352,18 +352,22 @@ export class AIMSClientInstance implements AlValidationSchemaProvider {
   /**
    * Obtain Authentication Token Information for a specific access token
    */
-  public async getTokenInfo( accessToken:string ):Promise<AIMSAuthenticationTokenInfo> {
-    return this.client.get( {
+  public async getTokenInfo( accessToken:string, useAuthenticationHeader:boolean = false ):Promise<AIMSAuthenticationTokenInfo> {
+    let request:APIRequestParams = {
       service_stack: AlLocation.GlobalAPI,
       service_name: this.serviceName,
       version: 1,
       path: '/token_info',
-      headers: {
-        'X-AIMS-Auth-Token': accessToken
-      },
+      headers: {},
       ttl: 10 * 60 * 1000,
       cacheKey: AlLocatorService.resolveURL( AlLocation.GlobalAPI, `/aims/v1/token_info/${accessToken}` )       //  custom cacheKey to avoid cache pollution
-    } );
+    };
+    if ( useAuthenticationHeader ) {
+      request.headers['X-AIMS-Auth-Token'] = accessToken;
+    } else {
+      request.headers['Authorization'] = `Bearer ${accessToken}`;
+    }
+    return this.client.get( { request } );
   }
 
   /**
