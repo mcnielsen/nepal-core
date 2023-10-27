@@ -5,6 +5,7 @@
 import {
     AlApiClient,
     AlDefaultClient,
+    APIRequestParams,
 } from "../client";
 import { AlValidationSchemaProvider } from '../common/utility';
 import {
@@ -363,11 +364,11 @@ export class AIMSClientInstance implements AlValidationSchemaProvider {
       cacheKey: AlLocatorService.resolveURL( AlLocation.GlobalAPI, `/aims/v1/token_info/${accessToken}` )       //  custom cacheKey to avoid cache pollution
     };
     if ( useAuthenticationHeader ) {
-      request.headers['X-AIMS-Auth-Token'] = accessToken;
-    } else {
       request.headers['Authorization'] = `Bearer ${accessToken}`;
+    } else {
+      request.headers['X-AIMS-Auth-Token'] = accessToken;
     }
-    return this.client.get( { request } );
+    return await this.client.get( request );
   }
 
   /**

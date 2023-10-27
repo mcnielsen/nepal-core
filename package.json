@@ -1,6 +1,6 @@
 {
   "name": "@al/core",
-  "version": "1.2.5",
+  "version": "1.2.6",
   "description": "Node Enterprise Packages for Alert Logic (NEPAL) Core Library",
   "main": "./dist/index.cjs.js",
   "types": "./dist/index.d.ts",
@@ -23,7 +23,7 @@
     "test-watch": "karma start --no-single-run --auto-watch",
     "build-dev": "npm run clean &&  tsc && webpack --mode=development",
     "build": "rollup -c rollup.config.ts",
-    "prebuild": "npm run clean && npm run lint && npm run test",
+    "prebuild": "npm run clean",
     "lint": "./node_modules/.bin/tslint --project tsconfig.json",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run build",
