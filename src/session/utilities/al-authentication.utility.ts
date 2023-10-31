@@ -1,7 +1,7 @@
 import { AlDefaultClient } from '../../client';
 import { AlSession } from '../al-session';
 import { AlLocatorService, AlLocation } from '../../common/navigation';
-import { AIMSSessionDescriptor, FortraSession, AIMSAuthentication } from '../../aims-client/types';
+import { AIMSClient, AIMSSessionDescriptor, FortraSession, AIMSAuthentication } from '../../aims-client/index';
 import { AlRuntimeConfiguration, ConfigOption } from '../../configuration';
 import { AlConduitClient } from './al-conduit-client';
 import { getJsonPath } from '../../common/utility';
@@ -186,6 +186,13 @@ export class AlAuthenticationUtility {
             }
         }
         return this.state.result;
+    }
+
+    /**
+     * Updates the user's TOS status when a session is already established.
+     */
+    public async updateTermsOfServiceAcceptance( accountId:string, acceptTOS:boolean = true ):Promise<void> {
+        return await AIMSClient.setLicenseAcceptance( accountId, acceptTOS );
     }
 
     /**

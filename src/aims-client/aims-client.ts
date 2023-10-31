@@ -813,7 +813,40 @@ export class AIMSClientInstance implements AlValidationSchemaProvider {
           path: '/organization'
       };
       return await this.client.get( requestDescriptor ) as AIMSOrganization;
-    }
+  }
+
+  /**
+   * Retrieves licensing status information for a given accountId.
+   */
+  async getLicenseAcceptanceStatus( accountId:string ):Promise< {
+                                                                    status: string,
+                                                                    tos_url?: string,
+                                                                    tos_deferral_period_end?: number,
+                                                                } > {
+      return await this.client.get( {
+          service_stack: AlLocation.InsightAPI,
+          service_name: this.serviceName,
+          version: 1,
+          account_id: accountId,
+          path: '/tos_status'
+      } );
+  }
+
+  /**
+   * Updates license acceptance for a given accountId.
+   */
+  async setLicenseAcceptance( accountId:string, accepted:boolean ) {
+      return await this.client.post( {
+          service_stack: AlLocation.InsightAPI,
+          service_name: this.serviceName,
+          version: 1,
+          account_id: accountId,
+          path: '/tos_status',
+          data: {
+              accept_tos: accepted
+          }
+      } );
+  }
 
   /**
    * This endpoint render's an accounts related accounts topologically by adding a :relationship field to the account object,
