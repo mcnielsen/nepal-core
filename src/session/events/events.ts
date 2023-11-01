@@ -106,3 +106,14 @@ export class AlExternalTrackableEvent extends AlTriggeredEvent<void>
         super();
     }
 }
+
+/**
+ * AlFortraTokenChangedEvent is emitted by an AlSessionInstance each time the Fortra token is refreshed.
+ */
+@AlTrigger( 'AlFortraTokenChanged' )
+export class AlFortraTokenChangedEvent extends AlTriggeredEvent<void>
+{
+    constructor( public token:string ) {
+        super();
+    }
+}
