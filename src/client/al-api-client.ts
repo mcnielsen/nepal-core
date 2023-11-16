@@ -714,31 +714,38 @@ export class AlApiClient implements AlValidationSchemaProvider
    *
    */
   public async resolveDefaultEndpoints( accountId:string, serviceList:string[] ) {
-    try {
-      const context = AlLocatorService.getContext();
-      const endpointsRequest:APIRequestParams = {
-        method: "POST",
-        url: AlLocatorService.resolveURL( AlLocation.GlobalAPI, `/endpoints/v1/${accountId}/residency/default/endpoints` ),
-        data: serviceList,
-        aimsAuthHeader: true
-      };
-      let response = await this.axiosRequest( endpointsRequest );
-      let endpointsLookup: AlEndpointsDictionary = {};
-      Object.entries( response.data ).forEach( ( [ serviceName, endpointHost ] ) => {
-          let host = endpointHost as string;
-          if ( host.startsWith("async.") ) { // naming convention for WebSocket services
-            host = `wss://${host}`; // add prefix for websocket protocol
-          } else if ( !host.startsWith("http") ) {
-            host = `https://${host}`;      //  ensuring domains are prefixed with protocol
-          }
-          setJsonPath( this.endpointCache,
-                       [ context.environment, accountId, serviceName, AlApiClient.defaultResidency ],
-                       host );
-      } );
-      return this.endpointCache;
-    } catch ( e ) {
+    if (accountId === '0') {
       this.fallbackResolveEndpoints( accountId, serviceList, AlApiClient.defaultResidency );
+    } else {
+      try {
+        const context = AlLocatorService.getContext();
+        const endpointsRequest:APIRequestParams = {
+          method: "POST",
+          url: AlLocatorService.resolveURL( AlLocation.GlobalAPI, `/endpoints/v1/${accountId}/residency/default/endpoints` ),
+          data: serviceList,
+          aimsAuthHeader: true
+        };
+        let response = await this.axiosRequest( endpointsRequest );
+        let endpointsLookup: AlEndpointsDictionary = {};
+        Object.entries( response.data ).forEach( ( [ serviceName, endpointHost ] ) => {
+            let host = endpointHost as string;
+            if ( host.startsWith("async.") ) { // naming convention for WebSocket services
+              host = `wss://${host}`; // add prefix for websocket protocol
+            } else if ( !host.startsWith("http") ) {
+              host = `https://${host}`;      //  ensuring domains are prefixed with protocol
+            }
+            setJsonPath( this.endpointCache,
+                         [ context.environment, accountId, serviceName, AlApiClient.defaultResidency ],
+                         host );
+        } );
+        console.log(`resolveDefaultEndpoints() => endpointCache: `, this.endpointCache);
+        return this.endpointCache;
+      } catch ( e ) {
+        this.fallbackResolveEndpoints( accountId, serviceList, AlApiClient.defaultResidency );
+        console.error(`resolveDefaultEndpoints() => endpointCache: `, this.endpointCache);
+      }
     }
+   
   }
 
   public async resolveResidencyAwareEndpoints( accountId:string, serviceList:string[] ) {
@@ -858,7 +865,7 @@ export class AlApiClient implements AlValidationSchemaProvider
       const serviceEndpointId   =   requestParams.target_endpoint || requestParams.service_name;
       const residencyAware      =   AlApiClient.resolveByResidencyServiceList.includes( serviceEndpointId );
       const residency           =   residencyAware ? AlLocatorService.getCurrentResidency() : "default";
-
+      console.log(`prepare() -> accountId: ${accountId} environment: ${environment} residencyAware: ${residencyAware}`);
       let baseURL = getJsonPath<string>( this.endpointCache,
                                          [ environment, accountId, serviceEndpointId, residency ],
                                          null );
@@ -879,6 +886,7 @@ export class AlApiClient implements AlValidationSchemaProvider
       baseURL = getJsonPath<string>( this.endpointCache,
                                          [ environment, accountId, serviceEndpointId, residency ],
                                          null );
+      console.log(`prepare() -> baseURL: ${baseURL}`);
       if ( baseURL ) {
         return baseURL;
       }
