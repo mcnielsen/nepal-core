@@ -45,6 +45,9 @@ export interface AlParamPreservationRule {
  *   - ConfigOption.NavigationViaConduit - if enabled, AlNavigationService will attempt to retrieve navigation metadata from a conduit request
  *      (which queries console.account for a static asset).  Defaults to 'false.'
  *
+ *   - ConfigOption.ExternalConduitFrame - if set, the conduit client will *not* create the conduit iframe and add it to the document dynamically,
+ *      trusting the parent application to have already done so.
+ *
  *   - ConfigOption.NavigationViaGestalt - if enabled, AlNavigationService will attempt to retrieve navigation metadata from gestalt
  *      (via AlExternalContentManagerService).  Defaults to 'true.'
  *
@@ -70,13 +73,14 @@ export enum ConfigOption {
     LocalManagedContent         = "xcontent_local",
     ManagedContentAssetPath     = "xcontent_asset_path",
     NavigationViaConduit        = "navigation_use_conduit",
+    ExternalConduitFrame        = "navigation_external_conduit",
     NavigationViaGestalt        = "navigation_use_gestalt",
     NavigationAssetPath         = "navigation_asset_path",
     NavigationDefaultAuthState  = "navigation_default_authentication",
     NavigationIntegratedAuth    = "navigation_use_integrated_auth",
     NavigationDiagnostics       = "navigation_debug",
     Headless                    = "headless",
-    HeadlessActingURI           = "headless_uri",
+    HeadlessActingURI           = "headless_uri"
 }
 
 /**
@@ -93,6 +97,7 @@ export class AlRuntimeConfiguration {
         'xcontent_local': false,
         'xcontent_asset_path': '/assets/content',
         'navigation_use_conduit': false,
+        'navigation_external_conduit': null,
         'navigation_use_gestalt': true,
         'navigation_asset_path': 'assets/navigation',
         'navigation_default_authentication': null,

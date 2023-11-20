@@ -3,6 +3,7 @@ import {
     AlLocation,
     AlLocatorService,
 } from "../../common/navigation";
+import { AlErrorHandler } from '../../error-handler';
 import { AlBehaviorPromise } from "../../common/promises";
 import {
     AlStopwatch,
@@ -13,6 +14,7 @@ import {
     AlDatacenterSessionEstablishedEvent,
     AlExternalTrackableEvent,
 } from '../events';
+import { AlRuntimeConfiguration, ConfigOption } from '../../configuration';
 
 export class AlConduitClient
 {
@@ -30,17 +32,31 @@ export class AlConduitClient
     protected static requestIndex = 0;
 
     public start( targetDocument?:Document ) {
+        console.log("AlConduitClient is starting" );
         if ( ! targetDocument ) {
             if ( typeof( document ) === 'undefined' ) {
-                console.log("AlConduitClient: cannot start in headless mode." );
+                AlErrorHandler.report( new Error( "AlConduitClient cannot start in headless mode." ) );
                 return;
             }
             targetDocument = document;
         }
         if ( AlConduitClient.refCount < 1 ) {
             AlConduitClient.document = targetDocument;
-            if ( targetDocument && targetDocument.body && typeof( targetDocument.body.appendChild ) === 'function' ) {
-                AlConduitClient.document.body.appendChild( this.render() );
+            window.addEventListener( "message", this.onReceiveMessage, false );
+            const externalConduitFrameId = AlRuntimeConfiguration.getOption( ConfigOption.ExternalConduitFrame, null );
+            if ( typeof( externalConduitFrameId ) === 'string' ) {
+                let frameEl = targetDocument.getElementById( externalConduitFrameId ) as HTMLIFrameElement|undefined;
+                if ( ! frameEl || ! frameEl.contentWindow ) {
+                    AlErrorHandler.report( new Error( `AlConduitClient cannot start without frame #'${externalConduitFrameId}'` ) );
+                }
+                AlConduitClient.conduitWindow = frameEl.contentWindow;
+                AlConduitClient.conduitOrigin = frameEl.contentWindow?.origin || window.location.origin;
+                const payload = { type: "conduit.activate", requestId: "activation" };
+                AlConduitClient.conduitWindow.postMessage(payload, AlConduitClient.conduitOrigin );
+            } else {
+                if ( targetDocument && targetDocument.body && typeof( targetDocument.body.appendChild ) === 'function' ) {
+                    AlConduitClient.document.body.appendChild( this.render() );
+                }
             }
             AlStopwatch.once(this.validateReadiness, 5000);
         }
@@ -53,12 +69,11 @@ export class AlConduitClient
         if ( environment === 'development' ) {
             environment = 'integration';
         }
-        AlConduitClient.conduitUri = AlLocatorService.resolveURL( AlLocation.AccountsUI, '/conduit.html', { residency, environment } );
+        AlConduitClient.conduitUri = AlLocatorService.resolveURL( AlLocation.MagmaUI, '/conduit.html', { residency, environment } );
         const fragment = AlConduitClient.document.createDocumentFragment();
         const container = AlConduitClient.document.createElement( "div" );
         container.setAttribute("id", "conduitClient" );
         container.setAttribute("class", "conduit-container" );
-        window.addEventListener( "message", this.onReceiveMessage, false );
         fragment.appendChild( container );
         container.innerHTML = `<iframe frameborder="0" src="${AlConduitClient.conduitUri}" style="width:1px;height:1px;position:absolute;left:-1px;top:-1px;"></iframe>`;
         return fragment;
@@ -217,7 +232,7 @@ export class AlConduitClient
         }
 
         const originNode = AlLocatorService.getNodeByURI(event.origin);
-        const originWhitelist:string[] = [ AlLocation.AccountsUI, AlLocation.LegacyUI ];
+        const originWhitelist:string[] = [ AlLocation.AccountsUI, AlLocation.LegacyUI, AlLocation.MagmaUI ];
         if ( ! originNode || ! originWhitelist.includes( originNode.locTypeId ) ) {
             //  Ignore any events that don't originate from a whitelisted domain (currently, console.account.* or any defender stack)
             return;
