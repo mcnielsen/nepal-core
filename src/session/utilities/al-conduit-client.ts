@@ -32,7 +32,6 @@ export class AlConduitClient
     protected static requestIndex = 0;
 
     public start( targetDocument?:Document ) {
-        console.log("AlConduitClient is starting" );
         if ( ! targetDocument ) {
             if ( typeof( document ) === 'undefined' ) {
                 AlErrorHandler.report( new Error( "AlConduitClient cannot start in headless mode." ) );
@@ -69,7 +68,8 @@ export class AlConduitClient
         if ( environment === 'development' ) {
             environment = 'integration';
         }
-        AlConduitClient.conduitUri = AlLocatorService.resolveURL( AlLocation.MagmaUI, '/conduit.html', { residency, environment } );
+        let locationId = AlRuntimeConfiguration.getOption<string>( ConfigOption.NavigationConduitLocation, AlLocation.AccountsUI );
+        AlConduitClient.conduitUri = AlLocatorService.resolveURL( locationId, '/conduit.html', { residency, environment } );
         const fragment = AlConduitClient.document.createDocumentFragment();
         const container = AlConduitClient.document.createElement( "div" );
         container.setAttribute("id", "conduitClient" );

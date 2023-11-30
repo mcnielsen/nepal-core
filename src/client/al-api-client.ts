@@ -745,7 +745,6 @@ export class AlApiClient implements AlValidationSchemaProvider
         console.error(`resolveDefaultEndpoints() => endpointCache: `, this.endpointCache);
       }
     }
-   
   }
 
   public async resolveResidencyAwareEndpoints( accountId:string, serviceList:string[] ) {

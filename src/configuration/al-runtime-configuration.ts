@@ -45,8 +45,8 @@ export interface AlParamPreservationRule {
  *   - ConfigOption.NavigationViaConduit - if enabled, AlNavigationService will attempt to retrieve navigation metadata from a conduit request
  *      (which queries console.account for a static asset).  Defaults to 'false.'
  *
- *   - ConfigOption.ExternalConduitFrame - if set, the conduit client will *not* create the conduit iframe and add it to the document dynamically,
- *      trusting the parent application to have already done so.
+ *   - ConfigOption.ExternalConduitFrame - if set, the conduit client will treat the value as the id of an externally created iframe created by the
+ *      application host or parent.  Otherwise, the conduit iframe will be created dynamically.
  *
  *   - ConfigOption.NavigationViaGestalt - if enabled, AlNavigationService will attempt to retrieve navigation metadata from gestalt
  *      (via AlExternalContentManagerService).  Defaults to 'true.'
@@ -73,6 +73,7 @@ export enum ConfigOption {
     LocalManagedContent         = "xcontent_local",
     ManagedContentAssetPath     = "xcontent_asset_path",
     NavigationViaConduit        = "navigation_use_conduit",
+    NavigationConduitLocation   = "navigation_conduit_location",
     ExternalConduitFrame        = "navigation_external_conduit",
     NavigationViaGestalt        = "navigation_use_gestalt",
     NavigationAssetPath         = "navigation_asset_path",
