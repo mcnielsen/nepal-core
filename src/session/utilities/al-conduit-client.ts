@@ -70,6 +70,7 @@ export class AlConduitClient
         }
         let locationId = AlRuntimeConfiguration.getOption<string>( ConfigOption.NavigationConduitLocation, AlLocation.AccountsUI );
         AlConduitClient.conduitUri = AlLocatorService.resolveURL( locationId, '/conduit.html', { residency, environment } );
+        console.log(`Notice: conduit client is using '${AlConduitClient.conduitUri}' as target` );
         const fragment = AlConduitClient.document.createDocumentFragment();
         const container = AlConduitClient.document.createElement( "div" );
         container.setAttribute("id", "conduitClient" );

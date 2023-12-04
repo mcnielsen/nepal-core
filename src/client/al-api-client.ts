@@ -738,11 +738,11 @@ export class AlApiClient implements AlValidationSchemaProvider
                          [ context.environment, accountId, serviceName, AlApiClient.defaultResidency ],
                          host );
         } );
-        console.log(`resolveDefaultEndpoints() => endpointCache: `, this.endpointCache);
+        // console.log(`resolveDefaultEndpoints() => endpointCache: `, this.endpointCache);
         return this.endpointCache;
       } catch ( e ) {
         this.fallbackResolveEndpoints( accountId, serviceList, AlApiClient.defaultResidency );
-        console.error(`resolveDefaultEndpoints() => endpointCache: `, this.endpointCache);
+        // console.error(`resolveDefaultEndpoints() => endpointCache: `, this.endpointCache);
       }
     }
   }
@@ -864,7 +864,7 @@ export class AlApiClient implements AlValidationSchemaProvider
       const serviceEndpointId   =   requestParams.target_endpoint || requestParams.service_name;
       const residencyAware      =   AlApiClient.resolveByResidencyServiceList.includes( serviceEndpointId );
       const residency           =   residencyAware ? AlLocatorService.getCurrentResidency() : "default";
-      console.log(`prepare() -> accountId: ${accountId} environment: ${environment} residencyAware: ${residencyAware}`);
+      // console.log(`prepare() -> accountId: ${accountId} environment: ${environment} residencyAware: ${residencyAware}`);
       let baseURL = getJsonPath<string>( this.endpointCache,
                                          [ environment, accountId, serviceEndpointId, residency ],
                                          null );
@@ -885,7 +885,7 @@ export class AlApiClient implements AlValidationSchemaProvider
       baseURL = getJsonPath<string>( this.endpointCache,
                                          [ environment, accountId, serviceEndpointId, residency ],
                                          null );
-      console.log(`prepare() -> baseURL: ${baseURL}`);
+      // console.log(`prepare() -> baseURL: ${baseURL}`);
       if ( baseURL ) {
         return baseURL;
       }
