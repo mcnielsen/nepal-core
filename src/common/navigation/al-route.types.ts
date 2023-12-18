@@ -111,11 +111,17 @@ export interface AlRouteCondition
     //  An array of account IDs that fulfill the condition
     accounts?:string[];
 
+    //  Account property/value arrays
+    accountProps?:{ name:string, values:any[] }[];
+
     //  An array of user IDs that fulfill the condition
     userIds?:string[];
 
     //  An array of primary account IDs that fulfill the condition
     primaryAccounts?:string[];
+
+    //  Primary account property/value arrays
+    primaryAccountProps?:{ name:string, values:any[] }[];
 
     //  An array of locations to match against (e.g., "defender-us-denver", "insight-us-virginia", etc), measured against the acting account.
     locations?:string[];
@@ -649,6 +655,7 @@ export class AlRoute {
         if ( condition.authentication
                 || condition.accounts || condition.primaryAccounts
                 || condition.entitlements || condition.primaryEntitlements
+                || condition.accountProps || condition.primaryAccountProps
                 || condition.environments
                 || condition.experiences ) {
             //  This condition refers to entitlement or other externally managed data -- ask the host to evaluate it.

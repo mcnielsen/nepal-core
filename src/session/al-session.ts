@@ -39,6 +39,7 @@ import {
 } from "../common/utility";
 import { SubscriptionsClient } from "../subscriptions-client";
 import { AlEntitlementCollection, DefaultDataRetentionPolicy } from "../subscriptions-client/types";
+import { AIMSLicenseAcceptanceStatus } from '../aims-client/types';
 import {
     AlActingAccountChangedEvent,
     AlActingAccountResolvedEvent,
@@ -47,15 +48,10 @@ import {
     AlSessionStartedEvent,
 } from './events';
 import { AlNullSessionDescriptor } from './null-session';
-import {
-    AlConsolidatedAccountMetadata,
-    AlSessionProfile
-} from './types';
 
 interface AuthenticationOptions {
   actingAccount?:AIMSAccount|string;
   locationId?:string;
-  profileId?:string;
 }
 
 /**
@@ -232,8 +228,8 @@ export class AlSessionInstance
         this.activateSession();
 
         let result:AlActingAccountResolvedEvent = proposal.acting
-                                                  ? await this.setActingAccount( proposal.acting, proposal.profileId )
-                                                  : await this.setActingAccount( proposal.authentication.account, proposal.profileId );
+                                                  ? await this.setActingAccount( proposal.acting )
+                                                  : await this.setActingAccount( proposal.authentication.account );
 
         this.storage.set("session", this.sessionData );
         return result;
@@ -253,27 +249,23 @@ export class AlSessionInstance
      * the change of effective account and entitlements.
      *
      * @param account {string|AIMSAccount} The AIMSAccount object representating the account to focus on.
-     * @param profileId {string, optional} If provided, the name of a profile to load.  This profile can override the primary and effective entitlements
-     *                                      of the acting account.
      *
      * @returns A promise that resolves
      */
-    public async setActingAccount( account: string|AIMSAccount, profileId?:string ):Promise<AlActingAccountResolvedEvent> {
+    public async setActingAccount( account: string|AIMSAccount ):Promise<AlActingAccountResolvedEvent> {
 
       if ( ! account ) {
         throw new Error("Usage error: setActingAccount requires an account ID or account descriptor." );
       }
       if ( typeof( account ) === 'string' ) {
         const accountDetails = await AIMSClient.getAccountDetails( account );
-        return await this.setActingAccount( accountDetails, profileId );
+        return await this.setActingAccount( accountDetails );
       }
       const previousAccount               = this.sessionData.acting;
       const mustResolveAccount            = ! this.sessionData.acting
-                                              || this.sessionData.acting.id !== account.id
-                                              || profileId !== this.sessionData.profileId;
+                                              || this.sessionData.acting.id !== account.id;
 
       this.sessionData.acting             = account;
-      this.sessionData.profileId          = profileId;
 
       const targetLocationId              = account.accessible_locations.indexOf( this.sessionData.boundLocationId ) !== -1
                                               ? this.sessionData.boundLocationId
@@ -283,7 +275,6 @@ export class AlSessionInstance
       AlDefaultClient.defaultAccountId    = account.id;
 
       let resolveMetadata                 = AlRuntimeConfiguration.getOption<boolean>( ConfigOption.ResolveAccountMetadata, true );
-      let useConsolidatedResolver         = AlRuntimeConfiguration.getOption<boolean>( ConfigOption.ConsolidatedAccountResolver, false );
 
       if ( ! resolveMetadata ) {
         //  If metadata resolution is disabled, still trigger changed/resolved events with basic data
@@ -302,9 +293,7 @@ export class AlSessionInstance
         } );
         this.notifyStream.trigger( new AlActingAccountChangedEvent( previousAccount, this.sessionData.acting ) );
         this.storage.set("session", this.sessionData );
-        return useConsolidatedResolver
-          ? await this.resolveActingAccountConsolidated( account, profileId )
-          : await this.resolveActingAccount( account, profileId );
+        return await this.resolveActingAccount( account );
       } else {
         return Promise.resolve( this.resolvedAccount );
       }
@@ -567,10 +556,6 @@ export class AlSessionInstance
       return this.resolutionGuard.then( () => {} );
     }
 
-    public getProfileId():string|undefined {
-        return this.sessionData.profileId;
-    }
-
     /**
      * Retrieves the primary account's entitlements, or null if there is no session.
      */
@@ -698,33 +683,6 @@ export class AlSessionInstance
       }
     }
 
-
-    protected async getSessionProfile( profileId?:string ):Promise<AlSessionProfile> {
-      if ( ! profileId ) {
-        return {};
-      }
-      try {
-        if ( AlRuntimeConfiguration.getOption( ConfigOption.NavigationViaGestalt, true ) ) {
-          let profile = await AlDefaultClient.get<AlSessionProfile>( {
-            service_stack: AlLocation.GestaltAPI,
-            service_name: 'content',
-            version: 1,
-            path: `navigation/profiles/${profileId}.json`,
-            withCredentials: false
-          } );
-          return profile;
-        } else {
-          let profile = await AlDefaultClient.get<AlSessionProfile>( {
-            url: `/assets/navigation/profiles/${profileId}.json`
-          } );
-          return profile;
-        }
-      } catch( e ) {
-        console.error( `Failed to load profile '${profileId}'; ignoring`, e );
-        return {};
-      }
-    }
-
     protected async mergeSessionOptions( session:AIMSSessionDescriptor,
                                          options:AuthenticationOptions ) {
       if ( options.actingAccount ) {
@@ -736,9 +694,6 @@ export class AlSessionInstance
       }
       if ( options.locationId ) {
         session.boundLocationId = options.locationId;
-      }
-      if ( options.profileId ) {
-        session.profileId = options.profileId;
       }
     }
 
@@ -772,75 +727,50 @@ export class AlSessionInstance
      * This method will retrieve the full account details, managed accounts, and entitlements for this account
      * and then emit an AlActingAccountResolvedEvent through the session's notifyStream.
      */
-    protected async resolveActingAccount( account:AIMSAccount, profileId?:string ) {
-      const resolved:AlActingAccountResolvedEvent = new AlActingAccountResolvedEvent( account, null, null );
-      let dataSources:Promise<any>[] = [
+    protected async resolveActingAccount( account:AIMSAccount ) {
+      let primaryEntitlementsLookup = SubscriptionsClient.getEntitlements( this.getPrimaryAccountId() );
+      let dataSources = [
           AIMSClient.getAccountDetails( account.id ),
-          this.getSessionProfile( profileId ),
-          SubscriptionsClient.getEntitlements( this.getPrimaryAccountId() )
+          AIMSClient.getLicenseAcceptanceStatus( account.id ),
+          primaryEntitlementsLookup,
+          account.id === this.getPrimaryAccountId() ? primaryEntitlementsLookup : SubscriptionsClient.getEntitlements( account.id )
       ];
 
-      if ( account.id !== this.getPrimaryAccountId() ) {
-        dataSources.push( SubscriptionsClient.getEntitlements( account.id ) );
-      }
+      let [ accountReq, licenseStatusReq, primaryEntitlementsReq, actingEntitlementsReq ] = await Promise.allSettled( dataSources );
 
-      return Promise.all( dataSources )
-              .then(  dataObjects => {
-                        const account:AIMSAccount                           =   dataObjects[0];
-                        const sessionProfile:AlSessionProfile               =   dataObjects[1];
-                        const primaryEntitlements:AlEntitlementCollection   =   dataObjects[2];
-                        let actingEntitlements:AlEntitlementCollection;
-                        if ( dataObjects.length > 3 ) {
-                          actingEntitlements                                =   dataObjects[3];
-                        } else {
-                          actingEntitlements                                =   primaryEntitlements;
-                        }
-
-                        resolved.actingAccount      =   account;
-                        resolved.primaryEntitlements = sessionProfile.primaryEntitlements
-                          ? AlEntitlementCollection.fromArray( sessionProfile.primaryEntitlements )
-                          : primaryEntitlements;
-                        resolved.entitlements       =   sessionProfile.entitlements
-                          ? AlEntitlementCollection.fromArray( sessionProfile.entitlements )
-                          : actingEntitlements;
-                        this.resolvedAccount        =   resolved;
-                        this.resolutionGuard.resolve(true);
-                        this.notifyStream.trigger( resolved );
-
-                        return resolved;
-                      },
-                      error => {
-                        console.error(`Error: could not resolve the acting account to "${account.id}"`, error );
-                        return Promise.reject( error );
-                      } );
-    }
-
-    protected async resolveActingAccountConsolidated( account:AIMSAccount, profileId?:string ) {
-      let request = {
-        service_stack: AlLocation.GestaltAPI,
-        service_name: undefined,
-        version: undefined,
-        path: `/account/v1/${account.id}/metadata`,
-        withCredentials: false
-      };
       try {
-        let [ metadata, profile ] = await Promise.all( [
-          AlDefaultClient.get( request ),
-          this.getSessionProfile( profileId )
-        ] );
-        let effectiveEntitlements = profile.entitlements
-          ? AlEntitlementCollection.fromArray( profile.entitlements )
-          : AlEntitlementCollection.import( metadata.effectiveEntitlements );
-        let primaryEntitlements = profile.primaryEntitlements
-          ? AlEntitlementCollection.fromArray( profile.primaryEntitlements )
-          : AlEntitlementCollection.import( metadata.primaryEntitlements );
-        this.resolvedAccount = new AlActingAccountResolvedEvent( metadata.actingAccount, effectiveEntitlements, primaryEntitlements );
-        this.resolutionGuard.resolve( true );
+        let coreServiceError                                =   null;
+        let account:AIMSAccount                             =   this.resolvedAccount.actingAccount;
+        let primaryEntitlements                             =   new AlEntitlementCollection();
+        let actingEntitlements                              =   new AlEntitlementCollection();
+        let licenseStatus:AIMSLicenseAcceptanceStatus       =   null;
+
+        if ( accountReq.status === 'fulfilled' ) {
+            account = accountReq.value as AIMSAccount;
+        } else {
+            coreServiceError = "aims/account";
+        }
+
+        if ( primaryEntitlementsReq.status === 'fulfilled' && actingEntitlementsReq.status === 'fulfilled' ) {
+            primaryEntitlements = primaryEntitlementsReq.value as AlEntitlementCollection;
+            actingEntitlements = actingEntitlementsReq.value as AlEntitlementCollection;
+        } else {
+            coreServiceError = "subscriptions/entitlements";
+        }
+
+        if ( licenseStatusReq.status === 'fulfilled' ) {
+            licenseStatus = licenseStatusReq.value as AIMSLicenseAcceptanceStatus;
+        }
+
+        this.resolvedAccount        =   new AlActingAccountResolvedEvent( account, actingEntitlements, primaryEntitlements,
+                                                                          licenseStatus, coreServiceError );
+        this.resolutionGuard.resolve(true);
         this.notifyStream.trigger( this.resolvedAccount );
+
         return this.resolvedAccount;
       } catch( e ) {
-        console.warn("Failed to retrieve consolidated account metadata: falling back to default resolution method.", e );
-        return this.resolveActingAccount( account );
+        console.error( e );
+        throw e;
       }
     }
 }

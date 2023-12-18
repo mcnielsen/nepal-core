@@ -126,3 +126,9 @@ export interface AIMSTopology extends AIMSAccount {
     managing?: AIMSTopology[];
     managed?: AIMSTopology[];
 }
+
+export interface AIMSLicenseAcceptanceStatus {
+    status: string;
+    tos_url?: string;
+    tos_deferral_period_end?: number;
+}

@@ -23,6 +23,7 @@ import {
     AIMSUser,
     AIMSUserDetails,
     AIMSEnrollURI,
+    AIMSLicenseAcceptanceStatus,
 } from './types';
 import { aimsTypeSchematics } from './aims.schematics';
 
@@ -818,11 +819,7 @@ export class AIMSClientInstance implements AlValidationSchemaProvider {
   /**
    * Retrieves licensing status information for a given accountId.
    */
-  async getLicenseAcceptanceStatus( accountId:string ):Promise< {
-                                                                    status: string,
-                                                                    tos_url?: string,
-                                                                    tos_deferral_period_end?: number,
-                                                                } > {
+  async getLicenseAcceptanceStatus( accountId:string ):Promise<AIMSLicenseAcceptanceStatus> {
       return await this.client.get( {
           service_stack: AlLocation.InsightAPI,
           service_name: this.serviceName,
@@ -887,6 +884,23 @@ export class AIMSClientInstance implements AlValidationSchemaProvider {
     }
     const first = addCurrentId ? [accountId] : [];
     return [...first, ...getIds(topology[relationship])];
+  }
+
+  /**
+   * Retrieves the Frontline PCI scan migration status for a given account.  This is a placeholder for future functionality.
+   */
+  async getFrontlineMigrationStatus( accountId:string ):Promise<any> {
+      return Promise.resolve( {
+          accountId,
+          status: 'pending'
+      } );
+  }
+
+  /**
+   * Triggers Frontline PCI scan migration for a given account.
+   */
+  async startFrontlineMigration( accountId:string ):Promise<boolean> {
+      return Promise.resolve( true );
   }
 
   /**

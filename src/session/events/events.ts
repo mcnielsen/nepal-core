@@ -1,6 +1,7 @@
 import {
     AIMSAccount,
     AIMSUser,
+    AIMSLicenseAcceptanceStatus,
 } from "../../aims-client";
 import {
     AlTrigger,
@@ -56,7 +57,9 @@ export class AlActingAccountResolvedEvent extends AlTriggeredEvent<void>
 {
     constructor( public actingAccount:AIMSAccount,
                  public entitlements:AlEntitlementCollection,
-                 public primaryEntitlements:AlEntitlementCollection ) {
+                 public primaryEntitlements:AlEntitlementCollection,
+                 public licenseAcceptance?:AIMSLicenseAcceptanceStatus,
+                 public coreServiceError?:string ) {
         super();
     }
 }

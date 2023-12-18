@@ -13,10 +13,3 @@ export interface AlConsolidatedAccountMetadata {
     effectiveEntitlements:AlEntitlementRecord[];
     endpointsData:any;
 }
-
-export interface AlSessionProfile {
-    entitlements?:string[];
-    primaryEntitlements?:string[];
-    globalExperience?:string;
-    experiences?:string[];
-}
