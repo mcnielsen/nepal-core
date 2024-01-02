@@ -345,7 +345,7 @@ export class AlSessionInstance
       if ( this.sessionData.fortraSession ) {
           this.sessionData.fortraSession.accessToken = token;
       }
-      this.storage.set("session", this.sessionData );
+      this.storage.set("session", this.sessionData ).synchronize();
     }
 
     /**
