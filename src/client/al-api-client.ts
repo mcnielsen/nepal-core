@@ -121,6 +121,7 @@ export class AlApiClient implements AlValidationSchemaProvider
   private executionRequestLog:APIExecutionLogItem[] = [];
 
   private interceptionRules?:AlInterceptionRules;
+  private beforeRequest?:{():Promise<any>};
 
   constructor() {
       // temp to debug ie11
@@ -799,6 +800,10 @@ export class AlApiClient implements AlValidationSchemaProvider
       }
   }
 
+  public setBeforeRequest( handler?:{():Promise<any>} ) {
+    this.beforeRequest = handler;
+  }
+
   protected getGestaltAuthenticationURL():string {
       let residency = 'US';
       let environment = AlLocatorService.getCurrentEnvironment();
@@ -994,6 +999,9 @@ export class AlApiClient implements AlValidationSchemaProvider
     if ( this.mockMode ) {
         return new Promise( ( resolve, reject ) => {
         } );
+    }
+    if ( this.beforeRequest ) {
+        await this.beforeRequest();
     }
     return ax( config ).then( response => {
                                 if ( attemptIndex > 0 ) {
