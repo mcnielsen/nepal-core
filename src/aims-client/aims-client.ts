@@ -889,10 +889,13 @@ export class AIMSClientInstance implements AlValidationSchemaProvider {
   /**
    * Retrieves the Frontline PCI scan migration status for a given account.  This is a placeholder for future functionality.
    */
-  async getFrontlineMigrationStatus( accountId:string ):Promise<any> {
-      return Promise.resolve( {
-          accountId,
-          status: 'pending'
+  async getFrontlineMigrationStatus( accountId:string ):Promise<{import_status: "PENDING"|"RUNNING"|"COMPLETED"|"ERRORED",import_details:any}> {
+      return await this.client.get( {
+          service_stack: AlLocation.InsightAPI,
+          service_name: this.serviceName,
+          version: this.serviceVersion,
+          account_id: accountId,
+          path: `/migrate/frontline/scans/status`
       } );
   }
 
@@ -900,7 +903,13 @@ export class AIMSClientInstance implements AlValidationSchemaProvider {
    * Triggers Frontline PCI scan migration for a given account.
    */
   async startFrontlineMigration( accountId:string ):Promise<boolean> {
-      return Promise.resolve( true );
+      return await this.client.post( {
+          service_stack: AlLocation.InsightAPI,
+          service_name: this.serviceName,
+          version: this.serviceVersion,
+          account_id: accountId,
+          path: `/migrate/frontline/scans`
+      } );
   }
 
   /**
