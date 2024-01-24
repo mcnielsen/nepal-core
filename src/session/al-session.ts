@@ -339,11 +339,17 @@ export class AlSessionInstance
      * Modelled on /aims/v1/:account_id/account
      * To be called by AIMS Service
      */
-    setTokenInfo(token: string, tokenExpiration: number) {
+    setTokenInfo(token: string, tokenExpiration: number, fortraIdToken?:string, fortraRefreshToken?:string ) {
       this.sessionData.authentication.token = token;
       this.sessionData.authentication.token_expiration = tokenExpiration;
-      if ( this.sessionData.fortraSession ) {
-          this.sessionData.fortraSession.accessToken = token;
+      if ( fortraIdToken && fortraRefreshToken ) {
+          this.sessionData.fortraSession = {
+              accessToken: token,
+              identityToken: fortraIdToken,
+              refreshToken: fortraRefreshToken,
+          };
+      } else {
+          delete this.sessionData.fortraSession;
       }
       this.storage.set("session", this.sessionData ).synchronize();
     }

@@ -14,7 +14,7 @@ import { exampleSession } from '../mocks/session-data.mocks';
 describe('AlConduitClient', () => {
 
     let conduitClient:AlConduitClient;
-    let stopwatchStub, warnStub;
+    let stopwatchStub, warnStub, errorStub;
     let originalContext:AlLocationContext;
 
     let generateMockRequest = ( requestType:string, data:any = null, requestId:string = null ) => {
@@ -42,6 +42,7 @@ describe('AlConduitClient', () => {
         conduitClient = new AlConduitClient();
         stopwatchStub = sinon.stub( AlStopwatch, 'once' );
         warnStub = sinon.stub( console, 'warn' );
+        errorStub = sinon.stub( console, 'error' );
         originalContext = AlLocatorService.getContext();
         AlLocatorService.setActingUri( "https://console.search.alertlogic.co.uk" );
     } );
@@ -153,6 +154,9 @@ describe('AlConduitClient', () => {
     } );
 
     describe(".onReceiveMessage()", () => {
+        before( () => {
+            AlConduitClient.verbose = true;
+        } );
         it( "should ignore events with missing data or incorrect origin", () => {
             let dispatchStub = sinon.stub( conduitClient, 'onDispatchReply' );
 
@@ -203,8 +207,8 @@ describe('AlConduitClient', () => {
             let event = generateMockRequest( 'conduit.getGlobalResource', { resourceName: 'navigation/cie-plus2', ttl: 60 } );
             conduitClient.onReceiveMessage( event );
         } );
-        it( "should warn about invalid message types", () => {
-
+        it( "should warn about invalid message types if verbosity is turned on", () => {
+            AlConduitClient.verbose = true;
             let event = {
                 data: {
                     type: 'conduit.notARealMethod',
@@ -215,7 +219,10 @@ describe('AlConduitClient', () => {
             };
             conduitClient.onReceiveMessage( event );
             expect( warnStub.callCount ).to.equal( 1 );
-
+            AlConduitClient.verbose = false;
+        } );
+        after( () => {
+            AlConduitClient.verbose = false;
         } );
 
     } );
@@ -242,7 +249,7 @@ describe('AlConduitClient', () => {
             AlConduitClient['conduitWindow'] = null;
             AlConduitClient['conduitOrigin'] = null;
             conduitClient['validateReadiness']();
-            expect( warnStub.callCount ).to.equal( 1 );
+            expect( errorStub.callCount ).to.equal( 1 );
         } );
     } );
 
@@ -251,10 +258,12 @@ describe('AlConduitClient', () => {
         let calledThrough = false;
 
         it( "should warn/return on missing request IDs", () => {
+            AlConduitClient.verbose = true;
             let event = generateMockRequest( 'conduit.getSession' );
             conduitClient.onDispatchReply( event );
             expect( warnStub.callCount ).to.equal( 1 );
             expect( calledThrough ).to.equal( false );
+            AlConduitClient.verbose = false;
         } );
 
         it( "should call through and clear existing request callbacks", () => {

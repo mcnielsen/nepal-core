@@ -19,6 +19,7 @@ import { AlRuntimeConfiguration, ConfigOption } from '../../configuration';
 export class AlConduitClient
 {
     public static events:AlTriggerStream = new AlTriggerStream();
+    public static verbose = false;
 
     protected static document:Document;
     protected static conduitUri:string;
@@ -275,10 +276,14 @@ export class AlConduitClient
     public onDispatchReply(event: any): void {
         const requestId: string = event.data.requestId;
         if (!AlConduitClient.requests.hasOwnProperty(requestId)) {
-            console.warn(`Warning: received a conduit response to an unknown request with ID '${requestId}'; multiple clients running?` );
+            if ( AlConduitClient.verbose ) {
+                console.warn(`Warning: received a conduit response to an unknown request with ID '${requestId}'; multiple clients running?` );
+            }
             return;
         } else if ( AlConduitClient.requests[requestId].canceled ) {
-            console.warn(`Warning: received a conduit response after its timeout expired; discarding.` );
+            if ( AlConduitClient.verbose ) {
+                console.warn(`Warning: received a conduit response after its timeout expired; discarding.` );
+            }
             return;
         }
 
@@ -332,7 +337,7 @@ export class AlConduitClient
      */
     protected validateReadiness = () => {
         if (!AlConduitClient.conduitWindow && !AlConduitClient.conduitOrigin) {
-            console.warn('Conduit Warning: no conduit.ready message was received from the console.account conduit application.  This may result in degradation or unavailability of authentication features in this application.');
+            console.error( new Error( 'Conduit Failure: did not receive a handshake message from the conduit application.  This may result in degradation or unavailability of authentication features in this application.') );
         }
     }
 
