@@ -615,13 +615,18 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
         environment: 'integration|development|production-staging|production',
     },
     {
+        locTypeId: AlLocation.FortraPlatform,
+        uri: 'https://platform.fortra.com',
+        environment: 'integration|development|production-staging|production',
+    },
+    {
         locTypeId: AlLocation.FrontlineVM,
-        uri: 'https://vm.release.ddiaws.com',
+        uri: 'https://vm.us.flstaging.cloud',
         environment: 'integration|development',
     },
     {
         locTypeId: AlLocation.FrontlineVM,
-        uri: 'https://vm.release.ddiaws.com',
+        uri: 'https://login.frontline.cloud',
         environment: 'production-staging|production',
     },
 ];
