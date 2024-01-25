@@ -612,12 +612,12 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
     {
         locTypeId: AlLocation.FortraPlatform,
         uri: 'https://foundation.foundation-stage.cloudops.fortradev.com',
-        environment: 'integration|development|production-staging|production',
+        environment: 'integration|development',
     },
     {
         locTypeId: AlLocation.FortraPlatform,
         uri: 'https://platform.fortra.com',
-        environment: 'integration|development|production-staging|production',
+        environment: 'production-staging|production',
     },
     {
         locTypeId: AlLocation.FrontlineVM,
