@@ -131,7 +131,6 @@ export class AlAuthenticationUtility {
         return this.state.result;
     }
 
-
     /**
      * Performs authentication using a session token (which must be separately populated into `this.state.sessionToken`) and
      * an MFA verification code.
@@ -250,7 +249,7 @@ export class AlAuthenticationUtility {
      * Fortra-Derived Authentication - use a fortra identity to authenticate against AIMS
      */
 
-    protected async authenticateViaAIMSFromFortra( fortraSession:FortraSession ):Promise<AIMSSessionDescriptor> {
+    public async authenticateViaAIMSFromFortra( fortraSession:FortraSession ):Promise<AIMSSessionDescriptor> {
         let tokenInfo = await AlDefaultClient.get( {
             service_stack: AlLocation.GlobalAPI,
             service_name: "aims",
