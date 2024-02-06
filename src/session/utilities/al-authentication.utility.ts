@@ -266,6 +266,20 @@ export class AlAuthenticationUtility {
         return outcome;
     }
 
+    public async convertFortraToken( fortraSession:FortraSession ):Promise<string> {
+        let converted = await AlDefaultClient.post( {
+            service_stack: AlLocation.GlobalAPI,
+            service_name: "aims",
+            version: 1,
+            path: `/authenticate/convert_token`,
+            aimsAuthHeader: false,
+            data: {
+                token: fortraSession.accessToken
+            }
+        } ) as AIMSAuthentication;
+        return converted.token;
+    }
+
     protected async authenticateViaGestaltFromFortra( fortraSession:FortraSession ):Promise<AIMSSessionDescriptor> {
         let outcome = await AlDefaultClient.post( {
             service_stack: AlLocation.MagmaUI,
