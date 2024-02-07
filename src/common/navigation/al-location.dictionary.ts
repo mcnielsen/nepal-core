@@ -621,7 +621,7 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
     },
     {
         locTypeId: AlLocation.FrontlineVM,
-        uri: 'https://vm.flstaging.coud',
+        uri: 'https://vm.flstaging.cloud',
         environment: 'integration|development',
     },
     {
