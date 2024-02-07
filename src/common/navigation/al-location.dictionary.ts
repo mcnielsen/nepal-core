@@ -621,13 +621,20 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
     },
     {
         locTypeId: AlLocation.FrontlineVM,
-        uri: 'https://vm.us.flstaging.cloud',
+        uri: 'https://vm.flstaging.coud',
         environment: 'integration|development',
     },
     {
         locTypeId: AlLocation.FrontlineVM,
-        uri: 'https://login.frontline.cloud',
+        uri: 'https://vm.us.frontline.cloud',
         environment: 'production-staging|production',
+        residency: 'US'
+    },
+    {
+        locTypeId: AlLocation.FrontlineVM,
+        uri: 'https://vm.uk.frontline.cloud',
+        environment: 'production-staging|production',
+        residency: 'EMEA'
     },
 ];
 
