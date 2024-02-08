@@ -1,5 +1,12 @@
 import { AlChangeStamp } from '../../types';
 
+export interface AIMSMappedAccount {
+    alertlogic_account: string;
+    frontline_account: string;
+    created: AlChangeStamp;
+    modified: AlChangeStamp;
+}
+
 export interface AIMSAuthentication {
     user: AIMSUser;
     account: AIMSAccount;

@@ -24,6 +24,7 @@ import {
     AIMSUserDetails,
     AIMSEnrollURI,
     AIMSLicenseAcceptanceStatus,
+    AIMSMappedAccount,
 } from './types';
 import { aimsTypeSchematics } from './aims.schematics';
 
@@ -897,6 +898,19 @@ export class AIMSClientInstance implements AlValidationSchemaProvider {
           account_id: accountId,
           path: `/migrate/frontline/scans/status`
       } );
+  }
+
+  /**
+   * Retrieves the mapped account given an account ID
+   * @param accountId ALert Logic's account ID
+   */
+  async getMappedAccount(accountId: string): Promise<AIMSMappedAccount> {
+    return await this.client.get({
+      service_stack: AlLocation.InsightAPI,
+      service_name: this.serviceName,
+      version: this.serviceVersion,
+      path: `/${accountId}/mapping`
+    })
   }
 
   /**
