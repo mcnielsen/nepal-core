@@ -910,7 +910,7 @@ export class AIMSClientInstance implements AlValidationSchemaProvider {
       service_name: this.serviceName,
       version: this.serviceVersion,
       path: `/${accountId}/mapping`
-    })
+    });
   }
 
   /**
