@@ -3,12 +3,12 @@ import {
     AlLocation,
     AlLocatorService,
 } from "../../common/navigation";
-import { AlErrorHandler } from '../../error-handler';
 import { AlBehaviorPromise } from "../../common/promises";
 import {
     AlStopwatch,
     AlTriggerStream,
 } from "../../common/utility";
+import { AlErrorHandler } from '../../error-handler';
 import {
     AlDatacenterSessionErrorEvent,
     AlDatacenterSessionEstablishedEvent,
@@ -71,7 +71,7 @@ export class AlConduitClient
         }
         let locationId = AlRuntimeConfiguration.getOption<string>( ConfigOption.NavigationConduitLocation, AlLocation.AccountsUI );
         AlConduitClient.conduitUri = AlLocatorService.resolveURL( locationId, '/conduit.html', { residency, environment } );
-        console.log(`Notice: conduit client is using '${AlConduitClient.conduitUri}' as target` );
+        AlErrorHandler.log( `Notice: conduit client is using '${AlConduitClient.conduitUri}' as target` );
         const fragment = AlConduitClient.document.createDocumentFragment();
         const container = AlConduitClient.document.createElement( "div" );
         container.setAttribute("id", "conduitClient" );
@@ -178,9 +178,9 @@ export class AlConduitClient
     /**
      * Deletes existing session information.
      */
-    public deleteSession(): Promise<boolean> {
+    public deleteSession() {
         return this.request('conduit.deleteSession')
-                    .then( () => true );
+            .then( () => true );
     }
 
     /**
@@ -264,12 +264,14 @@ export class AlConduitClient
     }
 
     public onConduitReady(event: any ): void {
-        AlConduitClient.conduitWindow = event.source;
-        AlConduitClient.conduitOrigin = event.origin;
-        AlConduitClient.ready.resolve( true );
-        if ( typeof( event.data.cookiesDisabled ) === 'boolean' && event.data.cookiesDisabled ) {
-            console.warn("WARNING: conduit has indicated that 3rd party cookies are disabled, triggering session error event." );
-            AlConduitClient.events.trigger( new AlDatacenterSessionErrorEvent( "inapplicable", "cookie-configuration", event.data ) );
+        if ( AlConduitClient.conduitUri.startsWith( event.origin ) ) {
+            AlConduitClient.conduitWindow = event.source;
+            AlConduitClient.conduitOrigin = event.origin;
+            AlConduitClient.ready.resolve( true );
+            if ( typeof( event.data.cookiesDisabled ) === 'boolean' && event.data.cookiesDisabled ) {
+                console.warn("WARNING: conduit has indicated that 3rd party cookies are disabled, triggering session error event." );
+                AlConduitClient.events.trigger( new AlDatacenterSessionErrorEvent( "inapplicable", "cookie-configuration", event.data ) );
+            }
         }
     }
 
@@ -298,7 +300,7 @@ export class AlConduitClient
         if ( typeof( event.data.locationId ) !== 'string' ) {
             return;
         }
-        console.log(`Notice: received external session confirmation for location [${event.data.locationId}]` );
+        AlErrorHandler.log( `Notice: received external session confirmation for location [${event.data.locationId}]` );
         const session = AlConduitClient.externalSessions.hasOwnProperty( event.data.locationId ) ? AlConduitClient.externalSessions[event.data.locationId] : null;
 
         if ( session ) {

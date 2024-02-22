@@ -158,6 +158,9 @@ export class AlSessionInstance
               }
               this.setTokenInfo( token, expirationTTL );
               console.log("Updated AIMS Token to expire in %s seconds from now", offset );
+          },
+          logging: ( enable:boolean ) => {
+              AlErrorHandler.verbose = enable;
           }
       } );
     }
