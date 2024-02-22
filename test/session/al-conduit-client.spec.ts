@@ -234,12 +234,12 @@ describe('AlConduitClient', () => {
                     type: "conduit.ready"
                 },
                 source: { blahblah: "my source" },
-                origin: "https://my-arbitrary-origin.com"
+                origin: 'https://console.account.alertlogic.com/conduit.html'
             };
 
             conduitClient.onConduitReady( event );
 
-            expect( AlConduitClient['conduitOrigin'] ).to.equal( "https://my-arbitrary-origin.com" );
+            expect( AlConduitClient['conduitOrigin'] ).to.equal( 'https://console.account.alertlogic.com/conduit.html' );       
             expect( AlConduitClient['conduitWindow'] ).to.equal( event.source );
         } );
     } );
