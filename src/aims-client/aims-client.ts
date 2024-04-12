@@ -33,6 +33,10 @@ export class AIMSClientInstance implements AlValidationSchemaProvider {
   private client:AlApiClient;
   private serviceName = 'aims';
   private serviceVersion:string = "v1";
+  private _usersDict = {};
+  public get usersDict() {
+    return this._usersDict;
+  }
 
   constructor( client:AlApiClient = null ) {
     this.client = client || AlDefaultClient;
@@ -137,6 +141,30 @@ export class AIMSClientInstance implements AlValidationSchemaProvider {
     });
     return userDetails as AIMSUser;
   }
+
+  /**
+     * Asynchronously loads user names for a list of user IDs.
+     * Updates the user dictionary with the user's name or sets it to "Unknown User" in case of an error.
+     * @param {string[]} userIds - Array of user IDs to load details for.
+     * @returns {Promise<void>} A promise that resolves once all user details are loaded.
+     */
+    async loadUserNames(userIds: string[]): Promise<void> {
+      var promises: Promise<AIMSUser>[] = [];
+      userIds.forEach((id) => {
+        if (!(id in this._usersDict)) {
+          promises.push(AIMSClient.getUserDetailsByUserId(id));
+        }
+      });
+      var results = await Promise.allSettled(promises);
+      results.forEach((result, index) => {
+        var id = userIds[index];
+        if (result.status === 'fulfilled') {
+          this._usersDict[id] = result.value.name ?? '';
+        } else if(result.status === 'rejected') {
+          this._usersDict[id] = 'Unknown User';
+        }
+      });
+    }
 
   /**
    * Get user permissions
