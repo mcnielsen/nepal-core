@@ -33,6 +33,7 @@ export class AIMSClientInstance implements AlValidationSchemaProvider {
   private client:AlApiClient;
   private serviceName = 'aims';
   private serviceVersion:string = "v1";
+  /* tslint:disable:variable-name*/
   private _usersDict = {};
   public get usersDict() {
     return this._usersDict;
@@ -148,23 +149,23 @@ export class AIMSClientInstance implements AlValidationSchemaProvider {
      * @param {string[]} userIds - Array of user IDs to load details for.
      * @returns {Promise<void>} A promise that resolves once all user details are loaded.
      */
-    async loadUserNames(userIds: string[]): Promise<void> {
-      var promises: Promise<AIMSUser>[] = [];
+  async loadUserNames(userIds: string[]): Promise<void> {
+      let promises: Promise<AIMSUser>[] = [];
       userIds.forEach((id) => {
         if (!(id in this._usersDict)) {
           promises.push(AIMSClient.getUserDetailsByUserId(id));
         }
       });
-      var results = await Promise.allSettled(promises);
+      let results = await Promise.allSettled(promises);
       results.forEach((result, index) => {
-        var id = userIds[index];
+        let id = userIds[index];
         if (result.status === 'fulfilled') {
           this._usersDict[id] = result.value.name ?? '';
         } else if(result.status === 'rejected') {
           this._usersDict[id] = 'Unknown User';
         }
       });
-    }
+  }
 
   /**
    * Get user permissions

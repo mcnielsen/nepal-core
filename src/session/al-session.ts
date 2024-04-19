@@ -714,10 +714,12 @@ export class AlSessionInstance
                 ||
              ( this.authenticatedStacks.includes( event.request.service_stack ) && event.request.aimsAuthHeader !== false ) ) {
           event.request.headers = event.request.headers || {};
-          if ( this.sessionData?.fortraSession ) {
+          if ( ! ( 'X-AIMS-Auth-Token' in event.request.headers ) && ! ( 'Authorization' in event.request.headers ) ) {
+            if ( this.sessionData?.fortraSession ) {
               event.request.headers['Authorization'] = `Bearer ${this.sessionData.fortraSession.accessToken}`;
-          } else {
+            } else {
               event.request.headers['X-AIMS-Auth-Token'] = this.getToken();
+            }
           }
         }
       }
