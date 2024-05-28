@@ -823,6 +823,9 @@ export class AlApiClient implements AlValidationSchemaProvider
       // Utilize the endpoints service to determine which location to use for this service/account pair
       fullPath = await this.prepare( params );
     }
+    if (params.noEndpointsResolution && !fullPath && params.residency) {
+      fullPath = AlLocatorService.resolveURL(params.service_stack, null, {residency: params.residency});
+    }
     if ( ! fullPath ) {
       // If specific endpoints are disabled or unavailable, use the environment-level default
       fullPath = AlLocatorService.resolveURL( params.service_stack );
