@@ -31,19 +31,18 @@ module.exports = function(config){
 
         karmaTypescriptConfig: {
             tsconfig: "tsconfig.spec.json",
-            reports :
-                {
-                    "html"        : {
-                        "directory"   : "coverage",
-                        "subdirectory": "report",
-                    },
-                    "text-summary": "",
-                    "json-summary": {
-                        "directory": "coverage",
-                        "subdirectory": "summary",
-                        "filename": "json-summary.json"
-                    }
+            reports : {
+                "html"        : {
+                    "directory"   : "coverage",
+                    "subdirectory": "report",
                 },
+                "text-summary": "",
+                "json-summary": {
+                    "directory": "coverage",
+                    "subdirectory": "summary",
+                    "filename": "json-summary.json"
+                }
+            }
         },
         singleRun: true,
         captureTimeout: 210000,

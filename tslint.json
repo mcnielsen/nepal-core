@@ -28,10 +28,7 @@
       }
     ],
     "object-literal-key-quotes": false,
-    "member-ordering": [ true, { "order": "fields-first" } ]
-
-
-
-
+    "member-ordering": [ true, { "order": "fields-first" } ],
+    "import-name": false
   }
 }
