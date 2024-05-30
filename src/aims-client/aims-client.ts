@@ -160,7 +160,7 @@ export class AIMSClientInstance implements AlValidationSchemaProvider {
       results.forEach((result, index) => {
         let id = userIds[index];
         if (result.status === 'fulfilled') {
-          this._usersDict[id] = result.value.name ?? '';
+          this._usersDict[id] = result.value.name || '';
         } else if(result.status === 'rejected') {
           this._usersDict[id] = 'Unknown User';
         }
