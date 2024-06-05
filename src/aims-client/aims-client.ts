@@ -157,12 +157,9 @@ export class AIMSClientInstance implements AlValidationSchemaProvider {
         }
       });
       let results = await Promise.allSettled(promises);
-      results.forEach((result, index) => {
-        let id = userIds[index];
+      results.forEach((result) => {
         if (result.status === 'fulfilled') {
-          this._usersDict[id] = result.value.name ?? '';
-        } else if(result.status === 'rejected') {
-          this._usersDict[id] = 'Unknown User';
+          this._usersDict[result.value.id] = result.value.name ?? '';
         }
       });
   }
