@@ -14,6 +14,7 @@ import {
     AlLocatorService,
     AlStopwatch,
 } from '../../common';
+import { AlRuntimeConfiguration, ConfigOption } from '../../configuration';
 import { AlDefaultClient } from '../../client';
 import { AlConduitClient } from './al-conduit-client';
 
@@ -48,8 +49,11 @@ export class AlIdentityProviders
                 realm: 'products',
                 clientId: 'alertlogic-aims-public',
             } );
-
-            await this.innerGetKeyCloak( AlIdentityProviders.keycloak );
+            if ( AlRuntimeConfiguration.getOption( ConfigOption.FortraChildApplication, false ) ) {
+                await AlIdentityProviders.keycloak.init( { enableLogging: true } );     //  prevent redirections when running as an embedded application
+            } else {
+                await this.innerGetKeyCloak( AlIdentityProviders.keycloak );            //  allows redirection to check for session existence
+            }
         }
         return AlIdentityProviders.keycloak;
     }
@@ -63,7 +67,7 @@ export class AlIdentityProviders
                                new Promise<void>( async ( resolve, reject ) => {
                                     let cloakPhase = this.storage.get("cloakInitPhase", 0 );
                                     let onLoad:KeycloakOnLoad|undefined = cloakPhase === 0 ? "check-sso" : undefined;
-                                    let silentCheckSsoRedirectUri = cloakPhase === 0 ? `${window.location.origin}/sso-check.html` : undefined;
+                                    let silentCheckSsoRedirectUri = cloakPhase === 0 ? `${window.location.origin}${window.location.pathname}/sso-check.html` : undefined;
                                     this.storage.set("cloakInitPhase", cloakPhase + 1, 10 ).synchronize();
                                     if ( cloakPhase > 5 ) {
                                         this.allIsLost = true;

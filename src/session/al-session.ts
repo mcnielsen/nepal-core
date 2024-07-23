@@ -206,6 +206,9 @@ export class AlSessionInstance
      */
     public async setAuthentication( proposal: AIMSSessionDescriptor ):Promise<AlActingAccountResolvedEvent> {
       try {
+        if ( AlRuntimeConfiguration.getOption<boolean>( ConfigOption.FortraChildApplication, false ) ) {
+            this.storage = AlCabinet.local( "al_session" );     //  Don't use persistent storage when authenticated in a Fortra embedded application
+        }
         this.startDetection();
         let authenticationSchemaId = "https://alertlogic.com/schematics/aims#definitions/authentication";
         let validator = new AlJsonValidator( AIMSClient );

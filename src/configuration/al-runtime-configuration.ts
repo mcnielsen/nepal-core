@@ -81,7 +81,8 @@ export enum ConfigOption {
     NavigationIntegratedAuth    = "navigation_use_integrated_auth",
     NavigationDiagnostics       = "navigation_debug",
     Headless                    = "headless",
-    HeadlessActingURI           = "headless_uri"
+    HeadlessActingURI           = "headless_uri",
+    FortraChildApplication      = "fortra_single_spa"
 }
 
 /**
@@ -106,6 +107,7 @@ export class AlRuntimeConfiguration {
         'headless': false,
         'headless_uri': '',
         'strict_collision_handling': true,
+        'fortra_child_application': false,
     };
 
     protected static options:{[optionKey:string]:string|number|boolean|unknown} = Object.assign( {}, AlRuntimeConfiguration.defaultOptions );
