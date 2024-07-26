@@ -547,7 +547,7 @@ export class AlRoute {
             return false;
         }
 
-        this.baseHREF = node.uri;
+        this.baseHREF = node.uri.endsWith("/") ? node.uri.substring( 0, node.uri.length - 1 ) : node.uri;
         let path = action.path ? action.path : '';
         let missing = false;
         //  Substitute route parameters into the path pattern; fail on missing required parameters,
@@ -571,6 +571,7 @@ export class AlRoute {
             .replace( /[ \/]+$/g, '' );
 
         this.href = this.baseHREF + path;
+
         if ( this.host.decorateHref ) {
             this.host.decorateHref( this );
         }
