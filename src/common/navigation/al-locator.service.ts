@@ -1,5 +1,5 @@
 import { AlLocationDictionary } from './al-location.dictionary';
-import { AlLocatorMatrix } from './al-locator.types';
+import { AlLocatorMatrix } from './al-locator.matrix';
 import { AlGlobalizer } from '../utility/al-globalizer';
 
 /**

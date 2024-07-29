@@ -20,7 +20,6 @@ export class AlConduitClient
 {
     public static events:AlTriggerStream = new AlTriggerStream();
     public static verbose = false;
-
     protected static document:Document;
     protected static conduitUri:string;
     protected static conduitWindow:Window;
@@ -29,10 +28,16 @@ export class AlConduitClient
     protected static ready = new AlBehaviorPromise<boolean>();
     protected static requests: { [requestId: string]: { resolve: any, reject: any, canceled: boolean } } = {};
     protected static externalSessions: { [locationId:string]:{promise?:Promise<void>,resolver:any,resolved:boolean} } = {};
-
     protected static requestIndex = 0;
 
+    protected disabled = false;
+
     public start( targetDocument?:Document ) {
+        const embedded = AlRuntimeConfiguration.getOption( ConfigOption.FortraChildApplication, false );
+        if ( embedded ) {
+            this.disabled = true;
+            return;
+        }
         if ( ! targetDocument ) {
             if ( typeof( document ) === 'undefined' ) {
                 AlErrorHandler.report( new Error( "AlConduitClient cannot start in headless mode." ) );
@@ -71,6 +76,7 @@ export class AlConduitClient
         }
         let locationId = AlRuntimeConfiguration.getOption<string>( ConfigOption.NavigationConduitLocation, AlLocation.AccountsUI );
         AlConduitClient.conduitUri = AlLocatorService.resolveURL( locationId, '/conduit.html', { residency, environment } );
+        console.log("Setting conduit frame src to [%s]", AlConduitClient.conduitUri );
         AlErrorHandler.log( `Notice: conduit client is using '${AlConduitClient.conduitUri}' as target` );
         const fragment = AlConduitClient.document.createDocumentFragment();
         const container = AlConduitClient.document.createElement( "div" );
@@ -188,7 +194,11 @@ export class AlConduitClient
      */
     public getGlobalSetting(settingKey: string): Promise<any> {
         return this.request("conduit.getGlobalSetting", { setting_key: settingKey })
-            .then( rawResponse => rawResponse.setting );
+            .then( rawResponse => {
+                console.log("Raw response from conduit.request: ", rawResponse );
+                return rawResponse;
+            } )
+            .then( rawResponse => rawResponse ? rawResponse.setting : null );
     }
 
     /**
@@ -196,7 +206,7 @@ export class AlConduitClient
      */
     public setGlobalSetting(key: string, data: any): Promise<any> {
         return this.request("conduit.setGlobalSetting", { setting_key: key, setting_data: data })
-            .then( rawResponse => rawResponse.setting );
+            .then( rawResponse => rawResponse?.setting ?? null );
     }
 
     /**
@@ -204,7 +214,7 @@ export class AlConduitClient
      */
     public deleteGlobalSetting(settingKey: string): Promise<boolean> {
         return this.request('conduit.deleteGlobalSetting', { setting_key: settingKey })
-                    .then( rawResponse => rawResponse.result );
+                    .then( rawResponse => rawResponse?.result ?? null );
     }
 
     /**
@@ -213,7 +223,7 @@ export class AlConduitClient
     public getGlobalResource( resourceName:string, ttl:number ): Promise<any> {
         return this.request('conduit.getGlobalResource', { resourceName, ttl }, 10 )
                             .then( response => {
-                                if ( ! response.resource ) {
+                                if ( ! response?.resource ) {
                                     return Promise.reject( response.error || `AlConduitClient failed to retrieve global resource '${resourceName}'` );
                                 }
                                 return response.resource;
@@ -344,6 +354,9 @@ export class AlConduitClient
     }
 
     protected request( methodName: string, data: any = {}, timeout:number = 0 ): Promise<any> {
+        if ( this.disabled ) {
+            return Promise.resolve( null );
+        }
         const requestId = `conduit-request-${++AlConduitClient.requestIndex}-${Math.floor(Math.random() * 1000)}`;
         return new Promise<any>( ( resolve, reject ) => {
             AlConduitClient.requests[requestId] = { resolve, reject, canceled: false };

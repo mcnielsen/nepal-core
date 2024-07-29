@@ -236,14 +236,19 @@ export interface AlRouteDefinition {
  */
 class AlRouteIterationState {
     public depth: number = 0;
-    public currentUrlNoParams:string;
+    public url:string;
+    public urlNoParams:string;
     public host:AlRoutingHost;
 
     constructor( public rootNode:AlRoute ) {
         this.host = rootNode.host;
-        this.currentUrlNoParams = rootNode.host.currentUrl.includes("?")
-                                ? rootNode.host.currentUrl.substring( 0, rootNode.host.currentUrl.indexOf("?") )
-                                : this.host.currentUrl;
+        this.url = rootNode.host.currentUrl;
+        let hashOffset = this.url.indexOf("#");
+        if ( hashOffset > 0 && this.url[hashOffset - 1] !== '/' ) {
+            //  This means that URLs for apps in subdirectories will work properly with both https://origin.com/subpath/#/some/route and https://origin.com/subpath#/some/route.
+            this.url = this.url.substring(0,hashOffset) + "/" + this.url.substring( hashOffset );
+        }
+        this.urlNoParams = this.url.replace(/\?[^#]*/, '' );
     }
 }
 
@@ -586,12 +591,12 @@ export class AlRoute {
             //  Not a candidate for activation
             return false;
         }
-        if ( this.baseHREF && this.host.currentUrl.startsWith( this.baseHREF ) ) {
+        if ( this.baseHREF && state.url.startsWith( this.baseHREF ) ) {
             const noParamsHref = this.href.includes('?') ? this.href.substring(0, this.href.indexOf('?')) : this.href;
-            if ( state.currentUrlNoParams === noParamsHref ) {
+            if ( state.urlNoParams === noParamsHref ) {
                 //  If our full URL *contains* the current URL, we are activated
                 if ( AlRoute.debug ) {
-                    console.log("Navigation: activating route [%s] based on exact path match", this.definition.caption, state.currentUrlNoParams, this.definition );
+                    console.log("Navigation: activating route [%s] based on exact path match", this.definition.caption, state.urlNoParams, this.definition );
                 }
                 this.activated = true;
             } else if ( this.definition.matches ) {
@@ -607,7 +612,7 @@ export class AlRoute {
                         }
                     }
                     let regexp = AlRoute.reCache[matchPattern];
-                    return regexp ? regexp.test( state.currentUrlNoParams ) : false;
+                    return regexp ? regexp.test( state.urlNoParams ) : false;
                 } );
                 if ( matchedPattern ) {
                     if ( AlRoute.debug ) {
