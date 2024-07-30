@@ -206,9 +206,11 @@ export class AlSessionInstance
      */
     public async setAuthentication( proposal: AIMSSessionDescriptor ):Promise<AlActingAccountResolvedEvent> {
       try {
+        /*
         if ( AlRuntimeConfiguration.getOption<boolean>( ConfigOption.FortraChildApplication, false ) ) {
             this.storage = AlCabinet.local( "al_session" );     //  Don't use persistent storage when authenticated in a Fortra embedded application
         }
+        */
         this.startDetection();
         let authenticationSchemaId = "https://alertlogic.com/schematics/aims#definitions/authentication";
         let validator = new AlJsonValidator( AIMSClient );
@@ -345,13 +347,13 @@ export class AlSessionInstance
      * Modelled on /aims/v1/:account_id/account
      * To be called by AIMS Service
      */
-    setTokenInfo(token: string, tokenExpiration: number, fortraIdToken?:string, fortraRefreshToken?:string ) {
+    setTokenInfo(token: string, tokenExpiration: number, fortraIdToken?:string|boolean, fortraRefreshToken?:string ) {
       this.sessionData.authentication.token = token;
       this.sessionData.authentication.token_expiration = tokenExpiration;
-      if ( fortraIdToken && fortraRefreshToken ) {
+      if ( fortraIdToken ) {
           this.sessionData.fortraSession = {
               accessToken: token,
-              identityToken: fortraIdToken,
+              identityToken: fortraIdToken.toString(),
               refreshToken: fortraRefreshToken,
           };
       } else {

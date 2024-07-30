@@ -101,7 +101,7 @@ export class AlLocatorMatrix
             }
         }
         if ( path ) {
-            url += path;        //  wow, that `const` keyword is so useful!  except not.
+            url += url.endsWith("/") && path.startsWith( "/" ) ? path.substring( 1 ) : path;    //  make sure we don't add trailing slashes
         }
         return url;
     }
