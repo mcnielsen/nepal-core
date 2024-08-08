@@ -194,10 +194,6 @@ export class AlConduitClient
      */
     public getGlobalSetting(settingKey: string): Promise<any> {
         return this.request("conduit.getGlobalSetting", { setting_key: settingKey })
-            .then( rawResponse => {
-                console.log("Raw response from conduit.request: ", rawResponse );
-                return rawResponse;
-            } )
             .then( rawResponse => rawResponse ? rawResponse.setting : null );
     }
 

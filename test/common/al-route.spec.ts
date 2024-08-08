@@ -11,7 +11,7 @@ import {
 } from '@al/core';
 
 export class MockRoutingHost implements AlRoutingHost {
-    currentUrl = "https://console.overview.alertlogic.com/#/remediations-scan-status/2";
+    currentUrl = "https://console.alertlogic.com/#/remediations-scan-status/2";
     routeParameters = {};
 
     constructor( public entitlements:{[entitlement:string]:boolean} = {} ) {
@@ -56,7 +56,7 @@ describe( 'AlRoute', () => {
 
     beforeEach( () => {
         AlLocatorService.setContext( { environment: "production", residency: 'US', insightLocationId: 'defender-us-denver' } );
-        AlLocatorService.setActingUri("https://console.overview.alertlogic.com" );
+        AlLocatorService.setActingUri("https://console.alertlogic.com" );
         routingHost.routeParameters["accountId"] = "2";
         routingHost.routeParameters["deploymentId"] = "1234ABCD-1234-ABCD1234";
     } );
@@ -67,7 +67,7 @@ describe( 'AlRoute', () => {
                 caption: "Test Route",
                 action: {
                     type: 'link',
-                    location: AlLocation.OverviewUI,
+                    location: AlLocation.MagmaUI,
                     path: '/#/remediations-scan-status/:accountId'
                 },
                 properties: {}
@@ -108,15 +108,15 @@ describe( 'AlRoute', () => {
             expect( route.children.length ).to.equal( 0 );
         } );
         it("should create routes using static `link` method", () => {
-            let route = AlRoute.link( routingHost, "cd17:overview", '/#/some/random/path' );
+            let route = AlRoute.link( routingHost, AlLocation.MagmaUI, '/#/some/random/path' );
             expect( route.caption ).to.be.a("string");
             expect( route.properties ).to.be.an("object");
             expect( route.children ).to.be.an("Array");
             expect( route.children.length ).to.equal( 0 );
-            expect( route.href ).to.equal( "https://console.overview.alertlogic.com/#/some/random/path" );
+            expect( route.href ).to.equal( "https://console.alertlogic.com/#/some/random/path" );
         } );
         it("should delegate `dispatch` calls to the routing host", () => {
-            let route = AlRoute.link( routingHost, "cd17:overview", '/#/some/random/path' );
+            let route = AlRoute.link( routingHost, AlLocation.MagmaUI, '/#/some/random/path' );
             let dispatchStub = sinon.stub( routingHost, "dispatch" );
 
             route.dispatch();
@@ -125,14 +125,33 @@ describe( 'AlRoute', () => {
             dispatchStub.restore();
         } );
         it("should convert to HREF when `toHref` is called", () => {
-            const route = AlRoute.link( routingHost, "cd17:overview", '/#/some/random/path' );
+            const route = AlRoute.link( routingHost, AlLocation.MagmaUI, '/#/some/random/path' );
             const routeHref = route.toHref();
-            expect( routeHref ).to.equal( "https://console.overview.alertlogic.com/#/some/random/path" );
+            expect( routeHref ).to.equal( "https://console.alertlogic.com/#/some/random/path" );
         } );
         it("should call the host's href decorator if one is provided", () => {
             ( routingHost as any ).decorateHref = sinon.stub();
-            const route = AlRoute.link( routingHost, "cd17:overview", '/#/some/random/path' );
+            const route = AlRoute.link( routingHost, AlLocation.MagmaUI, '/#/some/random/path' );
             expect( ( routingHost as any ).decorateHref.callCount ).to.equal( 1 );
+        } );
+        it("should allow remapping and normalize trailing slashes", () => {
+            const route = AlRoute.link( routingHost, AlLocation.MagmaUI, '/#/some/random/path' );
+            AlLocatorService.remapLocationToURI( AlLocation.MagmaUI, 'https://unrealdomain.com/subdirectory' );
+            let routeHref = route.toHref();
+            expect( routeHref ).to.equal( 'https://unrealdomain.com/subdirectory/#/some/random/path' );
+
+            AlLocatorService.remapLocationToURI( AlLocation.MagmaUI, 'https://another.unrealdomain.com/other/subdirectory/' );
+            routeHref = route.toHref();
+            expect( routeHref ).to.equal( 'https://another.unrealdomain.com/other/subdirectory/#/some/random/path' );
+        } );
+        it("should use localized URLs when configured to do so", () => {
+            const route = AlRoute.link( routingHost, AlLocation.MagmaUI, '/#/just/an/anchor/tag' );
+            let routeHref = route.toHref( true );
+            expect( routeHref ).to.equal( '#/just/an/anchor/tag' );
+
+            const externalRoute = AlRoute.link( routingHost, AlLocation.OverviewUI, '/#/just/an/anchor/tag' );
+            let externalHref = externalRoute.toHref( true );
+            expect( externalHref ).to.equal("https://console.overview.alertlogic.com/#/just/an/anchor/tag" );
         } );
     } );
 
@@ -142,13 +161,13 @@ describe( 'AlRoute', () => {
                 caption: "Test Route",
                 action: {
                     type: 'link',
-                    location: AlLocation.OverviewUI,
+                    location: AlLocation.MagmaUI,
                     path: '/#/remediations-scan-status/:accountId'
                 },
                 properties: {}
             } );
-            expect( menu.baseHREF ).to.equal( "https://console.overview.alertlogic.com" );
-            expect( menu.href ).to.equal( "https://console.overview.alertlogic.com/#/remediations-scan-status/2" );
+            expect( menu.baseHREF ).to.equal( "https://console.alertlogic.com" );
+            expect( menu.href ).to.equal( "https://console.alertlogic.com/#/remediations-scan-status/2" );
             expect( menu.visible ).to.equal( true );
         } );
         it( 'should evaluate optional route parameters in HREFs properly', () => {
@@ -161,7 +180,7 @@ describe( 'AlRoute', () => {
                 caption: "Test Route",
                 action: {
                     type: 'link',
-                    location: AlLocation.OverviewUI,
+                    location: AlLocation.MagmaUI,
                     path: '/#/path/to/:accountId/:userId%/:deploymentId%'
                 },
                 properties: {}
@@ -169,32 +188,32 @@ describe( 'AlRoute', () => {
 
             menu.refresh();
 
-            expect( menu.baseHREF ).to.equal( "https://console.overview.alertlogic.com" );
-            expect( menu.href ).to.equal( "https://console.overview.alertlogic.com/#/path/to/12345678/ABCDEFGH/XXXX-YYYY-ZZZZZZZZ-1234" );
+            expect( menu.baseHREF ).to.equal( "https://console.alertlogic.com" );
+            expect( menu.href ).to.equal( "https://console.alertlogic.com/#/path/to/12345678/ABCDEFGH/XXXX-YYYY-ZZZZZZZZ-1234" );
             expect( menu.visible ).to.equal( true );
 
             //  Delete the optional deploymentId parameter
             delete routingHost.routeParameters["deploymentId"];
             menu.refresh( true );
 
-            expect( menu.baseHREF ).to.equal( "https://console.overview.alertlogic.com" );
-            expect( menu.href ).to.equal( "https://console.overview.alertlogic.com/#/path/to/12345678/ABCDEFGH" );
+            expect( menu.baseHREF ).to.equal( "https://console.alertlogic.com" );
+            expect( menu.href ).to.equal( "https://console.alertlogic.com/#/path/to/12345678/ABCDEFGH" );
             expect( menu.visible ).to.equal( true );
 
             //  Delete the optional userId parameter
             delete routingHost.routeParameters["userId"];
             menu.refresh( true );
 
-            expect( menu.baseHREF ).to.equal( "https://console.overview.alertlogic.com" );
-            expect( menu.href ).to.equal( "https://console.overview.alertlogic.com/#/path/to/12345678" );
+            expect( menu.baseHREF ).to.equal( "https://console.alertlogic.com" );
+            expect( menu.href ).to.equal( "https://console.alertlogic.com/#/path/to/12345678" );
             expect( menu.visible ).to.equal( true );
 
             //  Delete the required accountId parameter
             delete routingHost.routeParameters["accountId"];
             menu.refresh( true );
 
-            expect( menu.baseHREF ).to.equal( "https://console.overview.alertlogic.com" );
-            expect( menu.href ).to.equal( "https://console.overview.alertlogic.com/#/path/to/:accountId" );
+            expect( menu.baseHREF ).to.equal( "https://console.alertlogic.com" );
+            expect( menu.href ).to.equal( "https://console.alertlogic.com/#/path/to/:accountId" );
             expect( menu.visible ).to.equal( false );
         } );
         it( 'should handle invalid locationIds properly with a warning', () => {
@@ -207,13 +226,13 @@ describe( 'AlRoute', () => {
                 caption: "Test Route",
                 action: {
                     type: 'link',
-                    location: AlLocation.OverviewUI,
+                    location: AlLocation.MagmaUI,
                     path: '/#/path/:notExistingVariable/something'
                 },
                 properties: {}
             } );
-            expect( menu.baseHREF ).to.equal( "https://console.overview.alertlogic.com" );
-            expect( menu.href ).to.equal( "https://console.overview.alertlogic.com/#/path/:notExistingVariable/something" );
+            expect( menu.baseHREF ).to.equal( "https://console.alertlogic.com" );
+            expect( menu.href ).to.equal( "https://console.alertlogic.com/#/path/:notExistingVariable/something" );
             expect( menu.visible ).to.equal( false );
         } );
         it( 'should handle invalid locations properly', () => {
@@ -237,28 +256,28 @@ describe( 'AlRoute', () => {
 
     describe( 'activation detection', () => {
         it( "should detect exact matches!", () => {
-            routingHost.currentUrl = "https://console.overview.alertlogic.com/#/path/2";
+            routingHost.currentUrl = "https://console.alertlogic.com/#/path/2";
             const menu = new AlRoute( routingHost, {
                 caption: "Test Route",
                 action: {
                     type: 'link',
-                    location: "cd17:overview",
+                    location: AlLocation.MagmaUI,
                     path: '/#/path/:accountId'
                 },
                 properties: {}
             } );
             menu.refresh();
 
-            expect( menu.href ).to.equal( "https://console.overview.alertlogic.com/#/path/2" );
+            expect( menu.href ).to.equal( "https://console.alertlogic.com/#/path/2" );
             expect( menu.activated ).to.equal( true );
         } );
         it( "should ignore query parameters", () => {
-            routingHost.currentUrl = "https://console.overview.alertlogic.com/#/queryparams/2?aaid=2&locid=defender-us-denver&filter1=value1&filter2=value2";
+            routingHost.currentUrl = "https://console.alertlogic.com/#/queryparams/2?aaid=2&locid=defender-us-denver&filter1=value1&filter2=value2";
             const menu = new AlRoute( routingHost, {
                 caption: "Test Route",
                 action: {
                     type: 'link',
-                    location: "cd17:overview",
+                    location: AlLocation.MagmaUI,
                     path: '/#/queryparams/:accountId?locid=defender-us-denver&filter1=value1&aaid=2&filter2=value2'
                 },
                 properties: {}
@@ -278,7 +297,7 @@ describe( 'AlRoute', () => {
             },
             action: {
                 type: "link",
-                location: AlLocation.OverviewUI,
+                location: AlLocation.MagmaUI,
                 path: '/#/child-route-1'
             },
             properties: {}
@@ -337,7 +356,7 @@ describe( 'AlRoute', () => {
                     caption: "Overview",
                     action: {
                         type: "link",
-                        location: AlLocation.OverviewUI,
+                        location: AlLocation.MagmaUI,
                         path: '/#/'
                     },
                     matches: [ '/#/.*' ],
@@ -371,7 +390,7 @@ describe( 'AlRoute', () => {
             let route2 = menu.children[0].children[1];
             let route3 = menu.children[0].children[2];
 
-            expect( route1.href ).to.equal( 'https://console.overview.alertlogic.com/#/child-route-1' );
+            expect( route1.href ).to.equal( 'https://console.alertlogic.com/#/child-route-1' );
             expect( route1.visible ).to.equal( true );
             expect( route1.activated ).to.equal( false );
 
@@ -387,7 +406,7 @@ describe( 'AlRoute', () => {
 
         it( "should activate a route with a matching URL properly", () => {
 
-            routingHost.currentUrl = "https://console.overview.alertlogic.com/#/child-route-1";
+            routingHost.currentUrl = "https://console.alertlogic.com/#/child-route-1";
             const menu:AlRoute = new AlRoute( routingHost, menuDefinition );
 
             let route1 = menu.children[0].children[0];
@@ -421,6 +440,16 @@ describe( 'AlRoute', () => {
             expect( saveStub.args[0][0] ).to.equal( "my-bookmark-id" );
             expect( saveStub.args[0][1] ).to.equal( route );
             saveStub.restore();
+        } );
+
+        it( "should truncate local links to include only their anchor fragment", () => {
+            const menu:AlRoute = new AlRoute( routingHost, menuDefinition );
+            menu.refresh( true, true );
+            let route1 = menu.children[0].children[0];
+            let route2 = menu.children[0].children[1];
+
+            expect( route1.href ).to.equal( '#/child-route-1' );
+            expect( route2.href ).to.equal( 'https://console.incidents.alertlogic.com/#/child-route-2' );
         } );
     } );
 
@@ -507,7 +536,7 @@ describe( 'AlRoute', () => {
             routingHost.routeParameters["accountId"] = "2";
             routingHost.routeParameters["deploymentId"] = "funicular";
             fakeEntitlements["super_secret_feature"] = true;
-            routingHost.currentUrl = "https://console.overview.alertlogic.com/#/special/feature/path?filter=healthy";
+            routingHost.currentUrl = "https://console.alertlogic.com/#/special/feature/path?filter=healthy";
 
             let route = new AlRoute( routingHost, {
                 caption: "Something",

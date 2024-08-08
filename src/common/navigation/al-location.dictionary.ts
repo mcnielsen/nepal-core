@@ -558,15 +558,17 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
     /**
      * Fortra Platform Base URL
      */
+    /*
     {
         locTypeId: AlLocation.FortraPlatform,
         uri: 'https://foundation.foundation-dev.cloudops.fortradev.com',
         environment: 'development',
     },
+    */
     {
         locTypeId: AlLocation.FortraPlatform,
         uri: 'https://foundation.foundation-stage.cloudops.fortradev.com',
-        environment: 'integration',
+        environment: 'integration|development',
     },
     {
         locTypeId: AlLocation.FortraPlatform,

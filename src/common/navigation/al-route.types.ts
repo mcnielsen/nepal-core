@@ -238,9 +238,12 @@ class AlRouteIterationState {
     public depth: number = 0;
     public url:string;
     public urlNoParams:string;
+    public urlAppRoot:string;
     public host:AlRoutingHost;
 
-    constructor( public rootNode:AlRoute ) {
+    constructor( public rootNode:AlRoute,
+                 public resolve:boolean = false,
+                 public truncateLocal:boolean = false ) {
         this.host = rootNode.host;
         this.url = rootNode.host.currentUrl;
         let hashOffset = this.url.indexOf("#");
@@ -249,6 +252,10 @@ class AlRouteIterationState {
             this.url = this.url.substring(0,hashOffset) + "/" + this.url.substring( hashOffset );
         }
         this.urlNoParams = this.url.replace(/\?[^#]*/, '' );
+        this.urlAppRoot = this.url.replace(/#[^\?]*/, '' );
+        if ( ! this.urlAppRoot.endsWith("/") ) {
+            this.urlAppRoot += '/';     //  make sure we always have a trailing slash!
+        }
     }
 }
 
@@ -377,19 +384,20 @@ export class AlRoute {
      * simply wraps the tree iteration process in exception handling.
      *
      * @param resolve - If true, forces the calculated href and visibility properties to be recalculated.
+     * @param truncateLocalURLs - If true, removes all but the anchor fragment of URLs on the "acting" node
      *
      * @returns Returns true if the route (or one of its children) is activated, false otherwise.
      */
-    refresh( resolve:boolean = false ) {
+    refresh( resolve:boolean = false, truncateLocalURLs:boolean = false ) {
         try {
-            let state = new AlRouteIterationState( this );
-            this.internalRefresh( resolve, state );
+            let state = new AlRouteIterationState( this, resolve, truncateLocalURLs );
+            this.internalRefresh( state );
         } catch( e ) {
             console.error(`Navigation Error: could not refresh menu: `, e );
         }
     }
 
-    internalRefresh( resolve:boolean = false, state:AlRouteIterationState ):boolean|undefined {
+    internalRefresh( state:AlRouteIterationState ):boolean|undefined {
         if ( this.locked ) {
             //  If this menu item has been locked, then we won't reevaluate its URL, its visibility, or its activated status.
             //  This lets outside software take "manual" control of the state of a given menu.
@@ -435,13 +443,13 @@ export class AlRoute {
         }
 
         /* Evaluate children recursively, and deduce activation state from them. */
-        let childActivated = this.children.reduce( ( activated, child ) => child.internalRefresh( resolve, state ) || activated, false );
+        let childActivated = this.children.reduce( ( activated, child ) => child.internalRefresh( state ) || activated, false );
 
         /* Evaluate fully qualified href, if visible/relevant */
         let action:AlRouteAction|null = this.getRouteAction();
         if ( action ) {
-            if ( this.visible && ( resolve || this.href === null ) && action.type === 'link' ) {
-                if ( ! this.evaluateHref( action ) ) {
+            if ( this.visible && ( state.resolve || this.href === null ) && action.type === 'link' ) {
+                if ( ! this.evaluateHref( state, action ) ) {
                     state.depth--;
                     return this.disable();
                 }
@@ -508,8 +516,8 @@ export class AlRoute {
     /**
      * Retrieves the full URL for a route, if applicable.
      */
-    toHref() {
-        this.refresh( true );
+    toHref( truncateLocalURLs?:boolean ) {
+        this.refresh( true, truncateLocalURLs );
         return this.href;
     }
 
@@ -537,7 +545,7 @@ export class AlRoute {
     /**
      * Evaluates the HREF for an route with action type 'link'
      */
-    evaluateHref( action:AlRouteAction ):boolean {
+    evaluateHref( state:AlRouteIterationState, action:AlRouteAction ):boolean {
         if ( action.url ) {
             this.href = action.url;
             return true;
@@ -552,8 +560,8 @@ export class AlRoute {
             return false;
         }
 
-        this.baseHREF = node.uri.endsWith("/") ? node.uri.substring( 0, node.uri.length - 1 ) : node.uri;
-        let path = action.path ? action.path : '';
+        this.baseHREF = node.uri.replace( /[ \/]+$/g, '' );
+        let path = action.path ?? '';
         let missing = false;
         //  Substitute route parameters into the path pattern; fail on missing required parameters,
         //  ignore missing optional parameters (denoted by percentage sign), and trim any trailing slashes and spaces.
@@ -573,12 +581,15 @@ export class AlRoute {
                     return '';
                 }
             } )
-            .replace( /[ \/]+$/g, '' );
+            .replace( /[ \/]+$/g, '' );     //  remove all spaces and trailing slashes
 
         this.href = this.baseHREF + path;
-
         if ( this.host.decorateHref ) {
             this.host.decorateHref( this );
+        }
+        if ( state.truncateLocal && state.urlAppRoot && this.href.startsWith( state.urlAppRoot ) ) {
+            //  "Local" mode will emit URLs composed solely of anchor fragments for routes on the active app's domain
+            this.href = this.href.substring( state.urlAppRoot.length );
         }
         return ! missing;
     }
