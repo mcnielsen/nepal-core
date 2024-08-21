@@ -252,7 +252,7 @@ class AlRouteIterationState {
             this.url = this.url.substring(0,hashOffset) + "/" + this.url.substring( hashOffset );
         }
         this.urlNoParams = this.url.replace(/\?[^#]*/, '' );
-        this.urlAppRoot = this.url.replace(/#[^\?]*/, '' );
+        this.urlAppRoot = this.urlNoParams.replace(/#[^\?]*/, '' );
         if ( ! this.urlAppRoot.endsWith("/") ) {
             this.urlAppRoot += '/';     //  make sure we always have a trailing slash!
         }

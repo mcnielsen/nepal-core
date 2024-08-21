@@ -115,6 +115,17 @@ export class AIMSClientInstance implements AlValidationSchemaProvider {
     return userDelete;
   }
 
+  async recordSessionStart( accountId: string, userId: string ) {
+      return await this.client.post( {
+          service_stack: AlLocation.GlobalAPI,
+          service_name: this.serviceName,
+          version: this.serviceVersion,
+          account_id: accountId,
+          path: `/users/${userId}/new_session`,
+          data: {}
+      } );
+  }
+
   /**
    * Get user details
    * GET

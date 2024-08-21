@@ -46,9 +46,9 @@ export class AlStopwatch
     public static repeatedly( callback:{():void}, interval:number = 1000, beginImmediately:boolean = true ): AlStopwatch {
         let watch = new AlStopwatch( callback );
         watch.interval = interval;
-        watch.timer = setInterval( watch.tick, interval );
-        if ( beginImmediately ) {
-            setTimeout( () => watch.tick, 0 );
+        watch.timer = setInterval( () => watch.tick(), interval );
+        if ( beginImmediately && interval > 0 ) {
+            setTimeout( () => watch.tick(), 0 );
         }
         return watch;
     }
@@ -68,7 +68,7 @@ export class AlStopwatch
         if ( this.interval === 0 ) {
             this.timer = null;
         }
-        if(this.callback){
+        if ( this.callback ) {
             this.callback();
         }
     }
