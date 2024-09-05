@@ -67,7 +67,8 @@ export class AlIdentityProviders
                                new Promise<void>( async ( resolve, reject ) => {
                                     let cloakPhase = this.storage.get("cloakInitPhase", 0 );
                                     let onLoad:KeycloakOnLoad|undefined = cloakPhase === 0 ? "check-sso" : undefined;
-                                    let silentCheckSsoRedirectUri = cloakPhase === 0 ? `${window.location.origin}${window.location.pathname}/sso-check.html` : undefined;
+                                    const baseLocation = window.location.origin + ( window.location.pathname === '/' ? '' : window.location.pathname );     //  fix double slash but support apps in subdirectories
+                                    let silentCheckSsoRedirectUri = cloakPhase === 0 ? `${baseLocation}/sso-check.html` : undefined;
                                     this.storage.set("cloakInitPhase", cloakPhase + 1, 10 ).synchronize();
                                     if ( cloakPhase > 5 ) {
                                         this.allIsLost = true;
