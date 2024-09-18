@@ -70,11 +70,11 @@ export class AlAuthenticationUtility {
     /**
      * Primary authentication method -- attempts to authenticate using a username and password.
      */
-    public async authenticate( userName:string, passPhrase:string ):Promise<AlAuthenticationResult> {
+    public async authenticate( userName:string, passPhrase:string, payloadExtras?:any ):Promise<AlAuthenticationResult> {
         let useGestalt = AlRuntimeConfiguration.getOption( ConfigOption.GestaltAuthenticate, false );
         if ( useGestalt ) {
             try {
-                let session = await AlDefaultClient.authenticateViaGestalt( userName, passPhrase, true );
+                let session = await AlDefaultClient.authenticateViaGestalt( userName, passPhrase, true, payloadExtras );
                 return await this.finalizeSession( session );
             } catch( e ) {
                 if ( this.handleAuthenticationFailure( e ) ) {
@@ -84,7 +84,7 @@ export class AlAuthenticationUtility {
         }
 
         try {
-            let session = await AlDefaultClient.authenticate( userName, passPhrase, undefined, true );
+            let session = await AlDefaultClient.authenticate( userName, passPhrase, undefined, true, payloadExtras );
             return await this.finalizeSession( session );
         } catch( e ) {
             if ( this.handleAuthenticationFailure( e ) ) {
@@ -103,21 +103,6 @@ export class AlAuthenticationUtility {
         /*
          * This doesn't exist yet, and may never need to
          */
-        /*
-        let useGestalt = AlRuntimeConfiguration.getOption( ConfigOption.GestaltAuthenticate, false );
-        if ( useGestalt && AlLocatorService.getCurrentEnvironment() !== 'development' ) {
-            try {
-                let session = await this.authenticateViaGestaltFromFortra( fortraSession );
-                return await this.finalizeSession( session );
-            } catch( e ) {
-                if ( this.handleAuthenticationFailure( e ) ) {
-                    return this.state.result;
-                }
-                throw e;
-            }
-        }
-        */
-
         try {
             let session = await this.authenticateViaAIMSFromFortra( fortraSession );
             return await this.finalizeSession( session );

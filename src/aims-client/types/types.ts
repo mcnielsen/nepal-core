@@ -39,6 +39,7 @@ export interface AIMSAccount {
     fortra_authenticated?: boolean;
     fortra_required_after?: number;
     idle_session_timeout?: number;
+    stateramp_required?: boolean;
     created: AlChangeStamp;
     modified: AlChangeStamp;
 }

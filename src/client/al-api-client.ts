@@ -480,13 +480,17 @@ export class AlApiClient implements AlValidationSchemaProvider
    * Under ordinary circumstances, you should *not* be calling this directly -- instead, you should use the top-level
    * `authenticate` method on @al/session's ALSession instance.
    */
-  async authenticate( user: string, pass: string, mfa?:string, ignoreWarning?:boolean ):Promise<AIMSSessionDescriptor> {
+  /* tslint:disable:variable-name */
+  async authenticate( user: string, pass: string, mfa_code?:string, ignoreWarning?:boolean, payloadExtras?:any ):Promise<AIMSSessionDescriptor> {
     if ( ! ignoreWarning ) {
       console.warn("Warning: this low level authentication method is intended only for use by other services, and will not create a reusable session.  Are you sure you intended to use it?" );
     }
-    let payload = {};
-    if (mfa) {
-      payload = { mfa_code: mfa };
+    let payload:any = {};
+    if ( payloadExtras && typeof( payloadExtras ) === 'object' ) {
+      payload = { ...payload, ...payloadExtras };
+    }
+    if (mfa_code) {
+      payload.mfa_code = mfa_code;
     }
     return this.post( {
       service_stack: AlLocation.GlobalAPI,
@@ -501,13 +505,17 @@ export class AlApiClient implements AlValidationSchemaProvider
     });
   }
 
-  async authenticateViaGestalt( user:string, pass:string, ignoreWarning?:boolean ):Promise<AIMSSessionDescriptor> {
+  async authenticateViaGestalt( user:string, pass:string, ignoreWarning?:boolean, payloadExtras?:any ):Promise<AIMSSessionDescriptor> {
+    let data:any = {
+      authorization: `Basic ${this.base64Encode(`${user}:${pass}`)}`
+    };
+    if ( payloadExtras && typeof( payloadExtras ) === 'object' ) {
+        data.payloadExtras = payloadExtras;
+    }
     return this.post( {
+      data,
       url: this.getGestaltAuthenticationURL(),
       withCredentials: true,
-      data: {
-        authorization: `Basic ${this.base64Encode(`${user}:${pass}`)}`
-      },
       responseType: "json"
     } );
   }

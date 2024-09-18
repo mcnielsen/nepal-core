@@ -326,14 +326,21 @@ describe("AlDefaultClient", () => {
             expect(JSON.parse(req.body())).to.deep.equals({mfa_code: mfaCode});
             return res.status(200).body(defaultAuthResponse);
           });
-          try {
-            const sessionDescriptor = await AlDefaultClient.authenticate(username, password, mfaCode, true );
-            expect( sessionDescriptor ).to.deep.equals( defaultAuthResponse );
-          } catch( e ) {
-            console.error("Got error...", e );
-          }
+          const sessionDescriptor = await AlDefaultClient.authenticate(username, password, mfaCode, true );
+          expect( sessionDescriptor ).to.deep.equals( defaultAuthResponse );
         });
       });
+      describe('and with extra payload content', () => {
+        it( 'should perform the authenticate request and include the extra payload content in the request body', async () => {
+          xhrMock.post('https://api.global-integration.product.dev.alertlogic.com/aims/v1/authenticate', ( req, res ) => {
+            expect(req.header('Authorization')).to.equal(`Basic ${btoa(unescape(encodeURIComponent(`${username}:${password}`)))}`);
+            expect(JSON.parse(req.body())).to.deep.equals({ seen_stateramp_banner: true });
+            return res.status(200).body(defaultAuthResponse);
+          } );
+          const sessionDescriptor = await AlDefaultClient.authenticate( username, password, undefined, true, { seen_stateramp_banner: true } );
+          expect( sessionDescriptor ).to.deep.equals( defaultAuthResponse );
+        } );
+      } );
     });
 
     describe('When authenticating a user with a session token and mfa code', () => {
