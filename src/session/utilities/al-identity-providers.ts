@@ -30,9 +30,24 @@ export class AlIdentityProviders
     constructor() {
     }
 
+    public static inAuth0Workflow( url:string ):boolean {
+        if ( ! url ) {
+            return false;
+        }
+        if ( ! /state=([a-zA-Z0-9\-_]+)/.test( url ) ) {    //  this parameter must always be present
+            return false;
+        }
+        if ( /iss=([^&]+)/.test( url ) ) {                  //  this parameter suggests we're in a keycloak redirection flow
+            return false;
+        }
+        return true;
+    }
+
     public async warmup() {
         try {
-            await this.getKeycloak();
+            if ( ! AlIdentityProviders.inAuth0Workflow(window?.location?.href) ) {
+                await this.getKeycloak();
+            }
         } catch( e ) {
             console.error( e );
         }
