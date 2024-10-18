@@ -112,6 +112,49 @@ export class AlIdentityProviders
         return AlIdentityProviders.auth0;
     }
 
+    /**
+     * Uses a race to make sure that auth0 session detection doesn't time out -- since a misconfigured client can cause the
+     * promise to hang indefinitely.
+     */
+    public async getAuth0SessionToken( authenticator:WebAuth, config:any, timeout:number = 5000 ):Promise<string> {
+      return Promise.race( [ AlStopwatch.promise( timeout ),
+                             new Promise<string>( ( resolve, reject ) => {
+                               authenticator.checkSession( config, ( error, authResult ) => {
+                                   if ( error || ! authResult || ! authResult.accessToken ) {
+                                       reject("auth0's checkSession method failed with an error" );
+                                   } else {
+                                       resolve( authResult.accessToken );
+                                   }
+                               } );
+                           } ) ] )
+                      .then( ( accessToken:string|any ) => {
+                          if ( accessToken && typeof( accessToken ) === 'string' ) {
+                              return accessToken;
+                          }
+                          return Promise.reject("checkSession returned false or could not complete execution before timeout." );
+                      } );
+    }
+
+    /**
+     * Calculates the correct auth0 configuration to use.
+     */
+    public getAuth0Config( merge:any = {} ):any {
+        let w = <any>window;
+        let auth0Node = AlLocatorService.getNode( AlLocation.Auth0 );
+        if ( ! auth0Node || ! auth0Node.data || ! auth0Node.data.hasOwnProperty( 'clientID' ) ) {
+            throw new Error("Service matrix does not reflect an auth0 node; check your app configuration." );
+        }
+        return Object.assign(   {
+                                    domain:         auth0Node.uri,
+                                    clientID:       auth0Node.data.clientID,
+                                    responseType:   'token id_token',
+                                    audience:       'https://alertlogic.com/',
+                                    scope:          'openid user_metadata',
+                                    prompt:         true,
+                                    redirectUri:    w.location.origin
+                                },
+                                merge );
+    }
 
     /**
      * Uses a race to make sure that keycloak initialization doesn't time out -- since a misconfigured client can cause the
@@ -151,26 +194,6 @@ export class AlIdentityProviders
                                } ) ] );
     }
 
-    /**
-     * Calculates the correct auth0 configuration to use.
-     */
-    protected getAuth0Config( merge:any = {} ):any {
-        let w = <any>window;
-        let auth0Node = AlLocatorService.getNode( AlLocation.Auth0 );
-        if ( ! auth0Node || ! auth0Node.data || ! auth0Node.data.hasOwnProperty( 'clientID' ) ) {
-            throw new Error("Service matrix does not reflect an auth0 node; check your app configuration." );
-        }
-        return Object.assign(   {
-                                    domain:         auth0Node.uri,
-                                    clientID:       auth0Node.data.clientID,
-                                    responseType:   'token id_token',
-                                    audience:       'https://alertlogic.com/',
-                                    scope:          'openid user_metadata',
-                                    prompt:         true,
-                                    redirectUri:    w.location.origin
-                                },
-                                merge );
-    }
 
     protected getAuth0UserInfo = ( authenticator:WebAuth, userAccessToken:string, callback:(error:any, userInfo:any)=>void ) => {
         if ( AlIdentityProviders.cachedA0UserInfo.hasOwnProperty( userAccessToken ) ) {
@@ -219,53 +242,4 @@ export class AlIdentityProviders
         };
     }
 
-    /**
-     * Given a token, determine its expiration timestamp in seconds.
-     */
-    protected getTokenExpiration( token:string ) {
-        const split = token.split('.');
-        if (!split || split.length < 2 ) {
-            console.warn("Warning: unexpected JWT format causing existing session not to be recognized.", token );
-            return 0;
-        }
-        const base64Url = split[1];
-        const base64 = base64Url.replace('-', '+').replace('_', '/');
-        let userData;
-        try {
-            userData = JSON.parse(window.atob(base64));
-        } catch (e) {
-            console.warn("Warning: invalid JWT encoding causing existing session not to be recognized." );
-            return 0;
-        }
-
-        if (!('exp' in userData)) {
-            console.warn("Warning: invalid JWT user data causing existing session not to be recognized." );
-            return 0;
-        }
-
-        return userData.exp;
-    }
-
-    /**
-     * Uses a race to make sure that auth0 session detection doesn't time out -- since a misconfigured client can cause the
-     * promise to hang indefinitely.
-     */
-    protected async getAuth0SessionToken( authenticator:WebAuth, config:any, timeout:number = 5000 ):Promise<string> {
-      return Promise.race( [ AlStopwatch.promise( timeout ),
-                             new Promise<string>( ( resolve, reject ) => {
-                               authenticator.checkSession( config, ( error, authResult ) => {
-                                   if ( error || ! authResult || ! authResult.accessToken ) {
-                                       reject("auth0's checkSession method failed with an error" );
-                                   } else {
-                                       resolve( authResult.accessToken );
-                                   }
-                               } );
-                           } ) ] )
-                      .then( ( accessToken:string|any ) => {
-                          if ( accessToken && typeof( accessToken ) === 'string' ) {
-                              return accessToken;
-                          }
-                          return Promise.reject("checkSession returned false or could not complete execution before timeout." );
-                      } );
-    }
 }
