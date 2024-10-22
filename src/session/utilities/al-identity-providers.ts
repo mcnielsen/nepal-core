@@ -46,9 +46,14 @@ export class AlIdentityProviders
         return true;
     }
 
+    /**
+     * This method initializes IdP clients using a heuristic mechanism differentiating auth0 from keycloak.
+     * This allows those clients to initiate and/or respond to redirection based OIDC authentication before the application
+     * itself is bootstrapped and the angular router assumes control of the URL.
+     */
+
     public async warmup() {
         if ( AlIdentityProviders.inAuth0Workflow(window?.location?.href) ) {
-            debugger;
             try {
                 AlErrorHandler.log( "IdP Warmup: initializing auth0" );
                 let authenticator = await this.getAuth0Authenticator();
@@ -63,10 +68,11 @@ export class AlIdentityProviders
             } catch( e ) {
                 console.error( e );
             }
+            return false;       //  HALT
         } else {
             await this.getKeycloak();
         }
-        return true;
+        return true;            //  Please, continue
     }
 
     /**
@@ -121,6 +127,7 @@ export class AlIdentityProviders
                              new Promise<string>( ( resolve, reject ) => {
                                authenticator.checkSession( config, ( error, authResult ) => {
                                    if ( error || ! authResult || ! authResult.accessToken ) {
+                                       console.log( "Raw Auth0 response: ", error, authResult );
                                        reject("auth0's checkSession method failed with an error" );
                                    } else {
                                        resolve( authResult.accessToken );
