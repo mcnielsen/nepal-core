@@ -52,7 +52,8 @@ export class AlIdentityProviders
      * itself is bootstrapped and the angular router assumes control of the URL.
      */
 
-    public async warmup() {
+    public async warmup():Promise<string|undefined> {
+        let currentURL = window?.location?.href ?? '';
         if ( AlIdentityProviders.inAuth0Workflow(window?.location?.href) ) {
             try {
                 AlErrorHandler.log( "IdP Warmup: initializing auth0" );
@@ -61,18 +62,16 @@ export class AlIdentityProviders
                 let accessToken = await this.getAuth0SessionToken( authenticator, config, 5000 );
                 if ( accessToken ) {
                     AlErrorHandler.log("IdP Warmup: procured auth0 access token" );
-                    return false;
                 } else {
                     AlErrorHandler.log("IdP Warmup: auth0 did not yield an access token" );
                 }
             } catch( e ) {
-                console.error( e );
+                AlErrorHandler.log(e, "IdP Warmup: auth0 initialization failed" );
             }
-            return false;       //  HALT
+            return this.maybeRewriteBrokenURL( currentURL );
         } else {
             await this.getKeycloak();
         }
-        return true;            //  Please, continue
     }
 
     /**
@@ -249,4 +248,49 @@ export class AlIdentityProviders
         };
     }
 
+    /**
+     * Auth0 has a bad habit of generating URLs that are indigestible by @angular/router, so it is necessary to recognize some of
+     * its patterns and correct them.
+     */
+    protected maybeRewriteBrokenURL( inputURL:string ):string|undefined {
+        try {
+            let verifyMfaRouteMatcher = /\?state=(.*)\#\/mfa\/verify(.*)/;
+            let acceptTosRouteMatcher = /\?state=(.*)\#\/terms-of-service(.*)/;
+
+            let node    =   AlLocatorService.getNodeByURI( inputURL );
+            let nodeId  =   node?.locTypeId || 'unknown';
+
+            if ( nodeId === AlLocation.AccountsUI ) {
+                if ( inputURL.match( verifyMfaRouteMatcher ) ) {
+                    let matches = verifyMfaRouteMatcher.exec( inputURL );
+                    let stateValue = matches[1];
+                    let qsValue = matches[2];
+                    return inputURL.replace( verifyMfaRouteMatcher, `#/mfa/verify${qsValue}&state=${stateValue}` );
+                } else if ( inputURL.match( acceptTosRouteMatcher ) ) {
+                    let matches = acceptTosRouteMatcher.exec( inputURL );
+                    let stateValue = matches[1];
+                    let qsValue = matches[2];
+                    return inputURL.replace( acceptTosRouteMatcher, `#/terms-of-service${qsValue}&state=${stateValue}` );
+                }
+                let matches = /^(.*)\/\?state=(.*)(\#\/.*)$/.exec( inputURL );
+                if ( matches ) {
+                    //  This is an Auth0 redirect URL.  It needs to be massaged to be gracefully handled by angular.
+                    let paramToken = matches[3].includes("?") ? "&" : "?";
+                    const rewrittenURL = `${matches[1]}/${matches[3]}${paramToken}state=${matches[2]}`;
+                    return rewrittenURL;
+                }
+            } else {
+                let matches = /^(.*)\/\?error=login_required&state=(.*)(\#\/.*)$/.exec( inputURL );
+                if ( matches ) {
+                    //  This is an Auth0 redirect URL.  It needs to be massaged to be gracefully handled by angular.
+                    let paramToken = matches[3].includes("?") ? "&" : "?";
+                    const rewrittenURL = `${matches[1]}/${matches[3]}${paramToken}error=login_required&state=${matches[2]}`;
+                    return rewrittenURL;
+                }
+            }
+        } catch( e ) {
+            console.warn("Unexpected error: could not preprocess application URI: " + e.toString() );
+        }
+        return undefined;
+    };
 }
