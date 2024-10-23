@@ -254,6 +254,7 @@ export class AlIdentityProviders
      */
     protected maybeRewriteBrokenURL( inputURL:string ):string|undefined {
         try {
+            AlErrorHandler.log( `IdP warmup: evaluating input URL [${inputURL}]` );
             let verifyMfaRouteMatcher = /\?state=(.*)\#\/mfa\/verify(.*)/;
             let acceptTosRouteMatcher = /\?state=(.*)\#\/terms-of-service(.*)/;
 
@@ -265,11 +266,13 @@ export class AlIdentityProviders
                     let matches = verifyMfaRouteMatcher.exec( inputURL );
                     let stateValue = matches[1];
                     let qsValue = matches[2];
+                    AlErrorHandler.log(`IdP warmup: MFA validation URL detected` );
                     return inputURL.replace( verifyMfaRouteMatcher, `#/mfa/verify${qsValue}&state=${stateValue}` );
                 } else if ( inputURL.match( acceptTosRouteMatcher ) ) {
                     let matches = acceptTosRouteMatcher.exec( inputURL );
                     let stateValue = matches[1];
                     let qsValue = matches[2];
+                    AlErrorHandler.log(`IdP warmup: TOS acceptance URL detected` );
                     return inputURL.replace( acceptTosRouteMatcher, `#/terms-of-service${qsValue}&state=${stateValue}` );
                 }
                 let matches = /^(.*)\/\?state=(.*)(\#\/.*)$/.exec( inputURL );
@@ -285,11 +288,12 @@ export class AlIdentityProviders
                     //  This is an Auth0 redirect URL.  It needs to be massaged to be gracefully handled by angular.
                     let paramToken = matches[3].includes("?") ? "&" : "?";
                     const rewrittenURL = `${matches[1]}/${matches[3]}${paramToken}error=login_required&state=${matches[2]}`;
+                    AlErrorHandler.log(`IdP warmup: login required URL detected` );
                     return rewrittenURL;
                 }
             }
         } catch( e ) {
-            console.warn("Unexpected error: could not preprocess application URI: " + e.toString() );
+            AlErrorHandler.report( "Unexpected error: could not preprocess application URI: " + e.toString() );
         }
         return undefined;
     };
