@@ -55,6 +55,7 @@ export interface AlAuthenticationState {
 
 export class AlAuthenticationUtility {
 
+    public static tokenConversion$?:Promise<any>;
     public state:AlAuthenticationState = {
         result: AlAuthenticationResult.Unauthenticated
     };
@@ -253,15 +254,44 @@ export class AlAuthenticationUtility {
     }
 
     public async convertFortraToken( fortraSession:FortraSession ):Promise<string> {
+        if ( ! AlAuthenticationUtility.tokenConversion$ ) {
+            AlAuthenticationUtility.tokenConversion$ = new Promise( async ( resolve, reject ) => {
+                try {
+                    let result = await this.innerConvertFortraToken( fortraSession );
+                    resolve( result );
+                } catch( e ) {
+                    reject( e );
+                } finally {
+                    AlAuthenticationUtility.tokenConversion$ = undefined;
+                }
+            } );
+        }
+        return AlAuthenticationUtility.tokenConversion$;
+    }
+
+    protected async innerConvertFortraToken( fortraSession:FortraSession ):Promise<string> {
+        let headers:{[header:string]:string} = {};
+        let data:any = null;
+        let withCredentials:boolean = false;
+
+        if ( AlRuntimeConfiguration.options.embeddedFortraApp ) {
+            withCredentials = true;
+        } else {
+            data = { token: fortraSession.accessToken };
+        }
+        if ( [ "development", "embedded-development" ].includes( AlLocatorService.getCurrentEnvironment() ) ) {
+            headers['X-Fortra-Environment'] = "dev";
+        }
+
         let converted = await AlDefaultClient.post( {
+            headers,
+            data,
+            withCredentials,
             service_stack: AlLocation.GlobalAPI,
             service_name: "aims",
             version: 1,
             path: `/authenticate/convert_token`,
             aimsAuthHeader: false,
-            data: {
-                token: fortraSession.accessToken
-            }
         } ) as AIMSAuthentication;
         return converted.token;
     }
