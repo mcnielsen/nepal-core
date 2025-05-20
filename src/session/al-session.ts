@@ -736,6 +736,34 @@ export class AlSessionInstance
           }
         }
       }
+
+      /*  tslint:disable:no-boolean-literal-compare */
+      /*
+      const environment = AlLocatorService.getCurrentEnvironment();
+      if ( this.sessionIsActive ) {
+          console.log("Request: ", event.config );
+
+        if ( event.config.aimsAuthHeader === true
+                ||
+             ( this.authenticatedStacks.includes( event.config.service_stack ) && event.config.aimsAuthHeader !== false ) ) {
+          event.config.headers = event.config.headers || {};
+          if ( ! event.config.hasHeader( 'X-AIMS-Auth-Token' ) && ! event.config.hasHeader( 'Authorization' ) ) {
+            if ( this.sessionData?.fortraSession ) {
+              if ( AlRuntimeConfiguration.options.embeddedFortraApp ) {
+                  event.config.withCredentials = true; //  no explicit token; rely on HTTP-only cookies
+              } else {
+                  event.request.setHeader( 'Authorization', `Bearer ${this.sessionData.fortraSession.accessToken}` );
+              }
+              if ( environment === 'embedded-development' ) {
+                  event.request.setHeader( 'X-Fortra-Environment', "dev" );
+              }
+            } else {
+              event.request.setHeader( 'X-AIMS-Auth-Token', this.getToken() );
+            }
+          }
+        }
+      }
+      */
     }
 
     /**

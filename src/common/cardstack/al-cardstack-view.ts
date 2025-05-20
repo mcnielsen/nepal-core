@@ -47,7 +47,7 @@ export abstract class AlCardstackView< EntityType=any,
     public autoDefineCardsChanged: boolean                                      = false;
 
     //  If defined, indicates the view has failed to load and optionally provides description and details of error
-    public error?:string|Error;
+    public error?:string|Error|unknown;
 
     //  Aggregation data
     public aggregations:AlCardstackAggregations = {

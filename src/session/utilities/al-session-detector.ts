@@ -109,7 +109,7 @@ export class AlSessionDetector
      */
 
     public forceAuthentication() {
-        const loginUri = AlDefaultClient.resolveLocation(AlLocation.AccountsUI, '/#/login');
+        const loginUri = AlLocatorService.resolveURL(AlLocation.MagmaUI, '/#/login');
         const returnUri = window.location.origin + ((window.location.pathname && window.location.pathname.length > 1) ? window.location.pathname : "");
         this.redirect( `${loginUri}?return=${encodeURIComponent(returnUri)}&token=null`, "User is not authenticated; redirecting to login." );
     }

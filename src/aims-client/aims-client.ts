@@ -6,7 +6,7 @@ import { AlRuntimeConfiguration } from '../configuration';
 import {
     AlApiClient,
     AlDefaultClient,
-    APIRequestParams,
+    HybridRequestDescriptor,
 } from "../client";
 import {
     AlLocation,
@@ -392,7 +392,7 @@ export class AIMSClientInstance {
    * Obtain Authentication Token Information for a specific access token
    */
   public async getTokenInfo( accessToken:string, useAuthenticationHeader:boolean = false ):Promise<AIMSAuthenticationTokenInfo> {
-    let request:APIRequestParams = {
+    let request:HybridRequestDescriptor = {
       service_stack: AlLocation.GlobalAPI,
       service_name: this.serviceName,
       version: 1,

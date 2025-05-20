@@ -1,6 +1,6 @@
 import { expect, describe, test, beforeEach, afterEach, vi } from 'vitest';
 
-import { AlDefaultClient } from "../../src/client";
+import { AlDefaultClient, AlRequest } from "../../src/client";
 import {
     AlLocation,
     AlLocatorService,
@@ -15,13 +15,13 @@ const accountId = '12345';
 const userId = '4567';
 const queryParams = { foo: 'bar' };
 
-describe('AIMS Client Test Suite:', () => {
+describe.only('AIMS Client Test Suite:', () => {
   let stub: any;
   let globalBaseURL;
   beforeEach(() => {
     AlLocatorService.setContext( { environment: "integration" } );
-    AlDefaultClient.reset()
-            .setGlobalParameters( { noEndpointsResolution: true } );
+    AlDefaultClient.reset();
+    AlRequest.defaultParams.noEndpointsResolution = true;
     stub = vi.spyOn(AlDefaultClient as any, "axiosRequest").mockResolvedValue( { status: 200, data: 'Some result', config: {} } );
     globalBaseURL = AlLocatorService.resolveURL( AlLocation.GlobalAPI );
   });
@@ -41,7 +41,8 @@ describe('AIMS Client Test Suite:', () => {
       const mobilePhone = '123-456-789-000';
       await AIMSClient.createUser(accountId, name, email, mobilePhone);
       expect(stub.mock.calls.length).to.equal(1);
-      const payload = stub.mock.calls[0][0];
+      const req = stub.mock.calls[0][0] as AlRequest;
+      const payload = req.config;
       expect( payload.method ).to.equal( "POST" );
       expect( payload.url ).to.equal( `${globalBaseURL}/aims/v1/${accountId}/users` );
       expect( payload.data ).to.deep.equal( { name, email, mobile_phone: mobilePhone } );
@@ -51,49 +52,54 @@ describe('AIMS Client Test Suite:', () => {
     test('should call delete() on the AlDefaultClient instance with a correctly constructed payload', async() => {
       await AIMSClient.deleteUser(accountId, userId);
       expect(stub.mock.calls.length).to.equal(1);
-      const payload = stub.mock.calls[0][0];
+      const req = stub.mock.calls[0][0] as AlRequest;
+      const payload = req.config;
       expect( payload.method ).to.equal( "DELETE" );
       expect( payload.url ).to.equal( `${globalBaseURL}/aims/v1/${accountId}/users/${userId}` );
     });
   });
   describe('when retrieving a user record', () => {
-    test('should call fetch() on the AlDefaultClient instance with a correctly constructed payload', async() => {
+    test('should call get() on the AlDefaultClient instance with a correctly constructed payload', async() => {
       await AIMSClient.getUserDetailsById(accountId, userId);
       expect(stub.mock.calls.length).to.equal(1);
-      const payload = stub.mock.calls[0][0];
+      const req = stub.mock.calls[0][0] as AlRequest;
+      const payload = req.config;
       expect( payload.method ).to.equal( "GET" );
       expect( payload.url ).to.equal( `${globalBaseURL}/aims/v1/${accountId}/users/${userId}` );
     });
   });
   describe('when retrieving permissions for a user', () => {
-    test('should call fetch() on the AlDefaultClient instance with a correctly constructed payload', async() => {
+    test('should call get() on the AlDefaultClient instance with a correctly constructed payload', async() => {
       await AIMSClient.getUserPermissions(accountId, userId);
       expect(stub.mock.calls.length).to.equal(1);
-      const payload = stub.mock.calls[0][0];
+      const req = stub.mock.calls[0][0] as AlRequest;
+      const payload = req.config;
       expect( payload.method ).to.equal( "GET" );
       expect( payload.url ).to.equal( `${globalBaseURL}/aims/v1/${accountId}/users/${userId}/permissions` );
     });
   });
   describe('when retrieving account details', () => {
-    test('should call fetch() on the AlDefaultClient instance with a correctly constructed payload', async() => {
+    test('should call get() on the AlDefaultClient instance with a correctly constructed payload', async() => {
       await AIMSClient.getAccountDetails(accountId);
       expect(stub.mock.calls.length).to.equal(1);
-      const payload = stub.mock.calls[0][0];
+      const req = stub.mock.calls[0][0] as AlRequest;
+      const payload = req.config;
       expect( payload.method ).to.equal( "GET" );
       expect( payload.url ).to.equal( `${globalBaseURL}/aims/v1/${accountId}/account` );
     });
   });
   describe('when retrieving managed account details', () => {
-    test('should call fetch() on the AlDefaultClient instance with a correctly constructed payload', async() => {
+    test('should call get() on the AlDefaultClient instance with a correctly constructed payload', async() => {
       await AIMSClient.getManagedAccounts(accountId, queryParams);
       expect(stub.mock.calls.length).to.equal(1);
-      const payload = stub.mock.calls[0][0];
+      const req = stub.mock.calls[0][0] as AlRequest;
+      const payload = req.config;
       expect( payload.method ).to.equal( "GET" );
       expect( payload.url ).to.equal( `${globalBaseURL}/aims/v1/${accountId}/accounts/managed` );
     });
   });
   describe('when retrieving managed account Ids', () => {
-    test('should call fetch() on the AlDefaultClient instance with a correctly constructed payload', async() => {
+    test('should call get() on the AlDefaultClient instance with a correctly constructed payload', async() => {
       await AIMSClient.getManagedAccountIds(accountId, queryParams);
       expect(stub.mock.calls.length).to.equal(1);
       const payload = stub.mock.calls[0][0];
@@ -102,7 +108,7 @@ describe('AIMS Client Test Suite:', () => {
     });
   });
   describe('when retrieving managing account Id', () => {
-    test('should call fetch() on the AlDefaultClient instance with a correctly constructed payload', async() => {
+    test('should call get() on the AlDefaultClient instance with a correctly constructed payload', async() => {
       await AIMSClient.getAccountIdsByRelationship(accountId,'managing', queryParams);
       expect(stub.mock.calls.length).to.equal(1);
       const payload = stub.mock.calls[0][0];
@@ -111,7 +117,7 @@ describe('AIMS Client Test Suite:', () => {
     });
   });
   describe('when retrieving managing accounts', () => {
-    test('should call fetch() on the AlDefaultClient instance with a correctly constructed payload', async() => {
+    test('should call get() on the AlDefaultClient instance with a correctly constructed payload', async() => {
       await AIMSClient.getAccountsByRelationship(accountId,'managing', queryParams);
       expect(stub.mock.calls.length).to.equal(1);
       const payload = stub.mock.calls[0][0];
@@ -165,7 +171,7 @@ describe('AIMS Client Test Suite:', () => {
     });
   });
   describe('when retrieving tokenInfo', () => {
-    test('should call fetch() on the AlDefaultClient instance with a correctly constructed payload', async() => {
+    test('should call get() on the AlDefaultClient instance with a correctly constructed payload', async() => {
       await AIMSClient.tokenInfo();
       expect(stub.mock.calls.length).to.equal(1);
       const payload = stub.mock.calls[0][0];
@@ -230,7 +236,7 @@ describe('AIMS Client Test Suite:', () => {
     });
   });
   describe('when retrieving a global role', () => {
-    test('should call fetch() on the AlDefaultClient instance with a correctly constructed payload', async() => {
+    test('should call get() on the AlDefaultClient instance with a correctly constructed payload', async() => {
       const roleId = '00-22-xx-zz';
       await AIMSClient.getGlobalRole(roleId);
       expect(stub.mock.calls.length).to.equal(1);
@@ -240,7 +246,7 @@ describe('AIMS Client Test Suite:', () => {
     });
   });
   describe('when retrieving an account role', () => {
-    test('should call fetch() on the AlDefaultClient instance with a correctly constructed payload', async() => {
+    test('should call get() on the AlDefaultClient instance with a correctly constructed payload', async() => {
       const roleId = '00-22-xx-zz';
       await AIMSClient.getAccountRole(accountId, roleId);
       expect(stub.mock.calls.length).to.equal(1);
@@ -250,7 +256,7 @@ describe('AIMS Client Test Suite:', () => {
     });
   });
   describe('when retrieving all global roles', () => {
-    test('should call fetch() on the AlDefaultClient instance to the roles endpoint', async() => {
+    test('should call get() on the AlDefaultClient instance to the roles endpoint', async() => {
       await AIMSClient.getGlobalRoles();
       expect(stub.mock.calls.length).to.equal(1);
       const payload = stub.mock.calls[0][0];
@@ -259,7 +265,7 @@ describe('AIMS Client Test Suite:', () => {
     });
   });
   describe('when retrieving all account roles', () => {
-    test('should call fetch() on the AlDefaultClient instance to the roles endpoint', async() => {
+    test('should call get() on the AlDefaultClient instance to the roles endpoint', async() => {
       await AIMSClient.getAccountRoles(accountId);
       expect(stub.mock.calls.length).to.equal(1);
       const payload = stub.mock.calls[0][0];
@@ -323,7 +329,7 @@ describe('AIMS Client Test Suite:', () => {
     });
   });
   describe('when retrieving user details', () => {
-    test('should call fetch() on the AlDefaultClient instance to the users endpoint with any extra params supplied', async() => {
+    test('should call get() on the AlDefaultClient instance to the users endpoint with any extra params supplied', async() => {
       const reqParams = { include_role_ids: true, include_user_credential: true };
       await AIMSClient.getUserDetails(accountId, userId, reqParams);
       expect(stub.mock.calls.length).to.equal(1);
@@ -333,7 +339,7 @@ describe('AIMS Client Test Suite:', () => {
     });
   });
   describe('when retrieving users', () => {
-    test('should call fetch() on the AlDefaultClient instance to the users endpoint with any extra params supplied', async() => {
+    test('should call get() on the AlDefaultClient instance to the users endpoint with any extra params supplied', async() => {
       const reqParams = { include_role_ids: true, include_user_credential: true };
       await AIMSClient.getUsers(accountId, reqParams);
       expect(stub.mock.calls.length).to.equal(1);
@@ -366,7 +372,7 @@ describe('AIMS Client Test Suite:', () => {
     });
   });
   describe('when retrieving an access key', () => {
-    test('should call fetch() on the AlDefaultClient instance to the access_keys endpoint for the supplied access key id value', async() => {
+    test('should call get() on the AlDefaultClient instance to the access_keys endpoint for the supplied access key id value', async() => {
       const accessKeyId = '002211-22dddc';
       await AIMSClient.getAccessKey(accessKeyId);
       expect(stub.mock.calls.length).to.equal(1);
@@ -376,7 +382,7 @@ describe('AIMS Client Test Suite:', () => {
     });
   });
   describe('when retrieving all access keys for a user', () => {
-    test('should call fetch() on the AlDefaultClient instance to the access_keys endpoint for the supplied user id value', async() => {
+    test('should call get() on the AlDefaultClient instance to the access_keys endpoint for the supplied user id value', async() => {
       await AIMSClient.getAccessKeys(accountId, userId );
       expect(stub.mock.calls.length).to.equal(1);
       const payload = stub.mock.calls[0][0];

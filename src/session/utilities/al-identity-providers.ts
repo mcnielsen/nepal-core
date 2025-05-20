@@ -169,12 +169,15 @@ export class AlIdentityProviders
                                     let silentCheckSsoRedirectUri = cloakPhase === 0 ? `${baseLocation}/sso-check.html` : undefined;
                                     this.storage.set("cloakInitPhase", cloakPhase + 1, 10 ).synchronize();  //  doing this preemptively should prevent us from
 
-                                    if ( cloakPhase > 5 ) {
+                                    if ( cloakPhase > 3 ) {
                                         this.allIsLost = true;
                                         AlErrorHandler.log("Refusing to initialize keycloak after too many redirect cycles", "auth" );
+                                        console.log("Notice: Refusing to initialize keycloak after too many redirect cycles", "auth" );
                                         resolve();
                                     } else {
                                         AlErrorHandler.log(`Initializing cloak in phase [${cloakPhase}]: ${onLoad} (uri: ${window.location.href})`, "auth");
+                                        console.log(`Notice: Initializing cloak in phase [${cloakPhase}]: ${onLoad} (uri: ${window.location.href})`, "auth");
+                                        console.log("Using sso redirect URL: ", silentCheckSsoRedirectUri );
                                         let initResult = await cloak.init( {
                                                                         onLoad,
                                                                         silentCheckSsoRedirectUri,
@@ -185,9 +188,12 @@ export class AlIdentityProviders
                                                                         responseMode: "query",
                                                                         messageReceiveTimeout: 5000
                                                                     } );
+                                        console.log("Initialization result: ", JSON.stringify( initResult, null, 4 ) );
                                         if ( ! initResult && cloakPhase === 0 ) {
+                                            console.log("Notice: Kickin' off login" );
                                             cloak.login( { prompt: 'none', redirectUri: window.location.href } );
                                         } else {
+                                            console.log("Resolving..." );
                                             resolve();
                                         }
                                     }

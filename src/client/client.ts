@@ -13,17 +13,11 @@
  *  `.put<Type>( config )` - executes a PUT request and resolves with the response payload from axios, as Type.
  *  `.rawDelete<Type>( config )` - executes a DELETE request and resolves with the full response descriptor from axios
  *  `.delete<Type>( config )` - executes a DELETE request and resolves with the response payload from axios, as Type.
- *
- *  Alternatively, a request can be normalized and dispatched without caching or retry logic using this method:
- *
- *  ```
- *  let normalizedRequest = AlDefaultClient.normalizeRequest( config );
- *  let response = await AlDefaultClient.doRequest<Type>( method, normalizedRequest );
- *  ```
  */
 import axios, {
     AxiosInstance,
-    AxiosRequestConfig,
+    RawAxiosRequestConfig,
+    InternalAxiosRequestConfig,
     AxiosResponse,
     Method,
 } from 'axios';
@@ -44,9 +38,8 @@ import {
 import {
     APIExecutionLogItem,
     APIExecutionLogSummary,
-    APIRequestParams,
-    AlInterceptionRule,
-    AlInterceptionRules,
+    APIRequestParams, HybridRequestDescriptor,
+    StandardErrorResponse,
 } from './types';
 import { AlClientBeforeRequestEvent, AlClientAPIErrorEvent } from './events';
 import { AIMSSessionDescriptor } from '../aims-client/types';
@@ -78,17 +71,10 @@ export class AlApiClient
    */
   protected static resolveByResidencyServiceList = [ "iris", "kalm", "ticketmaster", "tacoma", "responder", "responder-async", "cargo" ];
 
-  protected static defaultServiceParams: APIRequestParams = {
-    service_stack:                  AlLocation.InsightAPI,  //  May also be AlLocation.GlobalAPI, AlLocation.EndpointsAPI, or ALLocation.LegacyUI
-    version:                        'v1',                   //  Version of the service
-    ttl:                            false                   //  Default to no caching
-  };
-
   protected static defaultResidency = 'default';
 
   public events:AlTriggerStream     =   new AlTriggerStream();
   public verbose:boolean            =   false;
-  public collectRequestLog:boolean  =   false;
   public mockMode:boolean           =   false;              //  If true, requests will be normalized but not actually dispatched.
   public mockRequests:any[]         =   [];
   public defaultAccountId:string    =   null;        //  If specified, uses *this* account ID to resolve endpoints if no other account ID is explicitly specified
@@ -105,21 +91,12 @@ export class AlApiClient
       AlLocation.MDRAPI
   ];
 
-  /* Default request parameters */
-  private globalServiceParams: APIRequestParams;
-
   /* Dictionary of in-flight GET requests */
   private transientReadCache:{[resourceKey:string]:Promise<any>} = {};
 
-  /* Internal execution log */
-  private executionRequestLog:APIExecutionLogItem[] = [];
-
-  private interceptionRules?:AlInterceptionRules;
   private beforeRequest?:{():Promise<any>};
 
   constructor() {
-      // temp to debug ie11
-      this.globalServiceParams = this.merge( {}, AlApiClient.defaultServiceParams );
   }
 
   /**
@@ -128,78 +105,38 @@ export class AlApiClient
   public reset():AlApiClient {
     this.endpointCache = {};
     this.instance = null;
-    this.executionRequestLog = [];
     this.storage.destroy();
-    this.globalServiceParams = this.merge( {}, AlApiClient.defaultServiceParams );
-    return this;
-  }
-
-  /**
-   * Flushes the caches keys if they are present in the config request params.
-   */
-  public flushCacheKeysFromConfig(config: APIRequestParams) {
-    try {
-      if ( config.flushCacheKeys ) {
-        config.flushCacheKeys.forEach((cacheKey) => {
-          this.deleteCachedValue(cacheKey);
-          caches.delete(cacheKey);
-        });
-      }
-    } catch( e ) {
-      console.log( `Cache deletion error: `, e );
-    }
-  }
-
-  /**
-   * Get the full url from a config api request.
-   * Note: This method is intended to be used as a helper from outside,
-   * we need to normalize here.
-   */
-  public async fromConfigToFullUrl(config: APIRequestParams) {
-    let normalized = await this.normalizeRequest( config );
-    if (config.method === 'GET') {
-      let queryParams = this.normalizeQueryParams(config.params);
-      return `${normalized.url}${queryParams}`;
-    }
-    return normalized.url;
-  }
-
-  /**
-   * This allows the host to set global parameters that will be used for every request, either for Axios or the @al/client service layer.
-   * Most notably, setting `noEndpointsResolution` to true will suppress endpoints resolution for all requests, and cause default endpoint values to be used.
-   */
-  public setGlobalParameters( parameters:APIRequestParams ):AlApiClient {
-    this.globalServiceParams = this.merge( this.globalServiceParams, parameters );
     return this;
   }
 
   /**
    * GET - Return Cache, or Call for updated data
    */
-  public async rawGet<T = any>(config: APIRequestParams): Promise<AxiosResponse<T>> {
+  public async rawGet<T = any>(descr:AlRequest|HybridRequestDescriptor): Promise<AxiosResponse<T,any>> {
+    const request = this.wrap( descr );
+    const config = request.config;
     config.method = 'GET';
-    let normalized = await this.normalizeRequest( config );
     let queryParams = this.normalizeQueryParams( config.params );
-    let fullUrl = `${normalized.url}${queryParams}`;
+    let fullUrl = `${config.url}${queryParams}`;
 
     //  Check for data in cache
     let cacheTTL = 0;
-    const cacheKey = normalized.cacheKey || fullUrl;
-    if ( typeof( normalized.ttl ) === 'number' && normalized.ttl > 0 ) {
-      cacheTTL = normalized.ttl;
-    } else if ( typeof( normalized.ttl ) === 'boolean' && normalized.ttl ) {
+    const cacheKey = config.cacheKey || fullUrl;
+    if ( typeof( config.ttl ) === 'number' && config.ttl > 0 ) {
+      cacheTTL = config.ttl;
+    } else if ( typeof( config.ttl ) === 'boolean' && config.ttl ) {
       cacheTTL = 60000;
     }
-    if ( cacheTTL && ! normalized.disableCache ) {
+    if ( cacheTTL && ! config.disableCache ) {
       let cachedValue = this.getCachedValue( fullUrl );
       if ( cachedValue ) {
         this.log(`APIClient::XHR GET ${fullUrl} (from cache)` );
         return {
+          config: config as InternalAxiosRequestConfig,        // a little white lie to keep typescript happy :)
           data: cachedValue,
           status: 200,
           statusText: "OK",
           headers: {},
-          config: normalized
         };
       }
     }
@@ -210,36 +147,15 @@ export class AlApiClient
       return result;
     }
 
-    let start = Date.now();
     try {
-      const request = this.axiosRequest( normalized );
-      this.transientReadCache[cacheKey] = request;       //  store request instance to consolidate multiple requests for a single resource
-      const response = await request;
-      const completed = Date.now();
-      const duration = completed - start;
-      if ( cacheTTL && ! normalized.disableCache ) {
-        this.setCachedValue( cacheKey, response.data, cacheTTL );
-        this.log(`APIClient::XHR GET [${fullUrl}] in ${duration}ms (to cache, ${cacheTTL}ms)` );
-      } else {
-        this.log(`APIClient::XHR GET [${fullUrl} in ${duration}ms (nocache)` );
+      const requestPromise = this.axiosRequest( request );
+      this.transientReadCache[cacheKey] = requestPromise;       //  store request instance to consolidate multiple requests for a single resource
+      request.response = await requestPromise;
+      if ( cacheTTL && ! config.disableCache ) {
+        this.setCachedValue( cacheKey, request.response.data, cacheTTL );
       }
 
-      if (this.collectRequestLog || this.verbose) {
-        let logItem:APIExecutionLogItem = {
-          method: config.method,
-          url: fullUrl,
-          responseCode: response.status,
-          responseContentLength: +response.headers['content-length'],
-          durationMs: duration
-        };
-        this.log(`APIClient::XHR DETAILS ${JSON.stringify(logItem)}`);
-
-        if (this.collectRequestLog) {
-          this.executionRequestLog.push(logItem);
-        }
-      }
-
-      return response;
+      return request.response;
     } catch( e ) {
       this.log(`APIClient::XHR GET [${fullUrl}] (FAILED, ${e["message"]})` );
       throw e;
@@ -248,34 +164,27 @@ export class AlApiClient
     }
   }
 
-  public async get<T = any>(config: APIRequestParams): Promise<T> {
+  public async get<T = any>(config: HybridRequestDescriptor|AlRequest): Promise<T> {
     let response = await this.rawGet<T>( config );
     return response.data;
   }
 
   /**
-   * @deprecated
-   * Alias for GET utility method
-   */
-  public async fetch<T = any>(config: APIRequestParams):Promise<T> {
-    console.warn("Deprecation warning: do not use AlApiClient.fetch; use `get` instead." );
-    return this.get<T>( config );
-  }
-
-  /**
    * POST - clears cache and posts for new/merged data
    */
-  public async rawPost<T = any>(config: APIRequestParams): Promise<AxiosResponse<T>> {
+  public async rawPost<T = any>(descr: HybridRequestDescriptor|AlRequest): Promise<AxiosResponse<T,any>> {
+    const request = this.wrap( descr );
+    const config = request.config;
     config.method = 'POST';
-    const normalized = await this.normalizeRequest( config );
-    if ( ! normalized.disableCache ) {
-      this.deleteCachedValue( normalized.url );
+    await this.normalizeRequest( request );
+    if ( ! config.disableCache ) {
+      this.deleteCachedValue( config.url );
     }
-    const response = await this.doRequest<T>( config.method, normalized );
+    const response = await this.axiosRequest<T>( request );
     return response;
   }
 
-  public async post<T = any>(config:APIRequestParams): Promise<T> {
+  public async post<T = any>(config:HybridRequestDescriptor|AlRequest): Promise<T> {
     let response = await this.rawPost<T>( config );
     return response.data;
   }
@@ -283,20 +192,22 @@ export class AlApiClient
   /**
    * Form data submission
    */
-  public async rawForm<T = any>(config: APIRequestParams) :Promise<AxiosResponse<T>>{
+  public async rawForm<T = any>(descr: HybridRequestDescriptor|AlRequest) :Promise<AxiosResponse<T,any>>{
+    const request = this.wrap( descr );
+    const config = request.config;
     config.method = 'POST';
     config.headers = {
         'Content-Type': 'multipart/form-data'
     };
-    const normalized = await this.normalizeRequest( config );
-    if ( ! normalized.disableCache ) {
-      this.deleteCachedValue( normalized.url );
+    await this.normalizeRequest( request );
+    if ( ! config.disableCache ) {
+      this.deleteCachedValue( config.url );
     }
-    const response = await this.doRequest<T>( config.method, normalized );
+    const response = await this.axiosRequest<T>( request );
     return response;
   }
 
-  public async form<T = any>(config:APIRequestParams): Promise<T> {
+  public async form<T = any>(config:HybridRequestDescriptor|AlRequest): Promise<T> {
     let response = await this.rawForm<T>( config );
     return response.data;
   }
@@ -304,119 +215,50 @@ export class AlApiClient
   /**
    * PUT - replaces data
    */
-  public async rawPut<T = any>(config: APIRequestParams) :Promise<AxiosResponse<T>>{
+  public async rawPut<T = any>(descr: HybridRequestDescriptor|AlRequest) :Promise<AxiosResponse<T,any>>{
+    const request = this.wrap( descr );
+    const config = request.config;
     config.method = 'PUT';
-    const normalized = await this.normalizeRequest( config );
-    if ( ! normalized.disableCache ) {
-      this.deleteCachedValue( normalized.url );
+    await this.normalizeRequest( request );
+    if ( ! config.disableCache ) {
+      this.deleteCachedValue( config.url );
     }
-    const response = await this.doRequest<T>( config.method, normalized );
+    const response = await this.axiosRequest<T>( request );
     return response;
   }
 
-  public async put<T = any>(config:APIRequestParams): Promise<T> {
+  public async put<T = any>(config:HybridRequestDescriptor|AlRequest): Promise<T> {
     let response = await this.rawPut<T>(config);
     return response.data;
   }
 
   /**
-   * @deprecated
-   * Alias for PUT utility method
-   */
-  public async set<T = any>( config:APIRequestParams ) :Promise<T>{
-    console.warn("Deprecation warning: do not use AlApiClient.set; use `put` instead." );
-    return this.put<T>( config );
-  }
-
-  /**
    * Delete data
    */
-  public async rawDelete<T = any>(config: APIRequestParams) :Promise<AxiosResponse<T>>{
+  public async rawDelete<T = any>(descr: HybridRequestDescriptor|AlRequest) :Promise<AxiosResponse<T,any>>{
+    const request = this.wrap( descr );
+    const config = request.config;
     config.method = 'DELETE';
-    const normalized = await this.normalizeRequest( config );
-    this.deleteCachedValue( normalized.url );
-    const response = await this.doRequest<T>( config.method, normalized );
+    await this.normalizeRequest( request );
+    this.deleteCachedValue( config.url );
+    const response = await this.axiosRequest<T>( request );
     return response;
   }
 
-  public async delete<T = any>(config: APIRequestParams ): Promise<T> {
+  public async delete<T = any>(config: HybridRequestDescriptor|AlRequest ): Promise<T> {
     let response = await this.rawDelete<T>( config );
     return response.data;
   }
 
-  public async executeRequest<ResponseType>( options:APIRequestParams ):Promise<AxiosResponse<ResponseType>> {
-    return this.axiosRequest<ResponseType>( options );
-  }
-
   /**
-   * Perform a request collecting all details related to the request, if
-   * collectRequestLog is active.
-   * @param method The method of the request. [POST PUT DELETE GET]
-   * @param normalizedParams The normalized APIRequestParams object.
+   * Generic HTTP method
    */
-  public async doRequest<T = any>(method:Method, normalizedParams:APIRequestParams):Promise<AxiosResponse<T>> {
-    let response:AxiosResponse;
-    let start:number = 0;
-    let logItem:APIExecutionLogItem = {};
-
-    if (this.collectRequestLog) {
-      start = Date.now();
-      logItem.method = method;
-      logItem.url = normalizedParams.url;
+  public async execute<T = any>( request:AlRequest ):Promise<AxiosResponse<T,any>> {
+    await this.normalizeRequest( request );
+    if ( request.config.method !== 'GET' && request.config.method !== 'HEAD' ) {
+      this.deleteCachedValue( request.config.url );
     }
-
-    this.flushCacheKeysFromConfig(normalizedParams);
-
-    try {
-      response = await this.axiosRequest<T>( normalizedParams );
-
-      if (this.collectRequestLog) {
-        const completed = Date.now();
-        const duration = completed - start;
-
-        logItem.responseCode = response.status;
-        logItem.responseContentLength = +response.headers['content-length'];
-        logItem.durationMs = duration;
-
-        this.executionRequestLog.push(logItem);
-      }
-
-      this.log(`APIClient::XHR DETAILS ${JSON.stringify(logItem)}`);
-
-    } catch( e ) {
-      if (this.collectRequestLog) {
-        const completed = Date.now();
-        const duration = completed - start;
-        logItem.responseCode = e.status;
-        logItem.durationMs = duration;
-        logItem.errorMessage = e["message"];
-      }
-      this.log(`APIClient::XHR FAILED ${JSON.stringify(logItem)}`);
-      throw e;
-    }
-
-    return response;
-  }
-
-  /**
-   * Returns a summary of requests based in the internal log array.
-   */
-  public getExecutionSummary():APIExecutionLogSummary {
-    let summary = {
-      numberOfRequests: 0,
-      totalRequestTime: 0,
-      totalBytes: 0
-    };
-
-    if (this.executionRequestLog) {
-      summary.numberOfRequests = this.executionRequestLog.length;
-      this.executionRequestLog.forEach(logItem => {
-        summary.totalRequestTime += logItem.durationMs;
-        summary.totalBytes += logItem.responseContentLength;
-      });
-    }
-
-    return summary;
+    return await this.axiosRequest<T>( request );
   }
 
   /**
@@ -424,44 +266,6 @@ export class AlApiClient
    */
   public getLastError():AxiosResponse {
     return this.lastError;
-  }
-
-  /**
-   * @deprecated
-   *
-   * Provides a concise way to manipulate the AlLocatorService without importing it directly...
-   *
-   * @param {array} locations An array of locator descriptors.
-   * @param {string|boolean} actingUri The URI to use to calculate the current location and location context; defaults to window.location.origin.
-   * @param {AlLocationContext} The effective location context.  See @al/common for more information.
-   */
-  /* istanbul ignore next */
-  public setLocations( locations:AlLocationDescriptor[], actingUri:string|boolean = true, context:AlLocationContext = null ) {
-      throw new Error("Please use AlLocatorService.setLocations to update location metadata." );
-  }
-
-  /**
-   * @deprecated
-   *
-   * Provides a concise way to set location context without importing AlLocatorService directly.
-   *
-   * @param {string} environment Should be 'production', 'integration', or 'development'
-   * @param {string} residency Should be 'US' or 'EMEA'
-   * @param {string} locationId If provided, should be one of the locations service location codes, e.g., defender-us-denver
-   * @param {string} accessibleLocations If provided, should be a list of accessible locations service location codes.
-   */
-  /* istanbul ignore next */
-  public setLocationContext( environment:string, residency?:string, locationId?:string, accessibleLocations?:string[] ) {
-      throw new Error("Please use AlLocatorService.setContext to override location context." );
-  }
-
-  /**
-   * @deprecated
-   */
-  /* istanbul ignore next */
-  public resolveLocation( locTypeId:string, path:string = null, context:AlLocationContext = null ) {
-    console.warn("Deprecation notice: please use AlLocatorService.resolveURL to calculate resource locations." );
-    return AlLocatorService.resolveURL( locTypeId, path, context );
   }
 
   /**
@@ -599,38 +403,24 @@ export class AlApiClient
     return result;
   }
 
-  public async normalizeRequest(config: APIRequestParams):Promise<APIRequestParams> {
-    if ( ! config.url ) {
-      if ( 'target_endpoint' in config || 'service_name' in config || 'service_stack' in config ) {
+  public async normalizeRequest( request:AlRequest, forceRecalculation:boolean = false ):Promise<AlRequest> {
+    if ( forceRecalculation ) {
+        delete request.config.url;
+    }
+    if ( ! request.config.url ) {
+      if ( 'target_endpoint' in request.config || 'service_name' in request.config || 'service_stack' in request.config ) {
         // If we are using endpoints resolution to determine our calculated URL, merge globalServiceParams into our configuration
-        config = this.merge( {}, this.globalServiceParams, config );
-        config.url = await this.calculateRequestURL( config );
+        request.config.url = await this.calculateRequestURL( request.config );
       } else {
-        console.warn("Warning: malform request descriptor lacks a URL or properties to generate one", config );
+        console.warn("Warning: malform request descriptor lacks a URL or properties to generate one", request.config );
       }
     }
-    if (config.accept_header) {
-      console.warn("Deprecation warning: please do not use accept_header shortcut mechanism." );
-      if ( ! config.headers ) {
-        config.headers = {};
-      }
-      config.headers.Accept = config.accept_header;
-      delete config.accept_header;
-    }
-    if (config.response_type) {
-      config.responseType = config.response_type as any;
-      delete config.response_type;
-    }
-    return config;
+    return request;
   }
 
   public getCachedData():any {
     this.storage.synchronize();     //  flush any expired data
     return this.storage.data;
-  }
-
-  public getExecutionRequestLog():APIExecutionLogItem[] {
-    return this.executionRequestLog;
   }
 
   public mergeCacheData( cachedData:any ) {
@@ -639,14 +429,7 @@ export class AlApiClient
   }
 
   public isResponse( instance:any ):instance is AxiosResponse {
-    if ( instance.hasOwnProperty("status")
-            && instance.hasOwnProperty('statusText')
-            && instance.hasOwnProperty('headers' )
-            && instance.hasOwnProperty( 'config' )
-            && instance.hasOwnProperty( 'data' ) ) {
-      return true;
-    }
-    return false;
+    return isAxiosResponse( instance );
   }
 
   public logResponse( response:AxiosResponse, includeCurl:boolean = false ) {
@@ -659,7 +442,7 @@ export class AlApiClient
       }
   }
 
-  public requestToCurlCommand( config:AxiosRequestConfig, prettify:boolean = true ):string {
+  public requestToCurlCommand( config:HybridRequestDescriptor, prettify:boolean = true ):string {
     let continuation = prettify ? "\\\r\n    " : " ";
     let command = `curl -X ${config.method} "${config.url}" ${continuation}`;
     for ( let header in config.headers ) {
@@ -670,25 +453,6 @@ export class AlApiClient
     }
     command = command + `    --verbose`;
     return command;
-  }
-
-  public async simulateHttpError<ResponseType = any>( request:Promise<any>,
-                                                      status:number,
-                                                      statusText:string,
-                                                      data:any,
-                                                      headers:any = {} ):Promise<ResponseType> {
-      const actualResponse = await request;
-      const lastRequest:AxiosRequestConfig = this.executionRequestLog.length > 0 ? this.executionRequestLog[this.executionRequestLog.length - 1] : { method: "GET", url: "/nothing" };
-
-      const error: AxiosResponse = {
-          status,
-          statusText,
-          headers,
-          data,
-          config: lastRequest,
-      };
-
-      throw error;
   }
 
   /**
@@ -708,12 +472,12 @@ export class AlApiClient
     } else {
       try {
         const context = AlLocatorService.getContext();
-        const endpointsRequest:APIRequestParams = {
+        const endpointsRequest = new AlRequest( {
           method: "POST",
           url: AlLocatorService.resolveURL( AlLocation.GlobalAPI, `/endpoints/v1/${accountId}/residency/default/endpoints` ),
           data: serviceList,
           aimsAuthHeader: true
-        };
+        }, this );
         let response = await this.axiosRequest( endpointsRequest );
         let endpointsLookup: AlEndpointsDictionary = {};
         Object.entries( response.data ).forEach( ( [ serviceName, endpointHost ] ) => {
@@ -739,12 +503,12 @@ export class AlApiClient
   public async resolveResidencyAwareEndpoints( accountId:string, serviceList:string[] ) {
     try {
       const context = AlLocatorService.getContext();
-      const endpointsRequest:APIRequestParams = {
+      const endpointsRequest = new AlRequest( {
         method: "POST",
         url: AlLocatorService.resolveURL( AlLocation.GlobalAPI, `/endpoints/v1/${accountId}/endpoints` ),
         data: serviceList,
         aimsAuthHeader: true
-      };
+      }, this );
       let response = await this.axiosRequest( endpointsRequest );
       Object.entries( response.data ).forEach( ( [ serviceName, residencyLocations ] ) => {
           Object.entries(residencyLocations).forEach(([residencyName, residencyHost]) => {
@@ -776,18 +540,6 @@ export class AlApiClient
             null );
   }
 
-  public setInterceptionRules( rules:AlInterceptionRules|AlInterceptionRule[]|AlInterceptionRule|undefined ) {
-      if ( rules instanceof AlInterceptionRules ) {
-          this.interceptionRules = rules;
-      } else if ( rules === undefined ) {
-          delete this.interceptionRules;
-      } else if ( Array.isArray( rules ) ) {
-          this.interceptionRules = new AlInterceptionRules( rules );
-      } else if ( typeof( rules ) === 'object' ) {
-          this.interceptionRules = new AlInterceptionRules( [ rules ] );
-      }
-  }
-
   public setBeforeRequest( handler?:{():Promise<any>} ) {
     this.beforeRequest = handler;
   }
@@ -803,7 +555,7 @@ export class AlApiClient
   }
 
 
-  protected async calculateRequestURL( params: APIRequestParams ):Promise<string> {
+  protected async calculateRequestURL( params: HybridRequestDescriptor ):Promise<string> {
     let fullPath:string = null;
     if ( ! params.noEndpointsResolution
            && ! AlRuntimeConfiguration.options.noEndpointsResolution
@@ -850,7 +602,7 @@ export class AlApiClient
    *
    * @returns The resolved base URL of the given endpoint.
    */
-  protected async prepare( requestParams:APIRequestParams ): Promise<string> {
+  protected async prepare( requestParams:HybridRequestDescriptor ): Promise<string> {
     let result = await this.endpointsGuard.run<string>( async () => {
       let environment         =   AlLocatorService.getCurrentEnvironment();
       let accountId           =   requestParams.context_account_id || requestParams.account_id || this.defaultAccountId || "0";
@@ -926,11 +678,11 @@ export class AlApiClient
     });
 
     this.instance.interceptors.request.use(
-      ( config:APIRequestParams ) => {
+      ( config:InternalAxiosRequestConfig&APIRequestParams ) => {
         if ( config.service_stack === AlLocation.LegacyUI ) {
           config.withCredentials = true;
         }
-        this.events.trigger( new AlClientBeforeRequestEvent( config ) );        //    Allow event subscribers to modify the request (e.g., add a session token header) if they want
+        this.events.trigger( new AlClientBeforeRequestEvent( config._owner ) );        //    Allow event subscribers to modify the request (e.g., add a session token header) if they want
         if ( ! this.isBrowserBased() ) {
             config.headers['Origin'] = AlLocatorService.resolveURL( AlLocation.MagmaUI );
         }
@@ -946,12 +698,6 @@ export class AlApiClient
   }
 
   protected onRequestResponse = async ( response:AxiosResponse ):Promise<AxiosResponse> => {
-    if ( this.interceptionRules ) {
-      let substitution = await this.interceptionRules.apply( response );
-      if ( substitution ) {
-        response = substitution;
-      }
-    }
     if ( response.status < 200 || response.status >= 400 ) {
       return this.onRequestError( response );
     }
@@ -967,15 +713,12 @@ export class AlApiClient
     } else if ( errorResponse.status < 200 ) {
         //  TODO: not quite sure...
     }
-    let snapshot:any = {
-      status: errorResponse.status,
-      statusText: errorResponse.statusText,
-      url: errorResponse.config.url,
-      headers: errorResponse.config.headers,
-      data: errorResponse.data
-    };
-    this.log( `APIClient Failed Request Snapshot: ${JSON.stringify( snapshot, null, 4 )}` );
-    this.events.trigger( new AlClientAPIErrorEvent( errorResponse.config, errorResponse ) );
+    const requestDescr = ( errorResponse.config as HybridRequestDescriptor )._owner ?? null;
+    if ( requestDescr ) {
+        this.events.trigger( new AlClientAPIErrorEvent( requestDescr, errorResponse ) );
+    } else {
+        console.error(`APIClient received error for unmanaged request.`, errorResponse );
+    }
     return Promise.reject( errorResponse );
   }
 
@@ -984,7 +727,8 @@ export class AlApiClient
    * will catch errors of status code 0/3XX/5XX and retry them at staggered intervals (by default, a factorial delay based on number of retries).
    * If any of these requests succeed, the outer promise will be satisfied using the successful result.
    */
-  protected async axiosRequest<ResponseType = any>( config:APIRequestParams, attemptIndex:number = 0 ):Promise<AxiosResponse<ResponseType>> {
+  protected async axiosRequest<ResponseType = any>( request:AlRequest, attemptIndex:number = 0 ):Promise<AxiosResponse<ResponseType>> {
+    const config = request.config;
     const ax = this.getAxiosInstance();
     if ( config.curl && this.verbose ) {
       console.log( config );
@@ -992,11 +736,21 @@ export class AlApiClient
     }
     if ( this.mockMode ) {
         return new Promise( ( resolve, reject ) => {
-            this.mockRequests.push( { resolve, reject, request:config, method: config.method ?? "GET", url: config.url ?? "uncalculated" } );
+            this.mockRequests.push( { resolve, reject, request, method: config.method ?? "GET", url: config.url ?? "uncalculated" } );
         } );
     }
     if ( this.beforeRequest ) {
         await this.beforeRequest();
+    }
+    if ( config.flushCacheKeys ) {
+      try {
+        config.flushCacheKeys.forEach((cacheKey) => {
+          this.deleteCachedValue(cacheKey);
+          caches.delete(cacheKey);
+        });
+      } catch( e ) {
+          // Whatevs
+      }
     }
     return ax( config ).then( response => {
                                 if ( attemptIndex > 0 ) {
@@ -1005,16 +759,16 @@ export class AlApiClient
                                 return response;
                               },
                               error => {
-                                if ( this.isRequestTimeout( error, config ) ) {
+                                if ( this.isRequestTimeout( error, request ) ) {
                                   return Promise.reject( new AlGatewayTimeoutError( error.message, config.service_name || 'unknown', config ) );
-                                } else if ( this.isRetryableError( error, config, attemptIndex ) ) {
+                                } else if ( this.isRetryableError( error, request, attemptIndex ) ) {
                                   attemptIndex++;
                                   const delay = Math.floor( ( config.retry_interval ? config.retry_interval : 1000 ) * attemptIndex );
                                   return new Promise<AxiosResponse>( ( resolve, reject ) => {
                                     AlStopwatch.once(   () => {
                                                           config.params = config.params || {};
                                                           config.params.breaker = this.generateCacheBuster( attemptIndex );
-                                                          this.axiosRequest( config, attemptIndex + 1 ).then( resolve, reject );
+                                                          this.axiosRequest( request, attemptIndex + 1 ).then( resolve, reject );
                                                         },
                                                         delay );
                                   } );
@@ -1022,16 +776,16 @@ export class AlApiClient
                                 return Promise.reject( error );
                               } )
                         .catch( exception => {
-                          if ( this.isRequestTimeout( exception, config ) ) {
+                          if ( this.isRequestTimeout( exception, request ) ) {
                             return Promise.reject( new AlGatewayTimeoutError( exception.message, config.service_name || 'unknown', config ) );
-                          } else if ( this.isRetryableError( null, config, attemptIndex ) ) {
+                          } else if ( this.isRetryableError( null, request, attemptIndex ) ) {
                             attemptIndex++;
                             const delay = Math.floor( ( config.retry_interval ? config.retry_interval : 1000 ) * attemptIndex );
                             return new Promise<AxiosResponse>( ( resolve, reject ) => {
                               AlStopwatch.once(   () => {
                                                     config.params = config.params || {};
                                                     config.params.breaker = this.generateCacheBuster( attemptIndex );
-                                                    this.axiosRequest( config, attemptIndex + 1 ).then( resolve, reject );
+                                                    this.axiosRequest( request, attemptIndex + 1 ).then( resolve, reject );
                                                   },
                                                   delay );
                             } );
@@ -1043,25 +797,25 @@ export class AlApiClient
   /**
    * Utility method to determine whether a given response is a retryable error.
    */
-  protected isRetryableError( error:AxiosResponse, config:APIRequestParams, attemptIndex:number ) {
-    if ( ! config.hasOwnProperty("retry_count" ) || attemptIndex >= config.retry_count ) {
+  protected isRetryableError( error:AxiosResponse, request:AlRequest, attemptIndex:number ) {
+    if ( ! request.config.hasOwnProperty("retry_count" ) || attemptIndex >= request.config?.retry_count ) {
       return false;
     }
     if ( ! error ) {
-      console.warn( `Notice: will retry request for ${config.url} (null response condition)` );
+      console.warn( `Notice: will retry request for ${request.config.url} (null response condition)` );
       return true;
     }
     if ( error.status === 0
           || ( error.status >= 300 && error.status <= 399 )
           || ( error.status >= 500 && error.status <= 599 ) ) {
-      console.warn( `Notice: will retry request for ${config.url} (${error.status} response code)` );
+      console.warn( `Notice: will retry request for ${request.config.url} (${error.status} response code)` );
       return true;
     }
     return false;
   }
 
-  protected isRequestTimeout( error:any, config:APIRequestParams ) {
-    return 'code' in error && error.code === 'ECONNABORTED' && config.timeout;
+  protected isRequestTimeout( error:any, request:AlRequest ) {
+    return 'code' in error && error.code === 'ECONNABORTED' && request.config.timeout;
   }
 
   /**
@@ -1131,6 +885,10 @@ export class AlApiClient
     return true;
   }
 
+  private wrap( descr:AlRequest|HybridRequestDescriptor ):AlRequest {
+    return descr instanceof AlRequest ? descr : new AlRequest( descr, this );
+  }
+
   private log( text:string, ...otherArgs:any[] ) {
     if ( this.verbose ) {
         console.log.apply( console, (arguments as any) );
@@ -1152,8 +910,90 @@ export class AlApiClient
     } );
     return target;
   }
-
 }
 
 /* tslint:disable:variable-name */
 export const AlDefaultClient = AlGlobalizer.instantiate( 'AlDefaultClient', () => new AlApiClient() );
+
+export class AlRequest<PayloadType=any> {
+    public static defaultParams = {
+            service_stack: AlLocation.InsightAPI,
+            version: 'v1',
+            ttl: false
+        };
+
+    public config:HybridRequestDescriptor;
+    public response:AxiosResponse<PayloadType>;
+
+    constructor( setProps:HybridRequestDescriptor = {},
+                 public client:AlApiClient = AlDefaultClient ) {
+        this.config = { ...AlRequest.defaultParams, ...setProps, _owner: this };
+    }
+
+    public target( locationId:string, serviceName:string, version:string = 'v1', path:string ):AlRequest {
+        this.config.service_stack = locationId;
+        this.config.service_name = serviceName;
+        this.config.version = version;
+        this.config.path = path;
+        return this;
+    }
+
+    public setMethod( method:Method ):AlRequest {
+        this.config.method = method;
+        return this;
+    }
+
+    public setHeader( headerName:string, value:any ):AlRequest {
+        headerName = headerName.trim().toLowerCase();
+        this.config.headers = this.config.headers || {};
+        this.config.headers[headerName] = value;
+        return this;
+    }
+
+    public getHeader( headerName:string, defaultValue?:any ):any {
+        headerName = headerName.trim().toLowerCase();
+        this.config.headers = this.config.headers || {};
+        return this.config.headers[headerName] || defaultValue;
+    }
+
+    public hasHeader( headerName:string ):boolean {
+        headerName = headerName.trim().toLowerCase();
+        return this.config.headers && headerName in this.config.headers || false;
+    }
+
+    public setParam( parameterName:string, value:string ):AlRequest {
+        this.config.params = this.config.params || {};
+        this.config.params[parameterName] = value;
+        return this;
+    }
+
+    public async calculateURL( force:boolean = true ):Promise<string> {
+        await this.client.normalizeRequest( this, force );
+        return this.config.url;
+    }
+
+    public async execute():Promise<AxiosResponse<PayloadType>> {
+        return await this.client.execute( this );
+    }
+}
+
+export function isStandardError( instance:unknown ):instance is StandardErrorResponse {
+    if ( isAxiosResponse( instance ) ) {
+        if ( instance.data.hasOwnProperty("errorinfo") || instance.data.hasOwnProperty( "message" ) ) {
+            return true;
+        }
+    }
+    return false;
+}
+
+export function isAxiosResponse( instance:unknown ):instance is AxiosResponse {
+    if ( instance.hasOwnProperty("status")
+            && instance.hasOwnProperty('statusText')
+            && instance.hasOwnProperty('headers' )
+            && instance.hasOwnProperty( 'config' )
+            && instance.hasOwnProperty( 'data' ) ) {
+        return true;
+    }
+    return false;
+}
+

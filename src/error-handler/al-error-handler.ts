@@ -1,6 +1,6 @@
 import { AxiosResponse } from 'axios';
 import { AlBaseError, AlAPIServerError, AlWrappedError, AlCabinet, AlGlobalizer } from '../common';
-import { AlDefaultClient, APIRequestParams } from '../client';
+import { AlDefaultClient, HybridRequestDescriptor } from '../client';
 
 export interface AlErrorDescriptor {
     title:string;
@@ -72,7 +72,7 @@ export class AlErrorHandler
         if ( error instanceof AlBaseError ) {
             return error;
         } else if ( AlDefaultClient.isResponse( error ) ) {
-            let config = error.config as APIRequestParams;
+            const config = error.config as HybridRequestDescriptor;
             let serviceName = `service_name` in config ? config.service_name : config.url;
             let statusCode = `status` in error ? error.status : 0;
             let errorText = `Received an unexpected ${statusCode} (${error.statusText}) response from '${serviceName}' at '${error.config.url}'.`;
@@ -128,7 +128,7 @@ export class AlErrorHandler
         return new AlWrappedError( message, error );
     }
 
-    public static describe( error:any, verbose = true ):AlErrorDescriptor {
+    public static describe( error:unknown, verbose = true ):AlErrorDescriptor {
 
         let title = "Something is wrong";
         let description = AlErrorHandler.getErrorDescription( error, verbose );
@@ -296,7 +296,7 @@ export class AlErrorHandler
      * Matches a response TODO(kjn): hook this up to the content service, when it's available, and use content from there instead of here :)
      */
     protected static getResponseDescription( response:AxiosResponse<any>, verbose = true ) {
-        const request = response.config as APIRequestParams;
+        const request = response.config as HybridRequestDescriptor;
         const serviceName = 'service_name' in request ? request.service_name : "a required service";
         const status = response.status;
         const statusText = response.statusText;
