@@ -577,10 +577,8 @@ export class AlRoute {
                 return this.host.routeParameters[variableId];
             } else if ( required ) {
                 missing = true;
-                return `:${variableId}`;
-            } else {
-                return '';
             }
+            return '';
         } )
         .replace( /[ \/]+$/g, '' );     //  remove all spaces and trailing slashes
         if ( trimStart ) {
@@ -618,6 +616,7 @@ export class AlRoute {
 
         let path = this.substituteRouteParameters( action.path ?? '' );
         if ( ! path ) {
+            //  This occurs if there are missing non-optional route parameters, which is normal behavior and not an error case
             return false;
         }
 
@@ -916,5 +915,29 @@ export class AlRoute {
             return this.definition.action.location;
         }
         return "unknown";
+    }
+
+    describe( ascendance:number = 0 ):string {
+        let text = "";
+        if ( this.parent ) {
+            text = this.parent.describe( ascendance + 1 );
+        }
+        text += `"${this.caption || "(root)"}"`;
+        if ( ascendance === 0 ) {
+            text = `==== Route: ${text} ====\nCurrent State: ${this.visible?"visible":"hidden"}, ${this.enabled?"enabled":"disabled"}`;
+            if ( this.activated ) {
+                text += `, ACTIVATED`;
+            }
+            if ( this.local ) {
+                text += `\nMatch Mode: local route '${this.anchorRoute}'`;
+            } else {
+                text += `\nMatch Mode: fully qualified URL`;
+            }
+            text += `\nHREF: [${this.href}]`;
+            text += `\nDefinition: ${JSON.stringify( this.definition, null, 4 )}`;
+        } else {
+            text += " >> ";
+        }
+        return text;
     }
 }
