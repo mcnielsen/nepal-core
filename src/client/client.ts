@@ -74,7 +74,7 @@ export class AlApiClient
   protected static defaultResidency = 'default';
 
   public events:AlTriggerStream     =   new AlTriggerStream();
-  public verbose:boolean            =   false;
+  public verbose:boolean            =   true;
   public mockMode:boolean           =   false;              //  If true, requests will be normalized but not actually dispatched.
   public mockRequests:any[]         =   [];
   public defaultAccountId:string    =   null;        //  If specified, uses *this* account ID to resolve endpoints if no other account ID is explicitly specified
@@ -116,6 +116,7 @@ export class AlApiClient
     const request = this.wrap( descr );
     const config = request.config;
     config.method = 'GET';
+    await this.normalizeRequest( request );
     let queryParams = this.normalizeQueryParams( config.params );
     let fullUrl = `${config.url}${queryParams}`;
 
@@ -158,6 +159,8 @@ export class AlApiClient
       return request.response;
     } catch( e ) {
       this.log(`APIClient::XHR GET [${fullUrl}] (FAILED, ${e["message"]})` );
+      console.error( e );
+      debugger;
       throw e;
     } finally {
       delete this.transientReadCache[cacheKey];
@@ -404,6 +407,7 @@ export class AlApiClient
   }
 
   public async normalizeRequest( request:AlRequest, forceRecalculation:boolean = false ):Promise<AlRequest> {
+    console.log("Normalizing", request );
     if ( forceRecalculation ) {
         delete request.config.url;
     }
@@ -411,8 +415,9 @@ export class AlApiClient
       if ( 'target_endpoint' in request.config || 'service_name' in request.config || 'service_stack' in request.config ) {
         // If we are using endpoints resolution to determine our calculated URL, merge globalServiceParams into our configuration
         request.config.url = await this.calculateRequestURL( request.config );
+        console.log("Notice: set request url ts %s", request.config.url );
       } else {
-        console.warn("Warning: malform request descriptor lacks a URL or properties to generate one", request.config );
+        console.warn("Warning: malformed request descriptor lacks a URL or properties to generate one", request.config );
       }
     }
     return request;
@@ -470,8 +475,8 @@ export class AlApiClient
     if (accountId === '0') {
       this.fallbackResolveEndpoints( accountId, serviceList, AlApiClient.defaultResidency );
     } else {
-      try {
         const context = AlLocatorService.getContext();
+        console.log("Issuing endpoints request!" );
         const endpointsRequest = new AlRequest( {
           method: "POST",
           url: AlLocatorService.resolveURL( AlLocation.GlobalAPI, `/endpoints/v1/${accountId}/residency/default/endpoints` ),
@@ -493,15 +498,10 @@ export class AlApiClient
         } );
         // console.log(`resolveDefaultEndpoints() => endpointCache: `, this.endpointCache);
         return this.endpointCache;
-      } catch ( e ) {
-        this.fallbackResolveEndpoints( accountId, serviceList, AlApiClient.defaultResidency );
-        // console.error(`resolveDefaultEndpoints() => endpointCache: `, this.endpointCache);
       }
-    }
   }
 
   public async resolveResidencyAwareEndpoints( accountId:string, serviceList:string[] ) {
-    try {
       const context = AlLocatorService.getContext();
       const endpointsRequest = new AlRequest( {
         method: "POST",
@@ -509,6 +509,7 @@ export class AlApiClient
         data: serviceList,
         aimsAuthHeader: true
       }, this );
+      console.log("Issuing endpoints request!" );
       let response = await this.axiosRequest( endpointsRequest );
       Object.entries( response.data ).forEach( ( [ serviceName, residencyLocations ] ) => {
           Object.entries(residencyLocations).forEach(([residencyName, residencyHost]) => {
@@ -527,9 +528,6 @@ export class AlApiClient
           } );
       } );
       return this.endpointCache;
-    } catch( e ) {
-      this.fallbackResolveEndpoints( accountId, serviceList, AlLocatorService.getCurrentResidency() );
-    }
   }
 
 
@@ -728,6 +726,7 @@ export class AlApiClient
    * If any of these requests succeed, the outer promise will be satisfied using the successful result.
    */
   protected async axiosRequest<ResponseType = any>( request:AlRequest, attemptIndex:number = 0 ):Promise<AxiosResponse<ResponseType>> {
+    console.log("Request", new Error("Outgoing Request" ) );
     const config = request.config;
     const ax = this.getAxiosInstance();
     if ( config.curl && this.verbose ) {
@@ -749,6 +748,7 @@ export class AlApiClient
           caches.delete(cacheKey);
         });
       } catch( e ) {
+          console.error( e );
           // Whatevs
       }
     }

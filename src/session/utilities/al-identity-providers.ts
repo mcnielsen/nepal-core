@@ -114,7 +114,7 @@ export class AlIdentityProviders
      * Uses a race to make sure that auth0 session detection doesn't time out -- since a misconfigured client can cause the
      * promise to hang indefinitely.
      */
-    public async getAuth0SessionToken( authenticator:WebAuth, config:any, timeout:number = 5000 ):Promise<string> {
+    public async getAuth0SessionToken( authenticator:WebAuth, config:any, timeout:number = 60000 ):Promise<string> {
       return Promise.race( [ AlStopwatch.promise( timeout ),
                              new Promise<string>( ( resolve, reject ) => {
                                authenticator.checkSession( config, ( error, authResult ) => {

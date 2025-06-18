@@ -107,6 +107,8 @@ export class AlAuthenticationUtility {
             let session = await this.authenticateViaAIMSFromFortra( fortraSession );
             return await this.finalizeSession( session );
         } catch( e ) {
+            console.error( e );
+            debugger;
             if ( this.handleAuthenticationFailure( e ) ) {
                 return this.state.result;
             }
@@ -236,6 +238,7 @@ export class AlAuthenticationUtility {
      */
 
     public async authenticateViaAIMSFromFortra( fortraSession:FortraSession ):Promise<AIMSSessionDescriptor> {
+        debugger;
         let tokenInfo = await AlDefaultClient.get( {
             service_stack: AlLocation.GlobalAPI,
             service_name: "aims",

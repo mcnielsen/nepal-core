@@ -164,7 +164,7 @@ export class AlSessionDetector
                 let authenticator   =   this.getAuth0Authenticator();
                 if ( authenticator ) {
                     let config          =   this.getAuth0Config( { usePostMessage: true, prompt: 'none' } );
-                    let accessToken     =   await this.getAuth0SessionToken( authenticator, config, 5000 );
+                    let accessToken     =   await this.getAuth0SessionToken( authenticator, config, 60000 );
                     let tokenInfo       =   await AIMSClient.getTokenInfo( accessToken );
 
                     /**
