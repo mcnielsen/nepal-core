@@ -76,6 +76,7 @@ export interface AlContextOptions {
     defaultAccountId?:string;
     truncateLocalLinks?:boolean;
     resourceBaseUrl?:string;
+    useIntegrationAuth?:boolean;
 }
 
 /**

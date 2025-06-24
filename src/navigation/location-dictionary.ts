@@ -267,10 +267,19 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
             `https://iris-ui-pr-*.ui-dev.product.dev.alertlogic.com`,
         ],
     },
+    /*
     {
         locTypeId: AlLocation.IrisUI,
         uri: 'http://localhost:4202',
         environment: 'development',
+    },
+    */
+
+    {
+        locTypeId: AlLocation.SocUI,
+        uri: `https://soc-ui.foundation.foundation-dev.cloudops.fortradev.com`,
+        environment: `development`,
+        residency: 'US'
     },
 
     /**
@@ -655,16 +664,13 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
     {
         locTypeId: AlLocation.FortraPlatform,
         uri: 'https://foundation.foundation-dev.cloudops.fortradev.com',
-        environment: 'embedded-development',
-        external: true,
-        aliases: [
-            'https://local.foundation.foundation-dev.cloudops.fortradev.com'
-        ],
+        environment: 'embedded-development|development',
+        external: true
     },
     {
         locTypeId: AlLocation.FortraPlatform,
         uri: 'https://foundation.foundation-stage.cloudops.fortradev.com',
-        environment: 'development|integration|embedded-integration',
+        environment: 'integration|embedded-integration',
         external: true
     },
     {

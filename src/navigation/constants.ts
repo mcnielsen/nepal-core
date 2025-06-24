@@ -65,6 +65,7 @@ export class AlLocation
      * 1Console UI Nodes
      */
     public static MagmaUI           = "cd21:magma";
+    public static SocUI             = "soc";
     public static FortraPlatform    = "fortra:platform";
     public static FrontlineVM       = "frontline:vm";
     public static StaticContentUI   = "static-content";
