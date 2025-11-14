@@ -239,8 +239,18 @@ export const AlLocationDictionary: AlLocationDescriptor[] =
     },
     {
         locTypeId: AlLocation.InsightBI,
+        uri: 'https://bi.xdr.platform.fortra.com',
+        environment: 'embedded-production',
+    },
+    {
+        locTypeId: AlLocation.InsightBI,
         uri: 'https://bi.product.dev.alertlogic.com',
-        environment: 'integration|development|embedded-integration|embedded-development'
+        environment: 'integration|development'
+    },
+    {
+        locTypeId: AlLocation.InsightBI,
+        uri: `https://bi.xdr.foundation-stage.cloudops.fortradev.com`,
+        environment: `embedded-development|embedded-integration`
     },
 
     /**
