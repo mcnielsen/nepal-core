@@ -739,7 +739,8 @@ export class AlSessionInstance
       /*  tslint:disable:no-boolean-literal-compare */
       const environment = AlLocatorService.getCurrentEnvironment();
       if ( AlRuntimeConfiguration.options.embeddedFortraApp ) {
-        if ( event.request.url && event.request.url.includes("platform.fortra") ) {
+        const url = event.request.url;
+        if ( url && ( event.request.url.includes(".fortra.com") || event.request.url.includes( ".fortradev.com" ) ) ) {
           event.request.withCredentials = true;
           return;
         }
