@@ -45,8 +45,6 @@ import {
     APIExecutionLogItem,
     APIExecutionLogSummary,
     APIRequestParams,
-    AlInterceptionRule,
-    AlInterceptionRules,
 } from './types';
 import { AlClientBeforeRequestEvent, AlClientAPIErrorEvent } from './events';
 import { AIMSSessionDescriptor } from '../aims-client/types';
@@ -114,7 +112,6 @@ export class AlApiClient
   /* Internal execution log */
   private executionRequestLog:APIExecutionLogItem[] = [];
 
-  private interceptionRules?:AlInterceptionRules;
   private beforeRequest?:{():Promise<any>};
 
   constructor() {
@@ -779,18 +776,6 @@ export class AlApiClient
             null );
   }
 
-  public setInterceptionRules( rules:AlInterceptionRules|AlInterceptionRule[]|AlInterceptionRule|undefined ) {
-      if ( rules instanceof AlInterceptionRules ) {
-          this.interceptionRules = rules;
-      } else if ( rules === undefined ) {
-          delete this.interceptionRules;
-      } else if ( Array.isArray( rules ) ) {
-          this.interceptionRules = new AlInterceptionRules( rules );
-      } else if ( typeof( rules ) === 'object' ) {
-          this.interceptionRules = new AlInterceptionRules( [ rules ] );
-      }
-  }
-
   public setBeforeRequest( handler?:{():Promise<any>} ) {
     this.beforeRequest = handler;
   }
@@ -949,12 +934,6 @@ export class AlApiClient
   }
 
   protected onRequestResponse = async ( response:AxiosResponse ):Promise<AxiosResponse> => {
-    if ( this.interceptionRules ) {
-      let substitution = await this.interceptionRules.apply( response );
-      if ( substitution ) {
-        response = substitution;
-      }
-    }
     if ( response.status < 200 || response.status >= 400 ) {
       return this.onRequestError( response );
     }

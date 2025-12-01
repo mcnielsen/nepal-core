@@ -737,11 +737,14 @@ export class AlSessionInstance
 
     protected onBeforeRequest = ( event:AlClientBeforeRequestEvent ) => {
       /*  tslint:disable:no-boolean-literal-compare */
+      const url = event.request.url ?? '';
       const environment = AlLocatorService.getCurrentEnvironment();
       if ( AlRuntimeConfiguration.options.embeddedFortraApp ) {
-        const url = event.request.url;
-        if ( url && ( event.request.url.includes(".fortra.com") || event.request.url.includes( ".fortradev.com" ) ) ) {
+        if ( url && ( url.includes(".fortra.com") || url.includes( ".fortradev.com" ) ) ) {
           event.request.withCredentials = true;
+          if ( environment === 'embedded-development' ) {
+              event.request.headers['X-Fortra-Environment'] = "dev";
+          }
           return;
         }
       }
