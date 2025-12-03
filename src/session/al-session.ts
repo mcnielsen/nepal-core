@@ -28,6 +28,7 @@ import {
     AlLocation,
     AlLocatorService
 } from "../navigation";
+import { AlWrappedError } from '../common/errors';
 import { AlBehaviorPromise } from "../common/promises";
 import { AlRuntimeConfiguration } from '../configuration';
 import {
@@ -150,32 +151,6 @@ export class AlSessionInstance
       AlGlobalizer.expose( 'al.session', {
           state: () => {
               return this.sessionData;
-          },
-          setActingAccount: ( accountId:string ) => {
-              if ( ! this.isActive() ) {
-                  console.warn("The acting account cannot be changed while in an unauthenticated state." );
-                  return;
-              }
-              this.setActingAccount( accountId )
-                    .then(  result => {
-                                console.log("OK");
-                            },
-                            error => {
-                                console.warn("Failed to set the acting account", error );
-                            } );
-          },
-          expireIn: ( offset:number, mangle?:boolean ) => {
-              let expirationTTL = Math.floor( Date.now() / 1000 ) + offset;
-              let token = this.getToken();
-              if ( mangle ) {
-                  let targetToken = '';
-                  for ( let i = 0; i < token.length; i++ ) {
-                      targetToken += Math.random() < 0.2 ? 'X' : token[i];
-                  }
-                  token = targetToken;
-              }
-              this.setTokenInfo( token, expirationTTL );
-              console.log("Updated AIMS Token to expire in %s seconds from now", offset );
           }
       } );
     }
@@ -294,7 +269,12 @@ export class AlSessionInstance
         if ( AlRuntimeConfiguration.options.embeddedFortraApp ) {
             accountDetailReq.withCredentials = true;
         }
-        account = await AlDefaultClient.get<AIMSAccount>( accountDetailReq );
+        try {
+            account = await AlDefaultClient.get<AIMSAccount>( accountDetailReq );
+        } catch( e ) {
+            console.error( "PLATFORM: failed to retrieve account information", accountDetailReq );
+            throw new AlWrappedError( `failed to look up aims account ${account}`, e, accountDetailReq );
+        }
       }
 
       const previousAccount               = this.sessionData.acting;
@@ -395,6 +375,8 @@ export class AlSessionInstance
       const wasActive = this.sessionIsActive;
       if ( this.sessionData.authentication.token_expiration > this.getCurrentTimestamp()) {
         this.sessionIsActive = true;
+      } else {
+          AlErrorHandler.log( new Error( `Cannot activate session because its access token has already expired.` ), null, "auth" );
       }
       if ( this.sessionIsActive ) {
         SubscriptionsClient.setInternalUser( this.getPrimaryAccountId() === "2" );
@@ -786,13 +768,14 @@ export class AlSessionInstance
      * and then emit an AlActingAccountResolvedEvent through the session's notifyStream.
      */
     protected async resolveActingAccount( account:AIMSAccount ) {
-      let primaryEntitlementsLookup = SubscriptionsClient.getEntitlements( this.getPrimaryAccountId() );
+      const primaryAccountId = this.getPrimaryAccountId() ?? account.id;
+      let primaryEntitlementsLookup = SubscriptionsClient.getEntitlements( primaryAccountId );
 
       let dataSources = [
           AIMSClient.getAccountDetails( account.id ),
           AIMSClient.getLicenseAcceptanceStatus( account.id ),
           primaryEntitlementsLookup,
-          account.id === this.getPrimaryAccountId() ? primaryEntitlementsLookup : SubscriptionsClient.getEntitlements( account.id )
+          account.id === primaryAccountId ? primaryEntitlementsLookup : SubscriptionsClient.getEntitlements( account.id )
       ];
 
       let [ accountReq, licenseStatusReq, primaryEntitlementsReq, actingEntitlementsReq ] = await Promise.allSettled( dataSources );
