@@ -25,7 +25,7 @@ import axios, {
     AxiosInstance,
     AxiosRequestConfig,
     AxiosResponse,
-    Method,
+    Method as AxiosRequestMethod,
 } from 'axios';
 import * as base64JS from 'base64-js';
 import { AlDataValidationError, AlGatewayTimeoutError } from '../common/errors';
@@ -223,7 +223,7 @@ export class AlApiClient
 
       if (this.collectRequestLog || this.verbose) {
         let logItem:APIExecutionLogItem = {
-          method: config.method,
+          method: config.method as AxiosRequestMethod,
           url: fullUrl,
           responseCode: response.status,
           responseContentLength: +response.headers['content-length'],
@@ -264,12 +264,12 @@ export class AlApiClient
    * POST - clears cache and posts for new/merged data
    */
   public async rawPost<T = any>(config: APIRequestParams): Promise<AxiosResponse<T>> {
-    config.method = 'POST';
+    config.method = "POST";
     const normalized = await this.normalizeRequest( config );
     if ( ! normalized.disableCache ) {
       this.deleteCachedValue( normalized.url );
     }
-    const response = await this.doRequest<T>( config.method, normalized );
+    const response = await this.doRequest<T>( normalized );
     return response;
   }
 
@@ -282,15 +282,15 @@ export class AlApiClient
    * Form data submission
    */
   public async rawForm<T = any>(config: APIRequestParams) :Promise<AxiosResponse<T>>{
-    config.method = 'POST';
     config.headers = {
         'Content-Type': 'multipart/form-data'
     };
+    config.method = 'POST';
     const normalized = await this.normalizeRequest( config );
     if ( ! normalized.disableCache ) {
       this.deleteCachedValue( normalized.url );
     }
-    const response = await this.doRequest<T>( config.method, normalized );
+    const response = await this.doRequest<T>( normalized );
     return response;
   }
 
@@ -303,12 +303,12 @@ export class AlApiClient
    * PUT - replaces data
    */
   public async rawPut<T = any>(config: APIRequestParams) :Promise<AxiosResponse<T>>{
-    config.method = 'PUT';
+    config.method = "PUT";
     const normalized = await this.normalizeRequest( config );
     if ( ! normalized.disableCache ) {
       this.deleteCachedValue( normalized.url );
     }
-    const response = await this.doRequest<T>( config.method, normalized );
+    const response = await this.doRequest<T>( normalized );
     return response;
   }
 
@@ -330,10 +330,10 @@ export class AlApiClient
    * Delete data
    */
   public async rawDelete<T = any>(config: APIRequestParams) :Promise<AxiosResponse<T>>{
-    config.method = 'DELETE';
+    config.method = "DELETE";
     const normalized = await this.normalizeRequest( config );
     this.deleteCachedValue( normalized.url );
-    const response = await this.doRequest<T>( config.method, normalized );
+    const response = await this.doRequest<T>( normalized );
     return response;
   }
 
@@ -352,14 +352,14 @@ export class AlApiClient
    * @param method The method of the request. [POST PUT DELETE GET]
    * @param normalizedParams The normalized APIRequestParams object.
    */
-  public async doRequest<T = any>(method:Method, normalizedParams:APIRequestParams):Promise<AxiosResponse<T>> {
+  public async doRequest<T = any>(normalizedParams:APIRequestParams):Promise<AxiosResponse<T>> {
     let response:AxiosResponse;
     let start:number = 0;
     let logItem:APIExecutionLogItem = {};
 
     if (this.collectRequestLog) {
       start = Date.now();
-      logItem.method = method;
+      logItem.method = normalizedParams.method as AxiosRequestMethod;
       logItem.url = normalizedParams.url;
     }
 
@@ -985,7 +985,7 @@ export class AlApiClient
             console.warn(`WARNING: ignoring exception thrown in beforeRequest callback`, e );
         }
     }
-    return ax( config ).then( response => {
+    await ax( config ).then( response => {
                                 if ( attemptIndex > 0 ) {
                                   console.warn(`Notice: resolved request for ${config.url} with retry logic.` );
                                 }
