@@ -731,7 +731,7 @@ export class AlSessionInstance
         }
       }
 
-      if ( this.sessionIsActive ) {
+      if ( this.isActive() ) {
         if ( event.request.aimsAuthHeader === true
                 ||
              ( this.authenticatedStacks.includes( event.request.service_stack ) && event.request.aimsAuthHeader !== false ) ) {
