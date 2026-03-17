@@ -87,7 +87,10 @@ export class AlLocation
                 locTypeId: locTypeId,
                 environment: 'production',
                 residency: 'US',
-                uri: `https://master.soc-ui.product.dev.alertlogic.com`,
+                uri: `https://soc-ui.alertlogic.com`,
+                aliases: [
+                    `https://master.soc-ui.product.dev.alertlogic.com`
+                ],
             },
             {
                 locTypeId: locTypeId,
