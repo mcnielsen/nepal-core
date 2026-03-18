@@ -985,7 +985,7 @@ export class AlApiClient
             console.warn(`WARNING: ignoring exception thrown in beforeRequest callback`, e );
         }
     }
-    await ax( config ).then( response => {
+    return ax( config ).then( response => {
                                 if ( attemptIndex > 0 ) {
                                   console.warn(`Notice: resolved request for ${config.url} with retry logic.` );
                                 }
